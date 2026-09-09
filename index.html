@@ -188,6 +188,20 @@
     display: inline-flex; align-items: center; justify-content: center; color: var(--cadet-base); }
   tbody tr:hover .view-btn { border-color: var(--primary); color: var(--primary); }
 
+  /* Pagination */
+  .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; flex-wrap: wrap; gap: 10px;
+    border-top: 1px solid var(--border-subtle); }
+  .pagination-info { font-size: 13px; color: var(--foreground); }
+  .rpp { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); }
+  .rpp select { border: none; background: none; font-size: 13px; font-weight: 600; color: var(--foreground); cursor: pointer; }
+  .pagination { display: flex; align-items: center; gap: 4px; }
+  .page-btn { min-width: 30px; height: 30px; padding: 0 6px; display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius); border: 1.5px solid transparent; background: #fff; font-size: 12px; font-weight: 600;
+    color: var(--foreground); cursor: pointer; }
+  .page-btn.active { background: var(--ocean-10); color: var(--primary); border-color: var(--primary); }
+  .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .page-btn:hover:not(.active):not(:disabled) { border-color: var(--border); }
+
   /* Empty state */
   .empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 70px; text-align: center; }
   .empty-state.show { display: flex; }
@@ -356,6 +370,21 @@
           <div class="empty-title">No leads match this filter.</div>
           <div class="empty-sub">Try a different status tab or clear your search to see all your assigned leads.</div>
         </div>
+
+        <div class="pagination-bar" id="paginationBar">
+          <div class="pagination-info" id="pageInfo"></div>
+          <div style="display:flex; align-items:center; gap:20px;">
+            <div class="pagination" id="pagination"></div>
+            <div class="rpp">
+              Rows per page:
+              <select id="rppSelect">
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -399,6 +428,8 @@
   let activeStatus = 'all';
   let searchTerm = '';
   let industryTerm = '';
+  let currentPage = 1;
+  let perPage = 5;
 
   function initials(name) {
     return name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
@@ -427,7 +458,7 @@
         ${esc(label)} <span class="tab-count">${counts[key]}</span>
       </button>`).join('');
     $('statusTabs').querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => { activeStatus = btn.dataset.status; renderTabs(); renderTable(); });
+      btn.addEventListener('click', () => { activeStatus = btn.dataset.status; currentPage = 1; renderTabs(); renderTable(); });
     });
   }
 
@@ -451,7 +482,17 @@
     const rows = filteredLeads();
     $('resultCount').textContent = `${rows.length} of ${LEADS.length} leads`;
     $('emptyState').classList.toggle('show', rows.length === 0);
-    $('leadsBody').innerHTML = rows.map(l => {
+
+    const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * perPage;
+    const pageRows = rows.slice(start, start + perPage);
+
+    $('paginationBar').style.display = rows.length === 0 ? 'none' : 'flex';
+    $('pageInfo').textContent = rows.length === 0 ? '0 - 0 of 0' : `${start + 1} - ${Math.min(start + perPage, rows.length)} of ${rows.length}`;
+    renderPagination(totalPages);
+
+    $('leadsBody').innerHTML = pageRows.map(l => {
       const meta = STATUS_META[l.status];
       return `
       <tr onclick="location.href='lead-details.html?id=${encodeURIComponent(l.id)}'">
@@ -482,8 +523,23 @@
     }).join('');
   }
 
-  $('searchInput').addEventListener('input', e => { searchTerm = e.target.value; renderTable(); });
-  $('industryFilter').addEventListener('change', e => { industryTerm = e.target.value; renderTable(); });
+  function renderPagination(totalPages) {
+    const el = $('pagination');
+    let html = `<button class="page-btn" id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>&lsaquo;</button>`;
+    for (let p = 1; p <= totalPages; p++) {
+      html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`;
+    }
+    html += `<button class="page-btn" id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>&rsaquo;</button>`;
+    el.innerHTML = html;
+    el.querySelectorAll('[data-page]').forEach(btn => btn.addEventListener('click', () => { currentPage = Number(btn.dataset.page); renderTable(); }));
+    const prev = $('prevPage'), next = $('nextPage');
+    if (prev) prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
+    if (next) next.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderTable(); } });
+  }
+
+  $('searchInput').addEventListener('input', e => { searchTerm = e.target.value; currentPage = 1; renderTable(); });
+  $('industryFilter').addEventListener('change', e => { industryTerm = e.target.value; currentPage = 1; renderTable(); });
+  $('rppSelect').addEventListener('change', e => { perPage = Number(e.target.value); currentPage = 1; renderTable(); });
 
   renderKpis();
   renderTabs();

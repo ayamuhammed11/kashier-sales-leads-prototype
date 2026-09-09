@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kashier | Complete Onboarding Application</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #001F5F; --primary-hover: #103788; --primary-10: #F1F6FF; --ocean-10: #F1F6FF; --ocean-07: #C0D5FF;
+    --link: #2955B1; --accent: #00BCB4; --accent-10: #EAFFFE;
+    --destructive: #A50017; --destructive-hover: #830012; --destructive-bg: #FFEAED;
+    --success: #4AAB4E; --success-bg: #F3FFF4; --success-text: #1A541D; --success-80: #388E3B;
+    --warning: #FBAF1F; --warning-bg: #FFF7E8; --warning-border: #FFE6B6; --warning-text: #513500;
+    --foreground: #202020; --border: #E6E8E8; --border-subtle: #F5F6F6; --muted: #F5F6F6;
+    --cadet-base: #556767; --cadet-02: #697979; --cadet-04: #839090; --cadet-05: #919C9C; --cadet-06: #B3BBBB;
+    --pill-bg: #F5F6F6; --pill-text: #697979; --radius: 4px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: 'Noto Sans', Arial, sans-serif; background: #fff; color: var(--foreground);
+    display: flex; font-size: 14px; min-height: 100vh; }
+  h1, h2, h3, h4 { font-family: 'Outfit', Arial, sans-serif; margin: 0; font-weight: 700; }
+  a { text-decoration: none; }
+  button { font-family: inherit; }
+
+  .hi { width: 20px; height: 20px; flex-shrink: 0; }
+  .hi-sm { width: 16px; height: 16px; flex-shrink: 0; }
+  .hi-xs { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar { width: 232px; background: #fff; min-height: 100vh; padding: 22px 14px 30px;
+    border-right: 1px solid var(--border-subtle);
+    position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; flex-shrink: 0; z-index: 60; }
+  .brand { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 26px; color: var(--accent);
+    padding: 0 10px; margin-bottom: 26px; letter-spacing: -.01em; }
+  .nav-link { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 8px;
+    color: var(--cadet-base); text-decoration: none; font-size: 14px; margin-bottom: 2px; position: relative; }
+  .nav-link svg { color: var(--cadet-04); }
+  .nav-link.active { background: #EEF1FB; color: var(--primary); font-weight: 600; }
+  .nav-link.active svg { color: var(--primary); }
+  .nav-link:not(.active):hover { background: #F7F8F8; }
+  .new-badge { margin-left: auto; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: #006A66;
+    background: var(--accent-10); border-radius: 999px; padding: 2px 7px; }
+  .nav-section { margin-top: 14px; }
+  .nav-section .section-head { display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 12px; color: var(--primary); font-weight: 600; font-size: 13px; cursor: pointer; user-select: none; }
+  .nav-section .section-head svg { color: var(--cadet-05); transition: transform .2s ease; }
+  .nav-sub { display: flex; flex-direction: column; overflow: hidden; }
+  .nav-sub a { padding: 9px 12px; border-radius: 8px; color: var(--cadet-base); font-size: 14px; }
+  .nav-sub a:hover { background: #F7F8F8; }
+  .nav-sub a.active { background: #EEF1FB; color: var(--primary); font-weight: 600; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(16,24,40,.45); z-index: 55; }
+  .overlay.open { display: block; }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px;
+    padding: 14px 34px; border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; background: #fff; z-index: 40; }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .hamburger { display: none; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 8px;
+    background: #fff; color: var(--cadet-base); align-items: center; justify-content: center; cursor: pointer; }
+  .hamburger:hover { background: var(--muted); }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .lang { color: var(--cadet-base); font-size: 14px; cursor: pointer; background: none; border: none; padding: 0; }
+  .lang:hover { color: var(--primary); }
+  .divider { width: 1px; height: 22px; background: var(--border); }
+  .user { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .user .avatar { width: 30px; height: 30px; background: #E7ECF7; color: var(--primary); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-family: 'Outfit', sans-serif; }
+  .user .name { font-weight: 600; font-size: 14px; color: var(--foreground); }
+  .user .gear { color: var(--cadet-04); display: flex; }
+
+  .content { padding: 28px 34px 60px; max-width: 1000px; width: 100%; }
+
+  .breadcrumb { font-size: 13px; color: var(--cadet-04); margin-bottom: 12px; }
+  .breadcrumb a { color: var(--link); }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep { margin: 0 6px; color: var(--cadet-06); }
+  .breadcrumb .current { color: var(--cadet-base); }
+
+  .page-head { margin-bottom: 22px; }
+  .page-head h1 { font-size: 30px; color: var(--primary); margin-bottom: 8px; }
+  .page-head .sub { font-size: 14px; color: var(--cadet-base); max-width: 640px; line-height: 1.5; margin: 0; }
+  .lead-source-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #006A66;
+    background: var(--accent-10); border-radius: 999px; padding: 5px 12px; margin-bottom: 10px; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600;
+    border-radius: var(--radius); cursor: pointer; border: 1.5px solid transparent; padding: 0 18px; height: 40px;
+    transition: background .12s ease, border-color .12s ease, color .12s ease; white-space: nowrap; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-outline { background: #fff; color: var(--primary); border-color: var(--primary); }
+  .btn-outline:hover { background: var(--ocean-10); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 24px; }
+  .card-head { display: flex; align-items: flex-start; gap: 10px; padding: 20px 22px 0; }
+  .card-head .ch-icon { color: var(--cadet-base); margin-top: 2px; }
+  .card-head h2 { font-size: 18px; color: var(--foreground); }
+  .card-head .ch-sub { font-size: 13px; color: var(--cadet-04); line-height: 1.5; margin: 6px 0 0; max-width: 640px; }
+  .card-body { padding: 18px 22px 22px; }
+
+  /* Step 1 — Merchant Details */
+  .details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .field .lbl { display: block; font-size: 13px; font-weight: 600; color: var(--foreground); margin-bottom: 8px; }
+  .field .lbl .req { color: var(--destructive); margin-left: 2px; }
+  .inp { width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px;
+    font-family: inherit; font-size: 14px; color: var(--foreground); background: #fff; height: 42px; }
+  .inp:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,31,95,.08); }
+  .inp::placeholder { color: var(--cadet-05); }
+  .inp.invalid { border-color: var(--destructive); }
+
+  /* Step 2 — Criteria & Services (same vocabulary as Document Rules / Documents) */
+  .crit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+  .crit-group { display: flex; flex-direction: column; gap: 9px; }
+  .crit-group.full { grid-column: 1 / -1; }
+  .crit-label { font-size: 12.5px; font-weight: 700; color: var(--foreground); display: flex; align-items: center; gap: 6px; }
+  .crit-label .req { color: var(--destructive); }
+  .crit-label .opt { font-weight: 400; color: var(--cadet-05); }
+  .crit-select { height: 42px; border: 1.5px solid var(--border); border-radius: 8px; padding: 0 12px; font-family: inherit;
+    font-size: 13.5px; color: var(--foreground); background: #fff; cursor: pointer; }
+  .crit-select:focus { outline: none; border-color: var(--primary); }
+  .crit-select.invalid { border-color: var(--destructive); }
+  .crit-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .crit-chips.invalid .crit-chip { border-color: var(--destructive); }
+  /* Services picker mirrors the Kashier Services portal: Basic / Add-on tiers. */
+  .svc-group { margin-bottom: 14px; }
+  .svc-group:last-child { margin-bottom: 0; }
+  .svc-group-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--cadet-05); margin-bottom: 8px; }
+  .crit-chip { border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600;
+    font-family: inherit; color: var(--cadet-base); background: #fff; cursor: pointer;
+    transition: border-color .12s ease, background .12s ease, color .12s ease; }
+  .crit-chip:hover { border-color: var(--cadet-05); }
+  .crit-chip.on { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
+
+  /* Step 3 — What Happens Next */
+  .whn-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border-subtle); }
+  .whn-row:last-child { border-bottom: none; }
+  .whn-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--ocean-10); color: var(--primary);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .whn-icon svg { width: 16px; height: 16px; }
+  .whn-info { min-width: 0; }
+  .whn-name { font-weight: 700; font-size: 14px; color: var(--foreground); }
+  .whn-ar { font-weight: 400; font-size: 12.5px; color: var(--cadet-05); margin-left: 8px; direction: rtl; display: inline-block; }
+  .whn-via { font-size: 12px; color: var(--cadet-05); font-style: italic; margin-top: 3px; }
+  .whn-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
+  .whn-count { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
+  .whn-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
+
+  /* Step 4 — Pricing */
+  .price-service { padding: 16px 4px; border-bottom: 1px solid var(--border-subtle); }
+  .price-service:last-child { border-bottom: none; }
+  .price-service-name { font-weight: 700; font-size: 14px; color: var(--foreground); margin-bottom: 10px; }
+  .price-tier { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px; margin-bottom: 10px; background: #FAFBFC; }
+  .price-tier:last-child { margin-bottom: 0; }
+  .price-tier-label { font-weight: 700; font-size: 13px; color: var(--foreground); }
+  .price-tier-desc { font-size: 12px; color: var(--cadet-05); margin: 2px 0 10px; }
+  .price-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+  .price-stat { background: #fff; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; }
+  .price-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); }
+  .price-stat-value { font-size: 14px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
+  .rate-tier-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rate-tier-chip { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 700;
+    font-family: inherit; color: var(--cadet-base); background: #fff; cursor: pointer; display: flex; flex-direction: column;
+    align-items: flex-start; gap: 1px; transition: border-color .12s ease, background .12s ease, color .12s ease; }
+  .rate-tier-chip .rtc-sub { font-weight: 400; font-size: 11px; color: var(--cadet-05); }
+  .rate-tier-chip:hover { border-color: var(--cadet-05); }
+  .rate-tier-chip.auto.on { border-color: var(--success); background: var(--success-bg); color: var(--success-80); }
+  .rate-tier-chip.auto.on .rtc-sub { color: var(--success-80); }
+  .rate-tier-chip.manager.on { border-color: var(--warning); background: var(--warning-bg); color: var(--warning-text); }
+  .rate-tier-chip.manager.on .rtc-sub { color: var(--warning-text); }
+  .rate-tier-chip.head.on { border-color: var(--destructive); background: var(--destructive-bg); color: var(--destructive); }
+  .rate-tier-chip.head.on .rtc-sub { color: var(--destructive); }
+  .price-note { margin-top: 10px; }
+  .price-note textarea.inp { height: auto; min-height: 60px; padding: 10px 12px; resize: vertical; }
+  .price-note-hint { font-size: 11px; color: var(--cadet-05); margin-top: 4px; }
+  .price-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
+
+  /* Required-document cards inside the agent-assisted upload panel */
+  .req-item { padding: 18px 4px; border-bottom: 1px solid var(--border-subtle); }
+  .req-item:last-child { border-bottom: none; }
+  .req-top { display: flex; gap: 14px; align-items: flex-start; }
+  .req-thumb { border: 1px solid var(--border); border-radius: 8px; width: 60px; height: 42px; overflow: hidden; background: #fff; flex-shrink: 0; }
+  .req-thumb svg { width: 100%; height: 100%; display: block; }
+  .req-info { flex: 1; min-width: 0; }
+  .req-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .req-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; color: var(--foreground); }
+  .req-ar { color: var(--cadet-05); font-size: 12.5px; direction: rtl; }
+  .req-via { font-size: 11.5px; color: var(--cadet-05); font-style: italic; margin-top: 4px; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; border-radius: 20px;
+    padding: 4px 10px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; flex-shrink: 0;
+    background: var(--pill-bg); color: var(--pill-text); }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cadet-05); }
+  .status-pill.warn { background: var(--warning-bg); color: var(--warning-text); }
+  .status-pill.warn .dot { background: var(--warning); }
+  .status-pill.info { background: var(--ocean-10); color: var(--primary); }
+  .status-pill.info .dot { background: var(--primary); }
+
+  /* Step 5 — Submit */
+  .submit-summary { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 16px; margin-bottom: 18px; }
+  .submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border-subtle); }
+  .submit-row:last-child { border-bottom: none; }
+  .submit-row .lbl { font-size: 13px; color: var(--cadet-04); }
+  .submit-row .val { font-size: 13px; font-weight: 700; color: var(--foreground); }
+
+  .req-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .req-slots.single { grid-template-columns: 1fr; }
+  .dz-block .dz-label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+  .dz-block .dz-label .req { color: var(--destructive); }
+  .dropzone { display: block; border: 1.5px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center;
+    cursor: pointer; transition: border-color .12s ease, background .12s ease; background: #fff; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--primary); background: var(--ocean-10); }
+  .dz-ico { width: 26px; height: 26px; color: var(--primary); margin: 0 auto 6px; display: block; }
+  .dz-main { font-size: 13px; color: var(--foreground); font-weight: 600; }
+  .dz-main .link { color: var(--primary); text-decoration: underline; }
+  .dz-sub { font-size: 11.5px; color: var(--cadet-05); margin-top: 4px; }
+  .dz-files { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .dz-fchip { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border-subtle); background: #fff;
+    border-radius: 8px; padding: 9px 12px; text-align: left; }
+  .dz-fchip svg.doc { color: var(--cadet-04); flex-shrink: 0; }
+  .dz-fchip .flabel { font-size: 11px; font-weight: 700; color: var(--primary); background: #EEF1FB; border: 1px solid #DCE3F5;
+    border-radius: 4px; padding: 1px 7px; white-space: nowrap; }
+  .dz-fchip .fname { font-size: 13px; font-weight: 600; color: var(--foreground); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dz-fchip .fsize { font-size: 12px; color: var(--cadet-05); margin-left: auto; white-space: nowrap; }
+  .dz-fchip .rm { border: none; background: none; color: var(--cadet-04); cursor: pointer; width: 26px; height: 26px;
+    border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .dz-fchip .rm:hover { color: var(--destructive); background: var(--destructive-bg); }
+
+
+  .assist-panel { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 18px; }
+  .assist-summary { font-size: 13px; font-weight: 600; color: var(--cadet-base); margin-bottom: 10px; }
+
+  /* Submitted Applications — card grid */
+  .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 14px; }
+  .app-card { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .app-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .app-card-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--foreground); line-height: 1.3; }
+  .app-card-ts { font-size: 11.5px; color: var(--cadet-05); margin-top: 3px; }
+  .app-card-facts { display: flex; flex-direction: column; gap: 6px; }
+  .app-fact { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; }
+  .app-fact .lbl { color: var(--cadet-05); flex-shrink: 0; }
+  .app-fact .val { font-weight: 600; color: var(--foreground); text-align: right; }
+  .app-card-actor { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11.5px;
+    color: var(--cadet-05); border-top: 1px dashed var(--border); padding-top: 10px; }
+  .app-track-btn { display: inline-flex; align-items: center; gap: 5px; border: 1.5px solid var(--primary); background: #fff;
+    border-radius: 999px; padding: 5px 12px; font-family: inherit; font-size: 11.5px; font-weight: 700;
+    color: var(--primary); text-decoration: none; cursor: pointer; white-space: nowrap; }
+  .app-track-btn:hover { background: var(--ocean-10); }
+  .app-track-btn svg { width: 13px; height: 13px; }
+  .events-empty { display: none; text-align: center; font-size: 13px; color: var(--cadet-05); padding: 26px 0 14px; }
+  .events-empty.show { display: block; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--primary);
+    color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0;
+    pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 1000px) { .content { padding: 24px 22px 60px; } .topbar { padding: 12px 22px; } }
+  @media (max-width: 900px) {
+    .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); transition: transform .22s ease; box-shadow: 0 10px 40px rgba(0,0,0,.18); }
+    .sidebar.open { transform: translateX(0); }
+    .hamburger { display: flex; }
+    .page-head h1 { font-size: 26px; }
+    .details-grid { grid-template-columns: 1fr; }
+    .crit-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) { .user .name { display: none; } .req-slots { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">kashier</div>
+
+    <a class="nav-link" href="home.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>Home</a>
+    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Leads</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>BIN Management</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>Financial Institutions</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>Merchant</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h6m-6 3h6m-6 3h6M10.5 21v-3.75a1.5 1.5 0 0 1 3 0V21"/></svg>Business Industries</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/></svg>PCC Templates</a>
+    <a class="nav-link" href="terminals.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25"/></svg>Terminals</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-9L21 3m0 0-4.5-4.5M21 3v13.5" transform="translate(0 3)"/></svg>Reconciliation</a>
+    <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"/></svg>Transfers</a>
+
+    <div class="nav-section">
+      <div class="section-head" id="documentsHead">Documents
+        <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+      </div>
+      <div class="nav-sub" id="documentsSub">
+        <a href="document-types.html">Document Types</a>
+        <a href="document-rules.html">Document Rules</a>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="section-head" id="balanceHead">Balance Management
+        <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+      </div>
+      <div class="nav-sub" id="balanceSub">
+        <a href="#">Settlement Windows</a>
+        <a href="#">Accounts</a>
+        <a href="on-hold.html">On-Hold</a>
+        <a href="#">Vacations</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+          <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+      </div>
+      <div class="topbar-right">
+        <button class="lang" id="langBtn">عربي</button>
+        <div class="divider"></div>
+        <div class="user">
+          <div class="avatar">AM</div>
+          <span class="name">Aya Muhammed</span>
+          <span class="gear"><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="breadcrumb"><a href="index.html">My Leads</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
+
+      <div class="page-head">
+        <h1>Complete Onboarding Application</h1>
+        <p class="sub">Finish onboarding this lead into a live merchant. Capture their business criteria and services below — the required documents checklist updates automatically as you go, exactly like the merchant will see it.</p>
+      </div>
+
+      <!-- STEP 1 — Merchant Details -->
+      <div class="card">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>
+          <div>
+            <h2>1. Merchant Details</h2>
+            <p class="ch-sub">Basic information to create the application record.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="details-grid">
+            <div class="field">
+              <label class="lbl" for="mBiz">Business Name<span class="req">*</span></label>
+              <input class="inp" id="mBiz" type="text" placeholder="e.g. Cairo Fresh Market">
+            </div>
+            <div class="field">
+              <label class="lbl" for="mEmail">Contact Email<span class="req">*</span></label>
+              <input class="inp" id="mEmail" type="email" placeholder="owner@business.com">
+            </div>
+            <div class="field">
+              <label class="lbl" for="mPhone">Contact Phone<span class="req">*</span></label>
+              <input class="inp" id="mPhone" type="tel" placeholder="+20 1xx xxx xxxx">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 — Criteria & Services -->
+      <div class="card">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+          <div>
+            <h2>2. Criteria &amp; Services</h2>
+            <p class="ch-sub">The same conditions configured in Document Rules. Pick what applies to this merchant — the required documents below update instantly.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="crit-grid">
+            <div class="crit-group">
+              <div class="crit-label">Merchant Type<span class="req">*</span></div>
+              <div class="crit-chips" id="critEntity"></div>
+            </div>
+            <div class="crit-group">
+              <div class="crit-label">Business Owner Nationality<span class="opt">(optional)</span></div>
+              <div class="crit-chips" id="critOwner"></div>
+            </div>
+            <div class="crit-group">
+              <div class="crit-label">Industry<span class="req">*</span></div>
+              <select class="crit-select" id="critIndustry"><option value="">Select industry…</option></select>
+            </div>
+            <div class="crit-group">
+              <div class="crit-label">Financial Institution<span class="req">*</span></div>
+              <select class="crit-select" id="critBank"><option value="">Select bank…</option></select>
+            </div>
+            <div class="crit-group">
+              <div class="crit-label">Settlement type<span class="req">*</span></div>
+              <div class="crit-chips" id="critModule"></div>
+            </div>
+            <div class="crit-group full">
+              <div class="crit-label">Services<span class="opt">(select all that apply)</span></div>
+              <div id="critService"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 — What Happens Next -->
+      <div class="card">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m5.25 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          <div>
+            <h2>3. What Happens Next — Required Documents</h2>
+            <p class="ch-sub">Based on the criteria above, the merchant (or you, on their behalf) will need to provide the following:</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="whn-count" id="whnCount">0 documents required</div>
+          <div id="whnList"></div>
+
+          <div class="whn-actions">
+            <button class="btn btn-primary" id="assistUploadBtn">
+              <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
+              Upload Documents Now (Agent-Assisted)
+            </button>
+          </div>
+
+          <div class="assist-panel" id="assistPanel" hidden>
+            <div class="assist-summary" id="assistCount">0 of 0 attached</div>
+            <div id="assistList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 — Pricing -->
+      <div class="card">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m3.75-9.75a2.625 2.625 0 0 0-2.625-1.5H11.25a2.25 2.25 0 0 0 0 4.5h1.5a2.25 2.25 0 0 1 0 4.5h-2.125a2.625 2.625 0 0 1-2.625-1.5"/></svg>
+          <div>
+            <h2>4. Pricing — Rate Selection</h2>
+            <p class="ch-sub">Rates are matched from the Pricing Rules module using the criteria above. Pick the rate to onboard this merchant at for each service — anything below Auto needs an approval note.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="whn-count" id="pricingCount">0 of 0 rates selected</div>
+          <div id="pricingList"></div>
+        </div>
+      </div>
+
+      <!-- STEP 5 — Submit -->
+      <div class="card">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          <div>
+            <h2>5. Submit Application</h2>
+            <p class="ch-sub">Review the summary below, then send this application into the approval and onboarding workflow. Rates below Auto route to Manager/Head approval first; everything else goes straight to the Onboarding team.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="submit-summary" id="submitSummary"></div>
+          <div class="whn-actions" style="border-top:none; margin-top:0; padding-top:0;">
+            <button class="btn btn-primary" id="submitAppBtn">Create Merchant Application</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ Submitted Applications ══════════ -->
+      <div class="card">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>
+          <div>
+            <h2>Submitted Applications</h2>
+            <p class="ch-sub">Every application submitted from this page, with its live status — review the criteria, documents and pricing approvals for each.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="apps-grid" id="appsList"></div>
+          <div class="events-empty" id="eventsEmpty">No applications submitted yet — create one above and it will appear here.</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+  const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+  const DOC_ICON = '<svg class="doc" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>';
+  const RM_ICON = '<svg class="hi-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
+  const GENERIC_DOC_SVG = '<svg viewBox="0 0 280 176" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><rect x="46" y="14" width="188" height="148" rx="8" fill="#FFFFFF" stroke="#E6E8E8"/><rect x="70" y="34" width="140" height="11" rx="5.5" fill="#001F5F"/><rect x="86" y="58" width="108" height="7" rx="3.5" fill="#E6E8E8"/><rect x="78" y="74" width="124" height="7" rx="3.5" fill="#E6E8E8"/><rect x="86" y="90" width="108" height="7" rx="3.5" fill="#E6E8E8"/><circle cx="94" cy="128" r="18" fill="#FBE9E9" stroke="#A50017" stroke-width="1.5"/><path d="M94 116l3.4 6.9 7.6 1.1-5.5 5.4 1.3 7.6-6.8-3.6-6.8 3.6 1.3-7.6-5.5-5.4 7.6-1.1z" fill="#E4A0AB"/><rect x="140" y="120" width="70" height="6" rx="3" fill="#E6E8E8"/><path d="M140 138c14-8 26-8 40 0" stroke="#001F5F" stroke-width="2" stroke-linecap="round"/></svg>';
+  const DZ_ICO_SVG = '<svg class="dz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>';
+  const WHN_DOC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>';
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  /* ══════════ Criteria vocabulary — mirrors the Document Rules module ══════════ */
+  const ENTITIES = ['Individual Seller', 'Registered Business', 'Professional Business'];
+  const OWNERS = ['Egyptian Owner', 'Foreign Owner'];
+  const INDUSTRIES = ['Retail & E-commerce', 'Food & Beverage', 'Healthcare / Pharmacy', 'Education',
+    'Travel & Tourism', 'Professional Services', 'Technology / SaaS', 'Real Estate', 'Automotive',
+    'Fashion & Beauty', 'Entertainment & Media', 'Non-profit / NGO', 'Government', 'Financial Services',
+    'Insurance', 'Marketplace', 'Logistics & Delivery'];
+  const BANKS = ['Bank Misr', 'National Bank of Egypt', 'QNB'];
+  const MODULES = ['PF', 'PSP'];
+  /* Service catalog — matches the Pricing Rules module's own service list: every
+     method Pricing Rules can target, available both Online and POS. Channel is part
+     of the service name itself (Online Card / POS Card). */
+  const SERVICE_CATALOG = [
+    { tier: 'Online', services: ['Online Card', 'Online Wallet', 'Online Valu', 'Online OCTO', 'Online Souhoola',
+      'Online Contact', 'Online Basata', 'Online Mogo', 'Online Tru', 'Online Forsa', 'Online Aman',
+      'Online Bank Installments', 'Online Transfer', 'Online Instapay'] },
+    { tier: 'POS', services: ['POS Card', 'POS Wallet', 'POS Valu', 'POS OCTO', 'POS Souhoola',
+      'POS Contact', 'POS Basata', 'POS Mogo', 'POS Tru', 'POS Forsa', 'POS Aman',
+      'POS Bank Installments', 'POS Transfer', 'POS Instapay'] },
+  ];
+  const SERVICES = SERVICE_CATALOG[0].services.concat(SERVICE_CATALOG[1].services);
+  const BASIC_SERVICES = SERVICES;
+
+  /* Document metadata — kept identical to the Documents (merchant) page for consistency */
+  const DOC_META = {
+    'National ID': { ar: 'بطاقة الرقم القومي', formats: 'PDF, JPG, PNG', size: 5, slots: [{ label: 'Front side' }, { label: 'Back side' }] },
+    'Bank Account Letter / IBAN proof': { ar: 'خطاب حساب بنكي / إثبات الآيبان', formats: 'PDF, JPG', size: 5, slots: 'single' },
+    'Commercial Registration (CR)': { ar: 'السجل التجاري', formats: 'PDF', size: 10, slots: 'single' },
+    'Tax Identification Card': { ar: 'البطاقة الضريبية', formats: 'PDF, JPG', size: 5, slots: 'single' },
+    "Owner's Passport": { ar: 'جواز سفر المالك', formats: 'PDF, JPG, PNG', size: 5, slots: 'single' },
+    "Owner's Residence Card": { ar: 'بطاقة إقامة المالك', formats: 'PDF, JPG, PNG', size: 5, slots: 'single' },
+    'BM PSP Agreement Annex': { ar: 'ملحق اتفاقية PSP - بنك مصر', formats: 'PDF', size: 10, slots: 'single' },
+    'Signed Payout Contract': { ar: 'عقد الدفعات الموقع', formats: 'PDF', size: 10, slots: 'single' },
+    'Disbursement Authorization Letter': { ar: 'خطاب تفويض الصرف', formats: 'PDF', size: 5, slots: 'single' },
+    'Brand Authorization Letter': { ar: 'خطاب تفويض العلامة التجارية', formats: 'PDF', size: 5, slots: 'single' },
+    'Store Lease / Location Proof': { ar: 'عقد إيجار المتجر / إثبات الموقع', formats: 'PDF, JPG', size: 5, slots: 'single' },
+  };
+
+  /* Same OR-within-group / AND-across-groups matching semantics as Document Rules */
+  const RULES = [
+    { name: 'Identity (universal)',    docs: ['National ID'],                                                entities: [], owners: [], industries: [], banks: [], modules: [], services: [] },
+    { name: 'Bank proof (universal)',  docs: ['Bank Account Letter / IBAN proof'],                            entities: [], owners: [], industries: [], banks: [], modules: [], services: [] },
+    { name: 'Tax registration',        docs: ['Tax Identification Card'],                                     entities: ['Registered Business', 'Professional Business'], owners: [], industries: [], banks: [], modules: [], services: [] },
+    { name: 'Commercial Registration', docs: ['Commercial Registration (CR)'],                                entities: ['Registered Business'], owners: [], industries: [], banks: [], modules: [], services: [] },
+    { name: 'Foreign owner KYC',       docs: ["Owner's Passport", "Owner's Residence Card"],                  entities: [], owners: ['Foreign Owner'], industries: [], banks: [], modules: [], services: [] },
+    { name: 'Bank Misr PSP annex',     docs: ['BM PSP Agreement Annex'],                                      entities: [], owners: [], industries: [], banks: ['Bank Misr'], modules: ['PSP'], services: [] },
+    { name: 'Online services',         docs: ['Brand Authorization Letter'],                                  entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('Online ')) },
+    { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
+  ];
+
+  const criteria = { entity: '', owner: '', industry: '', bank: '', module: '', services: [] };
+
+  function ruleMatches(r, cfg) {
+    if (r.entities.length && !r.entities.includes(cfg.entity)) return false;
+    if (r.owners.length && !r.owners.includes(cfg.owner)) return false;
+    if (r.industries.length && !r.industries.includes(cfg.industry)) return false;
+    if (r.banks.length && !r.banks.includes(cfg.bank)) return false;
+    if (r.modules.length && !r.modules.includes(cfg.module)) return false;
+    if (r.services.length && !r.services.some(s => cfg.services.includes(s))) return false;
+    return true;
+  }
+  function computeRequiredDocs(cfg) {
+    const map = new Map();
+    RULES.forEach(r => {
+      if (!ruleMatches(r, cfg)) return;
+      r.docs.forEach(d => { if (!map.has(d)) map.set(d, []); map.get(d).push(r.name); });
+    });
+    return map;
+  }
+
+  /* ══════════ Pricing lookup — mirrors the Pricing Rules module (Service + Industry + Merchant Type + Bank).
+     Prototype simplification: these two rate sets apply universally across industry/bank/merchant type — the
+     real module requires an exact match per combination — so every selected service always has a rate here. ══════════ */
+  const CARD_RATE_TIERS = [
+    { key: 'national-onus',  label: 'National — On-us rate',  desc: 'Cards issued by the acquiring bank.',         fixedFee: 2,   standard: 1.5, manager: 1,   head: 0.5 },
+    { key: 'national-offus', label: 'National — Off-us rate', desc: 'Cards issued by any other local bank.',       fixedFee: 2,   standard: 2,   manager: 1.5, head: 1 },
+    { key: 'meeza-onus',     label: 'Meeza — On-us rate',     desc: 'Meeza cards issued by the acquiring bank.',   fixedFee: 1.5, standard: 1.2, manager: 0.9, head: 0.6 },
+    { key: 'meeza-offus',    label: 'Meeza — Off-us rate',    desc: 'Meeza cards issued by any other local bank.', fixedFee: 1.8, standard: 1.4, manager: 1.1, head: 0.8 },
+    { key: 'intl',           label: 'International rate',     desc: 'Cards issued outside Egypt.',                 fixedFee: 3,   standard: 2.5, manager: 2,   head: 1.5 },
+  ];
+  const DEFAULT_RATE_TIERS = [
+    { key: 'selling', label: 'Selling rate', desc: 'The percentage Kashier charges per transaction.', fixedFee: 1.5, standard: 1, manager: 0.75, head: 0.5 },
+  ];
+  const ratesForService = service => service.includes('Card') ? CARD_RATE_TIERS : DEFAULT_RATE_TIERS;
+
+  const pricingSelections = new Map(); // `${service}::${tierKey}` -> { tier: 'auto'|'manager'|'head', note }
+  const priceKey = (service, tierKey) => service + '::' + tierKey;
+
+  function priceTierHTML(service, t) {
+    const key = priceKey(service, t.key);
+    const sel = pricingSelections.get(key) || { tier: 'auto', note: '' };
+    const chip = (tier, cls, label, sub) => `<button type="button" class="rate-tier-chip ${cls}${sel.tier === tier ? ' on' : ''}" data-service="${esc(service)}" data-key="${esc(t.key)}" data-tier="${tier}">${label}<span class="rtc-sub">${esc(sub)}</span></button>`;
+    const needsNote = sel.tier !== 'auto';
+    return `<div class="price-tier">
+      <div class="price-tier-label">${esc(t.label)}</div>
+      <div class="price-tier-desc">${esc(t.desc)}</div>
+      <div class="price-stats">
+        <div class="price-stat"><div class="price-stat-label">Fixed Fee</div><div class="price-stat-value">${t.fixedFee} EGP</div></div>
+        <div class="price-stat"><div class="price-stat-label">Standard</div><div class="price-stat-value">${t.standard}%</div></div>
+        <div class="price-stat"><div class="price-stat-label">Manager approval</div><div class="price-stat-value">${t.manager}%</div></div>
+        <div class="price-stat"><div class="price-stat-label">Head approval</div><div class="price-stat-value">${t.head}%</div></div>
+      </div>
+      <div class="rate-tier-chips">
+        ${chip('auto', 'auto', 'Auto', t.standard + '% and above')}
+        ${chip('manager', 'manager', 'Manager approval', t.manager + '%–under ' + t.standard + '%')}
+        ${chip('head', 'head', 'Head approval', 'under ' + t.manager + '%')}
+      </div>
+      ${needsNote ? `<div class="price-note">
+        <textarea class="inp${sel.note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${sel.tier === 'manager' ? 'Manager' : 'Head'}-approved rate?" data-service="${esc(service)}" data-key="${esc(t.key)}">${esc(sel.note)}</textarea>
+        <div class="price-note-hint">Required — this rate needs ${sel.tier === 'manager' ? 'Manager' : 'Head'} sign-off before the application can be created.</div>
+      </div>` : ''}
+    </div>`;
+  }
+  function priceServiceHTML(service) {
+    return `<div class="price-service" data-service="${esc(service)}">
+      <div class="price-service-name">${esc(service)}</div>
+      ${ratesForService(service).map(t => priceTierHTML(service, t)).join('')}
+    </div>`;
+  }
+  function pricingStats() {
+    let total = 0, needsApproval = 0;
+    if (criteria.module && criteria.industry && criteria.bank) {
+      criteria.services.forEach(s => ratesForService(s).forEach(t => {
+        total++;
+        const sel = pricingSelections.get(priceKey(s, t.key));
+        if (sel && sel.tier !== 'auto') needsApproval++;
+      }));
+    }
+    return { total, needsApproval };
+  }
+  function updatePricingCount() {
+    const { total, needsApproval } = pricingStats();
+    $('pricingCount').textContent = total
+      ? total + ' rate line item' + (total === 1 ? '' : 's') + (needsApproval ? ' · ' + needsApproval + ' pending approval' : '')
+      : '0 of 0 rates selected';
+    renderSubmitSummary();
+  }
+  function renderPricing() {
+    [...pricingSelections.keys()].forEach(k => { if (!criteria.services.includes(k.split('::')[0])) pricingSelections.delete(k); });
+    const ready = criteria.module && criteria.industry && criteria.bank && criteria.services.length;
+    $('pricingList').innerHTML = ready
+      ? criteria.services.map(priceServiceHTML).join('')
+      : '<div class="price-empty">Select merchant type, industry, bank and at least one service above to see applicable rates.</div>';
+    updatePricingCount();
+  }
+  $('pricingList').addEventListener('click', e => {
+    const chip = e.target.closest('.rate-tier-chip');
+    if (!chip) return;
+    const { service, key, tier } = chip.dataset;
+    const cur = pricingSelections.get(priceKey(service, key)) || { tier: 'auto', note: '' };
+    pricingSelections.set(priceKey(service, key), { tier, note: cur.note });
+    renderPricing();
+  });
+  $('pricingList').addEventListener('input', e => {
+    const ta = e.target.closest('textarea');
+    if (!ta) return;
+    const { service, key } = ta.dataset;
+    const cur = pricingSelections.get(priceKey(service, key)) || { tier: 'auto', note: '' };
+    pricingSelections.set(priceKey(service, key), { tier: cur.tier, note: ta.value });
+    ta.classList.toggle('invalid', !ta.value.trim());
+    updatePricingCount();
+  });
+
+  /* ══════════ Step 2 — chip groups ══════════ */
+  function renderSingleChips(containerId, options, key) {
+    const c = $(containerId); c.innerHTML = '';
+    options.forEach(opt => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'crit-chip' + (criteria[key] === opt ? ' on' : ''); b.textContent = opt;
+      b.addEventListener('click', () => { criteria[key] = criteria[key] === opt ? '' : opt; renderCriteria(); onCriteriaChange(); });
+      c.appendChild(b);
+    });
+  }
+  function renderMultiChips(containerId, options, key) {
+    const c = $(containerId); c.innerHTML = '';
+    options.forEach(opt => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'crit-chip' + (criteria[key].includes(opt) ? ' on' : ''); b.textContent = opt;
+      b.addEventListener('click', () => {
+        const i = criteria[key].indexOf(opt);
+        if (i >= 0) criteria[key].splice(i, 1); else criteria[key].push(opt);
+        renderCriteria(); onCriteriaChange();
+      });
+      c.appendChild(b);
+    });
+  }
+  /* Services picker mirrors the Pricing Rules module: grouped by channel (Online / POS).
+     The group header already supplies the channel, so each chip's own label only needs
+     the method name — the stored value keeps the full "Online Card" / "POS Card" form. */
+  const stripChannel = name => name.replace(/^(Online|POS) /, '');
+  function renderServiceCatalogChips() {
+    const c = $('critService'); c.innerHTML = '';
+    SERVICE_CATALOG.forEach(tier => {
+      const group = document.createElement('div');
+      group.className = 'svc-group';
+      const label = document.createElement('div');
+      label.className = 'svc-group-label';
+      label.textContent = tier.tier;
+      group.appendChild(label);
+      const row = document.createElement('div');
+      row.className = 'crit-chips';
+      tier.services.forEach(name => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'crit-chip' + (criteria.services.includes(name) ? ' on' : '');
+        b.textContent = stripChannel(name);
+        b.addEventListener('click', () => {
+          const i = criteria.services.indexOf(name);
+          if (i >= 0) criteria.services.splice(i, 1); else criteria.services.push(name);
+          renderCriteria();
+          onCriteriaChange();
+        });
+        row.appendChild(b);
+      });
+      group.appendChild(row);
+      c.appendChild(group);
+    });
+  }
+
+  function renderCriteria() {
+    renderSingleChips('critEntity', ENTITIES, 'entity');
+    renderSingleChips('critOwner', OWNERS, 'owner');
+    renderSingleChips('critModule', MODULES, 'module');
+    renderServiceCatalogChips();
+  }
+  function fillSelect(id, options) {
+    const s = $(id);
+    options.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; s.appendChild(opt); });
+  }
+  fillSelect('critIndustry', INDUSTRIES);
+  fillSelect('critBank', BANKS);
+  $('critIndustry').addEventListener('change', e => { criteria.industry = e.target.value; onCriteriaChange(); });
+  $('critBank').addEventListener('change', e => { criteria.bank = e.target.value; onCriteriaChange(); });
+
+  /* ══════════ Step 3 — What Happens Next checklist ══════════ */
+  function whnRowHTML(name, via) {
+    const meta = DOC_META[name] || {};
+    return `<div class="whn-row">
+      <div class="whn-icon">${WHN_DOC_ICON}</div>
+      <div class="whn-info">
+        <div class="whn-name">${esc(name)}${meta.ar ? `<span class="whn-ar">${esc(meta.ar)}</span>` : ''}</div>
+        <div class="whn-via">Required because: ${via.map(esc).join(', ')}</div>
+      </div>
+    </div>`;
+  }
+  function computeAndRenderWHN() {
+    const map = computeRequiredDocs(criteria);
+    $('whnList').innerHTML = map.size
+      ? [...map.entries()].map(([name, via]) => whnRowHTML(name, via)).join('')
+      : '<div class="whn-empty">No documents required yet — select the criteria above.</div>';
+    $('whnCount').textContent = map.size + ' document' + (map.size === 1 ? '' : 's') + ' required';
+  }
+
+  /* ══════════ Agent-assisted upload panel (reuses the same req-item visual as the merchant's own view) ══════════ */
+  function acceptAttr(formats) {
+    const map = { PDF: '.pdf', JPG: '.jpg,.jpeg', PNG: '.png' };
+    return (formats || 'PDF').split(',').map(s => s.trim().toUpperCase()).map(f => map[f] || '').filter(Boolean).join(',');
+  }
+  function buildChip(f, label) {
+    const chip = document.createElement('div');
+    chip.className = 'dz-fchip'; chip._file = f;
+    chip.innerHTML = `${DOC_ICON}${label ? `<span class="flabel">${esc(label)}</span>` : ''}<span class="fname" title="${esc(f.name)}">${esc(f.name)}</span><span class="fsize">${esc(fmtSize(f.size))}</span><button class="rm" type="button" aria-label="Remove file" title="Remove">${RM_ICON}</button>`;
+    return chip;
+  }
+  function wireDropzone(block) {
+    const zone = block.querySelector('.dropzone');
+    const input = block.querySelector('input[type=file]');
+    const filesWrap = block.querySelector('.dz-files');
+    const multiple = input.hasAttribute('multiple');
+    const label = block.dataset.label || '';
+    function addChip(f) { if (!multiple) filesWrap.innerHTML = ''; filesWrap.appendChild(buildChip(f, label)); }
+    function handle(list) {
+      const valid = [...list]; if (!valid.length) return;
+      valid.forEach(addChip);
+      if (!multiple) zone.style.display = 'none';
+      updateAssistCount();
+    }
+    input.addEventListener('change', e => { handle(e.target.files); e.target.value = ''; });
+    ['dragover', 'dragenter'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+    ['dragleave', 'dragend'].forEach(ev => zone.addEventListener(ev, () => zone.classList.remove('drag')));
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handle(e.dataTransfer.files); });
+  }
+  document.addEventListener('click', e => {
+    const rmBtn = e.target.closest('.dz-fchip .rm');
+    if (!rmBtn) return;
+    const chip = rmBtn.closest('.dz-fchip');
+    const block = chip.closest('.dz-block');
+    const zone = block.querySelector('.dropzone');
+    const multiple = block.querySelector('input[type=file]').hasAttribute('multiple');
+    chip.remove();
+    if (!multiple) zone.style.display = 'block';
+    updateAssistCount();
+  });
+  function updateAssistCount() {
+    const items = [...document.querySelectorAll('#assistList .req-item')];
+    const done = items.filter(it => [...it.querySelectorAll('.dz-block')].every(b => b.querySelector('.dz-files').children.length > 0)).length;
+    $('assistCount').textContent = done + ' of ' + items.length + ' attached';
+    renderSubmitSummary();
+  }
+  function reqItemHTML(name, via) {
+    const meta = DOC_META[name] || {};
+    const dzInner = `${DZ_ICO_SVG}<div class="dz-main"><span class="link">Click to browse</span> or drag &amp; drop</div><div class="dz-sub">${esc(meta.formats || 'PDF')} · up to ${meta.size || 10} MB</div><input type="file" accept="${acceptAttr(meta.formats)}" hidden>`;
+    const slotsHTML = meta.slots === 'single'
+      ? `<div class="req-slots single"><div class="dz-block" data-label=""><label class="dropzone">${dzInner}</label><div class="dz-files"></div></div></div>`
+      : `<div class="req-slots">${(meta.slots || []).map(s => `<div class="dz-block" data-label="${esc(s.label)}"><div class="dz-label">${esc(s.label)} <span class="req">*</span></div><label class="dropzone">${dzInner}</label><div class="dz-files"></div></div>`).join('')}</div>`;
+    return `<div class="req-item" data-doc="${esc(name)}">
+      <div class="req-top">
+        <div class="req-thumb">${GENERIC_DOC_SVG}</div>
+        <div class="req-info">
+          <div class="req-title-row"><span class="req-title">${esc(name)}</span>${meta.ar ? `<span class="req-ar">${esc(meta.ar)}</span>` : ''}</div>
+          <div class="req-via">Required because: ${via.map(esc).join(', ')}</div>
+        </div>
+        <span class="status-pill"><span class="dot"></span>Required</span>
+      </div>
+      ${slotsHTML}
+    </div>`;
+  }
+  function renderAssistPanel() {
+    const map = computeRequiredDocs(criteria);
+    const list = $('assistList');
+    const existing = new Map([...list.querySelectorAll('.req-item')].map(it => [it.dataset.doc, it]));
+    existing.forEach((el, name) => { if (!map.has(name)) el.remove(); });
+    map.forEach((via, name) => {
+      if (existing.has(name)) return;
+      const wrap = document.createElement('div');
+      wrap.innerHTML = reqItemHTML(name, via);
+      const item = wrap.firstElementChild;
+      list.appendChild(item);
+      item.querySelectorAll('.dz-block').forEach(wireDropzone);
+    });
+    updateAssistCount();
+  }
+
+  function onCriteriaChange() {
+    computeAndRenderWHN();
+    renderPricing();
+    if (!$('assistPanel').hidden) renderAssistPanel();
+    renderSubmitSummary();
+  }
+
+  $('assistUploadBtn').addEventListener('click', () => {
+    const panel = $('assistPanel');
+    panel.hidden = !panel.hidden;
+    $('assistUploadBtn').lastChild.textContent = panel.hidden ? ' Upload Documents Now (Agent-Assisted)' : ' Hide Upload Panel';
+    if (!panel.hidden) renderAssistPanel();
+  });
+
+  /* ══════════ Submit application — last step: routes to rate approval (if needed) then Onboarding review ══════════ */
+  let appStatus = 'draft'; // 'draft' | 'pending-rate-approval' | 'pending-onboarding-review'
+  const STATUS_META = {
+    'draft':                     { label: 'Draft',                     cls: '' },
+    'pending-rate-approval':     { label: 'Pending Rate Approval',      cls: 'warn' },
+    'pending-onboarding-review': { label: 'Pending Onboarding Review',  cls: 'info' },
+  };
+  function currentDocStatus() {
+    const total = computeRequiredDocs(criteria).size;
+    const items = [...document.querySelectorAll('#assistList .req-item')];
+    const done = items.length ? items.filter(it => [...it.querySelectorAll('.dz-block')].every(b => b.querySelector('.dz-files').children.length > 0)).length : 0;
+    return { total, done };
+  }
+  function approvalStatus() {
+    const { needsApproval } = pricingStats();
+    let unresolved = 0;
+    pricingSelections.forEach(sel => { if (sel.tier !== 'auto' && !sel.note.trim()) unresolved++; });
+    return { needsApproval, unresolved };
+  }
+  function renderSubmitSummary() {
+    const biz = $('mBiz').value.trim();
+    const { total, done } = currentDocStatus();
+    const { needsApproval } = approvalStatus();
+    const meta = STATUS_META[appStatus];
+    $('submitSummary').innerHTML = `
+      <div class="submit-row"><span class="lbl">Business</span><span class="val">${esc(biz || 'Not entered yet')}</span></div>
+      <div class="submit-row"><span class="lbl">Documents</span><span class="val">${done} of ${total} attached</span></div>
+      <div class="submit-row"><span class="lbl">Pricing</span><span class="val">${needsApproval ? needsApproval + ' rate' + (needsApproval === 1 ? '' : 's') + ' need approval' : 'All rates Auto'}</span></div>
+      <div class="submit-row"><span class="lbl">Status</span><span class="status-pill ${meta.cls}"><span class="dot"></span>${meta.label}</span></div>`;
+  }
+  $('mBiz').addEventListener('input', renderSubmitSummary);
+
+  // Prefill from a Sales lead handoff (My Leads → Complete Onboarding Application)
+  // The lead already carries the merchant's minimum info from the CRM, so the
+  // salesperson never re-types business, contact, or classification details here —
+  // they only review what CRM sent over and fill in what CRM can't know (bank, services, pricing).
+  let sourceLeadId = '';
+  (function prefillFromLead() {
+    const p = new URLSearchParams(location.search);
+    const leadId = p.get('leadId'), leadBiz = p.get('leadBiz'), leadEmail = p.get('leadEmail'), leadPhone = p.get('leadPhone');
+    const leadType = p.get('leadType'), leadIndustry = p.get('leadIndustry');
+    if (!leadId && !leadBiz) return;
+    sourceLeadId = leadId || '';
+    if (leadBiz) $('mBiz').value = leadBiz;
+    if (leadEmail) $('mEmail').value = leadEmail;
+    if (leadPhone) $('mPhone').value = leadPhone;
+    if (leadType && ENTITIES.includes(leadType)) criteria.entity = leadType;
+    if (leadIndustry && INDUSTRIES.includes(leadIndustry)) { criteria.industry = leadIndustry; $('critIndustry').value = leadIndustry; }
+    renderSubmitSummary();
+    const head = document.querySelector('.page-head');
+    if (head) {
+      const pill = document.createElement('div');
+      pill.className = 'lead-source-pill';
+      pill.innerHTML = '<svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>' +
+        'Prefilled from lead' + (leadId ? ' ' + esc(leadId) : '') + (leadBiz ? ' — ' + esc(leadBiz) : '') + '. Review and continue below.';
+      head.insertBefore(pill, head.firstChild);
+    }
+  })();
+  $('submitAppBtn').addEventListener('click', () => {
+    const biz = $('mBiz').value.trim(), email = $('mEmail').value.trim(), phone = $('mPhone').value.trim();
+    let ok = true;
+    [['mBiz', biz], ['mEmail', email], ['mPhone', phone]].forEach(([id, val]) => {
+      $(id).classList.toggle('invalid', !val);
+      if (!val) ok = false;
+    });
+    if (!ok) {
+      toast("Fill in the merchant's business name, email, and phone first");
+      $('mBiz').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const critChecks = [['critEntity', criteria.entity], ['critIndustry', criteria.industry], ['critBank', criteria.bank], ['critModule', criteria.module]];
+    let critOk = true;
+    critChecks.forEach(([id, val]) => {
+      $(id).classList.toggle('invalid', !val);
+      if (!val) critOk = false;
+    });
+    if (!critOk) {
+      toast('Fill in Merchant Type, Industry, Financial Institution and Settlement type first');
+      $('critEntity').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const { unresolved, needsApproval } = approvalStatus();
+    if (unresolved) {
+      toast('Add an approval note for every rate below Auto before submitting');
+      const badTa = $('pricingList').querySelector('textarea.invalid');
+      if (badTa) badTa.closest('.price-tier').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const { total, done } = currentDocStatus();
+    const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
+    toast('Application created for ' + biz + (needsApproval
+      ? ` — sent for ${needsApproval} rate approval${needsApproval === 1 ? '' : 's'} before the Onboarding team reviews it`
+      : ' — sent to the Onboarding team for review'));
+    logEvent({
+      id: 'APP-' + Date.now().toString().slice(-8),
+      leadId: sourceLeadId,
+      biz, email, phone,
+      entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: criteria.bank, module: criteria.module,
+      services: [...criteria.services],
+      total, done, needsApproval, status,
+    });
+    resetForm();
+    $('appsList').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  function resetForm() {
+    $('mBiz').value = ''; $('mEmail').value = ''; $('mPhone').value = '';
+    ['mBiz', 'mEmail', 'mPhone'].forEach(id => $(id).classList.remove('invalid'));
+    criteria.entity = ''; criteria.owner = ''; criteria.industry = ''; criteria.bank = ''; criteria.module = ''; criteria.services = [];
+    $('critIndustry').value = ''; $('critBank').value = '';
+    ['critEntity', 'critIndustry', 'critBank', 'critModule'].forEach(id => $(id).classList.remove('invalid'));
+    pricingSelections.clear();
+    $('assistPanel').hidden = true;
+    $('assistList').innerHTML = '';
+    $('assistUploadBtn').lastChild.textContent = ' Upload Documents Now (Agent-Assisted)';
+    appStatus = 'draft';
+    $('submitAppBtn').textContent = 'Create Merchant Application';
+    $('submitAppBtn').disabled = false;
+    renderCriteria();
+    computeAndRenderWHN();
+    renderPricing();
+  }
+
+  /* ══════════ Submitted Applications ══════════ */
+  const CURRENT_USER = 'Aya Muhammed';
+  const applications = [];
+  function formatEventTime(d) {
+    const p = n => String(n).padStart(2, '0');
+    let h = d.getHours(); const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+    return p(d.getMonth() + 1) + '/' + p(d.getDate()) + '/' + d.getFullYear() + '. ' + p(h) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' ' + ampm;
+  }
+  function logEvent(record) {
+    applications.unshift({ ts: new Date(), actor: CURRENT_USER, ...record });
+    renderAppsList();
+  }
+  function appTrackURL(app) {
+    const p = new URLSearchParams({
+      id: app.id, biz: app.biz, email: app.email, phone: app.phone,
+      entity: app.entity, industry: app.industry, bank: app.bank, module: app.module,
+      services: app.services.join(','), total: app.total, done: app.done,
+      needsApproval: app.needsApproval, status: app.status, actor: app.actor, ts: app.ts.toISOString(),
+    });
+    if (app.leadId) p.set('leadId', app.leadId);
+    return 'application-status.html?' + p.toString();
+  }
+  function appCardHTML(app) {
+    const meta = STATUS_META[app.status] || STATUS_META.draft;
+    const servicesLabel = app.services.length ? app.services.length + ' service' + (app.services.length === 1 ? '' : 's') : '—';
+    return `<div class="app-card">
+      <div class="app-card-top">
+        <div>
+          <div class="app-card-name">${esc(app.biz)}</div>
+          <div class="app-card-ts">${formatEventTime(app.ts)}</div>
+        </div>
+        <span class="status-pill ${meta.cls}"><span class="dot"></span>${meta.label}</span>
+      </div>
+      <div class="app-card-facts">
+        <div class="app-fact"><span class="lbl">Merchant Type</span><span class="val">${esc(app.entity || '—')}</span></div>
+        <div class="app-fact"><span class="lbl">Industry</span><span class="val">${esc(app.industry || '—')}</span></div>
+        <div class="app-fact"><span class="lbl">Bank</span><span class="val">${esc(app.bank || '—')}</span></div>
+        <div class="app-fact"><span class="lbl">Services</span><span class="val">${servicesLabel}</span></div>
+        <div class="app-fact"><span class="lbl">Documents</span><span class="val">${app.done} of ${app.total} attached</span></div>
+        <div class="app-fact"><span class="lbl">Pricing</span><span class="val">${app.needsApproval ? app.needsApproval + ' rate' + (app.needsApproval === 1 ? '' : 's') + ' pending' : 'All Auto'}</span></div>
+      </div>
+      <div class="app-card-actor">
+        <span>Submitted by ${esc(app.actor)}</span>
+        <a class="app-track-btn" href="${esc(appTrackURL(app))}" title="View this application's status — it can no longer be edited">
+          Track Application
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+        </a>
+      </div>
+    </div>`;
+  }
+  function renderAppsList() {
+    $('eventsEmpty').classList.toggle('show', applications.length === 0);
+    $('appsList').innerHTML = applications.map(appCardHTML).join('');
+  }
+
+  /* ══════════ Chrome ══════════ */
+  $('hamburger').addEventListener('click', () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); });
+  $('overlay').addEventListener('click', () => { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); });
+  $('balanceHead').addEventListener('click', () => {
+    const sub = $('balanceSub'), chev = $('balanceHead').querySelector('svg');
+    const open = sub.style.display !== 'none';
+    sub.style.display = open ? 'none' : 'flex';
+    chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+  });
+  $('langBtn').addEventListener('click', () => {
+    const btn = $('langBtn'); const toAr = btn.textContent === 'عربي';
+    btn.textContent = toAr ? 'English' : 'عربي';
+    toast(toAr ? 'تم التبديل إلى العربية (عرض توضيحي)' : 'Switched to English');
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); } });
+
+  /* ══════════ Init ══════════ */
+  renderCriteria();
+  computeAndRenderWHN();
+  renderPricing();
+  renderAppsList();
+</script>
+
+<script>
+  /* Documents nav group */
+  (function () {
+    const head = document.getElementById('documentsHead');
+    const sub = document.getElementById('documentsSub');
+    if (!head || !sub) return;
+    head.addEventListener('click', () => {
+      const chev = head.querySelector('svg');
+      const open = sub.style.display !== 'none';
+      sub.style.display = open ? 'none' : 'flex';
+      if (chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+  })();
+</script>
+</body>
+</html>

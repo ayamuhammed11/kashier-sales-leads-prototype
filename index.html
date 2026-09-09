@@ -333,10 +333,10 @@
             <thead>
               <tr>
                 <th>Lead</th>
+                <th>MID</th>
                 <th>Contact</th>
                 <th>Source</th>
                 <th>Status</th>
-                <th>MID</th>
                 <th>Assigned</th>
                 <th>Last Activity</th>
                 <th></th>
@@ -464,13 +464,13 @@
             </div>
           </div>
         </td>
+        <td>${l.mid ? `<span class="mid-text">${esc(l.mid)}</span>` : `<span class="mid-empty">—</span>`}</td>
         <td>
           <div class="contact-name">${esc(l.contact)}</div>
           <div class="contact-sub">${esc(l.email)}</div>
         </td>
         <td><span class="source-pill">${esc(l.source)}</span></td>
         <td><span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span></td>
-        <td>${l.mid ? `<span class="mid-text">${esc(l.mid)}</span>` : `<span class="mid-empty">—</span>`}</td>
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>
         <td>

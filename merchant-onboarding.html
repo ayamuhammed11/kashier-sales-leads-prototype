@@ -641,10 +641,15 @@
   }
   function renderPricing() {
     [...pricingSelections.keys()].forEach(k => { if (!criteria.services.includes(k.split('::')[0])) pricingSelections.delete(k); });
-    const ready = criteria.module && criteria.industry && criteria.bank && criteria.services.length;
-    $('pricingList').innerHTML = ready
+    const missing = [
+      !criteria.industry && 'Industry',
+      !criteria.bank && 'Financial Institution',
+      !criteria.module && 'Settlement type',
+      !criteria.services.length && 'at least one Service',
+    ].filter(Boolean);
+    $('pricingList').innerHTML = !missing.length
       ? criteria.services.map(priceServiceHTML).join('')
-      : '<div class="price-empty">Select merchant type, industry, bank and at least one service above to see applicable rates.</div>';
+      : `<div class="price-empty">Select ${missing.join(', ')} above to see applicable rates.</div>`;
     updatePricingCount();
   }
   $('pricingList').addEventListener('click', e => {

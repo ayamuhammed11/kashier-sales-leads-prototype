@@ -239,26 +239,6 @@
   .assist-panel { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 18px; }
   .assist-summary { font-size: 13px; font-weight: 600; color: var(--cadet-base); margin-bottom: 10px; }
 
-  /* Submitted Applications — card grid */
-  .apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 14px; }
-  .app-card { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .app-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .app-card-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--foreground); line-height: 1.3; }
-  .app-card-ts { font-size: 11.5px; color: var(--cadet-05); margin-top: 3px; }
-  .app-card-facts { display: flex; flex-direction: column; gap: 6px; }
-  .app-fact { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; }
-  .app-fact .lbl { color: var(--cadet-05); flex-shrink: 0; }
-  .app-fact .val { font-weight: 600; color: var(--foreground); text-align: right; }
-  .app-card-actor { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11.5px;
-    color: var(--cadet-05); border-top: 1px dashed var(--border); padding-top: 10px; }
-  .app-track-btn { display: inline-flex; align-items: center; gap: 5px; border: 1.5px solid var(--primary); background: #fff;
-    border-radius: 999px; padding: 5px 12px; font-family: inherit; font-size: 11.5px; font-weight: 700;
-    color: var(--primary); text-decoration: none; cursor: pointer; white-space: nowrap; }
-  .app-track-btn:hover { background: var(--ocean-10); }
-  .app-track-btn svg { width: 13px; height: 13px; }
-  .events-empty { display: none; text-align: center; font-size: 13px; color: var(--cadet-05); padding: 26px 0 14px; }
-  .events-empty.show { display: block; }
-
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--primary);
     color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0;
     pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
@@ -464,21 +444,6 @@
           <div class="whn-actions" style="border-top:none; margin-top:0; padding-top:0;">
             <button class="btn btn-primary" id="submitAppBtn">Create Merchant Application</button>
           </div>
-        </div>
-      </div>
-
-      <!-- ══════════ Submitted Applications ══════════ -->
-      <div class="card">
-        <div class="card-head">
-          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/></svg>
-          <div>
-            <h2>Submitted Applications</h2>
-            <p class="ch-sub">Every application submitted from this page, with its live status — review the criteria, documents and pricing approvals for each.</p>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="apps-grid" id="appsList"></div>
-          <div class="events-empty" id="eventsEmpty">No applications submitted yet — create one above and it will appear here.</div>
         </div>
       </div>
 
@@ -945,93 +910,34 @@
     }
     const { total, done } = currentDocStatus();
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
+    const qs = new URLSearchParams({
+      id: 'APP-' + Date.now().toString().slice(-8),
+      biz, email, phone,
+      entity: criteria.entity, industry: criteria.industry, bank: criteria.bank, module: criteria.module,
+      services: criteria.services.join(','), total, done, needsApproval, status,
+      actor: 'Aya Muhammed', ts: new Date().toISOString(),
+    });
+    if (sourceLeadId) qs.set('leadId', sourceLeadId);
+    const trackURL = 'application-status.html?' + qs.toString();
+
+    // Advance the originating lead to "Submitted" and hand it the tracking link —
+    // My Leads / Lead Details read the same localStorage keys to stay in sync.
+    if (sourceLeadId) {
+      try {
+        const statusStore = JSON.parse(localStorage.getItem('kashierLeadStatusOverrides') || '{}');
+        statusStore[sourceLeadId] = 'submitted';
+        localStorage.setItem('kashierLeadStatusOverrides', JSON.stringify(statusStore));
+        const appStore = JSON.parse(localStorage.getItem('kashierLeadApplications') || '{}');
+        appStore[sourceLeadId] = trackURL;
+        localStorage.setItem('kashierLeadApplications', JSON.stringify(appStore));
+      } catch (e) { /* storage unavailable */ }
+    }
+
     toast('Application created for ' + biz + (needsApproval
       ? ` — sent for ${needsApproval} rate approval${needsApproval === 1 ? '' : 's'} before the Onboarding team reviews it`
       : ' — sent to the Onboarding team for review'));
-    logEvent({
-      id: 'APP-' + Date.now().toString().slice(-8),
-      leadId: sourceLeadId,
-      biz, email, phone,
-      entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: criteria.bank, module: criteria.module,
-      services: [...criteria.services],
-      total, done, needsApproval, status,
-    });
-    resetForm();
-    $('appsList').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    location.href = trackURL;
   });
-
-  function resetForm() {
-    $('mBiz').value = ''; $('mEmail').value = ''; $('mPhone').value = '';
-    ['mBiz', 'mEmail', 'mPhone'].forEach(id => $(id).classList.remove('invalid'));
-    criteria.entity = ''; criteria.owner = ''; criteria.industry = ''; criteria.bank = ''; criteria.module = ''; criteria.services = [];
-    $('critIndustry').value = ''; $('critBank').value = '';
-    ['critEntity', 'critIndustry', 'critBank', 'critModule'].forEach(id => $(id).classList.remove('invalid'));
-    pricingSelections.clear();
-    $('assistPanel').hidden = true;
-    $('assistList').innerHTML = '';
-    $('assistUploadBtn').lastChild.textContent = ' Upload Documents Now (Agent-Assisted)';
-    appStatus = 'draft';
-    $('submitAppBtn').textContent = 'Create Merchant Application';
-    $('submitAppBtn').disabled = false;
-    renderCriteria();
-    computeAndRenderWHN();
-    renderPricing();
-  }
-
-  /* ══════════ Submitted Applications ══════════ */
-  const CURRENT_USER = 'Aya Muhammed';
-  const applications = [];
-  function formatEventTime(d) {
-    const p = n => String(n).padStart(2, '0');
-    let h = d.getHours(); const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
-    return p(d.getMonth() + 1) + '/' + p(d.getDate()) + '/' + d.getFullYear() + '. ' + p(h) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' ' + ampm;
-  }
-  function logEvent(record) {
-    applications.unshift({ ts: new Date(), actor: CURRENT_USER, ...record });
-    renderAppsList();
-  }
-  function appTrackURL(app) {
-    const p = new URLSearchParams({
-      id: app.id, biz: app.biz, email: app.email, phone: app.phone,
-      entity: app.entity, industry: app.industry, bank: app.bank, module: app.module,
-      services: app.services.join(','), total: app.total, done: app.done,
-      needsApproval: app.needsApproval, status: app.status, actor: app.actor, ts: app.ts.toISOString(),
-    });
-    if (app.leadId) p.set('leadId', app.leadId);
-    return 'application-status.html?' + p.toString();
-  }
-  function appCardHTML(app) {
-    const meta = STATUS_META[app.status] || STATUS_META.draft;
-    const servicesLabel = app.services.length ? app.services.length + ' service' + (app.services.length === 1 ? '' : 's') : '—';
-    return `<div class="app-card">
-      <div class="app-card-top">
-        <div>
-          <div class="app-card-name">${esc(app.biz)}</div>
-          <div class="app-card-ts">${formatEventTime(app.ts)}</div>
-        </div>
-        <span class="status-pill ${meta.cls}"><span class="dot"></span>${meta.label}</span>
-      </div>
-      <div class="app-card-facts">
-        <div class="app-fact"><span class="lbl">Merchant Type</span><span class="val">${esc(app.entity || '—')}</span></div>
-        <div class="app-fact"><span class="lbl">Industry</span><span class="val">${esc(app.industry || '—')}</span></div>
-        <div class="app-fact"><span class="lbl">Bank</span><span class="val">${esc(app.bank || '—')}</span></div>
-        <div class="app-fact"><span class="lbl">Services</span><span class="val">${servicesLabel}</span></div>
-        <div class="app-fact"><span class="lbl">Documents</span><span class="val">${app.done} of ${app.total} attached</span></div>
-        <div class="app-fact"><span class="lbl">Pricing</span><span class="val">${app.needsApproval ? app.needsApproval + ' rate' + (app.needsApproval === 1 ? '' : 's') + ' pending' : 'All Auto'}</span></div>
-      </div>
-      <div class="app-card-actor">
-        <span>Submitted by ${esc(app.actor)}</span>
-        <a class="app-track-btn" href="${esc(appTrackURL(app))}" title="View this application's status — it can no longer be edited">
-          Track Application
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
-        </a>
-      </div>
-    </div>`;
-  }
-  function renderAppsList() {
-    $('eventsEmpty').classList.toggle('show', applications.length === 0);
-    $('appsList').innerHTML = applications.map(appCardHTML).join('');
-  }
 
   /* ══════════ Chrome ══════════ */
   $('hamburger').addEventListener('click', () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); });
@@ -1053,7 +959,6 @@
   renderCriteria();
   computeAndRenderWHN();
   renderPricing();
-  renderAppsList();
 </script>
 
 <script>

@@ -116,6 +116,7 @@
   .badge-new { background: var(--ocean-10); color: var(--primary); }
   .badge-contacted { background: var(--accent-10); color: #006A66; }
   .badge-application { background: var(--warning-bg); color: var(--warning-text); }
+  .badge-submitted { background: #F3F0FF; color: #5B21B6; }
   .badge-activated { background: var(--success-bg); color: var(--success-text); }
   .badge-lost { background: var(--destructive-bg); color: var(--destructive); }
 
@@ -400,10 +401,11 @@
     new:         { label: 'New',                 cls: 'badge-new' },
     contacted:   { label: 'Contacted',            cls: 'badge-contacted' },
     application: { label: 'Application Started',  cls: 'badge-application' },
+    submitted:   { label: 'Submitted',            cls: 'badge-submitted' },
     activated:   { label: 'Activated',            cls: 'badge-activated' },
     lost:        { label: 'Lost',                 cls: 'badge-lost' },
   };
-  const PIPELINE = ['new', 'contacted', 'application', 'activated'];
+  const PIPELINE = ['new', 'contacted', 'application', 'submitted', 'activated'];
 
   const LEADS = {
     'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    source: 'Referral', status: 'application', assigned: '2026-08-28',
@@ -486,6 +488,11 @@
   }
   const storedStatus = readStatusStore()[id];
   if (storedStatus && STATUS_META[storedStatus]) lead.status = storedStatus;
+
+  // The onboarding page hands back a tracking link once the application is submitted.
+  function readApplicationURL(leadId) {
+    try { return (JSON.parse(localStorage.getItem('kashierLeadApplications') || '{}'))[leadId] || ''; } catch (e) { return ''; }
+  }
 
   function fmtDateTime(dt) {
     const d = new Date(dt.replace(' ', 'T'));
@@ -580,6 +587,13 @@
         <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Lead marked as lost</h3>
         <p>This lead didn't convert. Check the activity log for the reason before reaching back out.</p>
       </div>`;
+    } else if (lead.status === 'submitted') {
+      const trackURL = readApplicationURL(id);
+      card.innerHTML = `<div class="alert">
+        <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Application submitted</h3>
+        <p>The onboarding application for ${esc(lead.biz)} is with the approval and onboarding team. You can't edit it anymore, but you can track its status.</p>
+        ${trackURL ? `<a class="btn btn-primary btn-sm" href="${esc(trackURL)}">Track Application</a>` : ''}
+      </div>`;
     } else {
       const nextLabel = lead.status === 'application' ? 'submit their documents and pricing selections' : 'move them into the onboarding application';
       card.innerHTML = `<div class="alert">
@@ -597,7 +611,8 @@
 
   function updateProceedVisibility() {
     // .btn sets its own display, which would beat the UA [hidden] rule — set display inline instead.
-    $('proceedBtn').style.display = lead.status === 'lost' ? 'none' : '';
+    const hide = lead.status === 'lost' || lead.status === 'submitted' || lead.status === 'activated';
+    $('proceedBtn').style.display = hide ? 'none' : '';
   }
 
   function setLeadStatus(newStatus, activityText) {
@@ -621,7 +636,7 @@
     if (lead.status === 'new') {
       html += `<button class="btn btn-primary btn-sm" id="markContactedBtn">Mark as Contacted</button>`;
     }
-    if (lead.status === 'new' || lead.status === 'contacted' || lead.status === 'application') {
+    if (['new', 'contacted', 'application', 'submitted'].includes(lead.status)) {
       html += `<button class="btn btn-ghost-danger btn-sm" id="markLostBtn">Mark as Lost</button>`;
     }
     box.innerHTML = html;

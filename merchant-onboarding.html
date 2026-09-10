@@ -251,7 +251,6 @@
   .submit-row .lbl { font-size: 13px; color: var(--cadet-04); }
   .submit-row .val { font-size: 13px; font-weight: 700; color: var(--foreground); }
 
-  .assist-panel { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 18px; }
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--primary);
     color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0;
@@ -421,17 +420,6 @@
         <div class="card-body">
           <div class="whn-count" id="whnCount">0 documents required</div>
           <div id="whnList"></div>
-
-          <div class="whn-actions">
-            <button class="btn btn-primary" id="assistUploadBtn">
-              <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
-              Upload Documents Now (Agent-Assisted)
-            </button>
-          </div>
-
-          <div class="assist-panel" id="assistPanel" hidden>
-            <div id="assistList"></div>
-          </div>
         </div>
       </div>
 
@@ -693,19 +681,7 @@
   fillSelect('critIndustry', INDUSTRIES);
   $('critIndustry').addEventListener('change', e => { criteria.industry = e.target.value; refreshAll(); });
 
-  /* ══════════ Step 4 — Required Documents checklist (shared row renderer) ══════════ */
-  function whnRowHTML(name, via) {
-    const meta = DOC_META[name] || {};
-    const done = isDocDone(name);
-    return `<div class="whn-row">
-      <div class="whn-icon">${WHN_DOC_ICON}</div>
-      <div class="whn-info">
-        <div class="whn-name">${esc(name)}${meta.ar ? `<span class="whn-ar">${esc(meta.ar)}</span>` : ''}</div>
-        <div class="whn-via">Required because: ${via.map(esc).join(', ')}</div>
-      </div>
-      <span class="status-pill${done ? ' success' : ''}"><span class="dot"></span>${done ? 'Uploaded' : 'Required'}</span>
-    </div>`;
-  }
+  /* ══════════ Step 4 — Required Documents (single upload-capable list, shared with Step 3) ══════════ */
   function computeAggregatedDocs() {
     const merged = new Map();
     criteria.services.forEach(s => {
@@ -722,11 +698,12 @@
   }
   function renderAggregatedDocs() {
     const map = computeAggregatedDocs();
-    $('whnList').innerHTML = map.size
-      ? [...map.entries()].map(([name, via]) => whnRowHTML(name, via)).join('')
+    const list = $('whnList');
+    list.innerHTML = map.size
+      ? [...map.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')
       : '<div class="whn-empty">No documents required yet — configure at least one service above.</div>';
+    list.querySelectorAll('.doc-upload').forEach(wireDropzone);
     $('whnCount').textContent = map.size + ' document' + (map.size === 1 ? '' : 's') + ' required';
-    if (!$('assistPanel').hidden) renderAssistPanel();
   }
 
   /* ══════════ Step 3 — Service Setup: one service configured at a time ══════════ */
@@ -878,7 +855,7 @@
   }
 
   /* ══════════ Document uploads — shared by every service's own doc list (Step 3) and the
-     aggregated Agent-Assisted panel (Step 4): a document is stored once by name, so uploading
+     aggregated Required Documents list (Step 4): a document is stored once by name, so uploading
      it anywhere marks it done everywhere it's required. ══════════ */
   function acceptAttr(formats) {
     const map = { PDF: '.pdf', JPG: '.jpg,.jpeg', PNG: '.png' };
@@ -934,24 +911,11 @@
     if (store) { store.delete(label); if (!store.size) docFiles.delete(docName); }
     onDocFilesChanged();
   });
-  function renderAssistPanel() {
-    const map = computeAggregatedDocs();
-    const list = $('assistList');
-    list.innerHTML = [...map.entries()].map(([name, via]) => reqItemHTML(name, via)).join('');
-    list.querySelectorAll('.doc-upload').forEach(wireDropzone);
-  }
   function onDocFilesChanged() {
     renderServiceSetup();
     renderAggregatedDocs();
     renderSubmitSummary();
   }
-
-  $('assistUploadBtn').addEventListener('click', () => {
-    const panel = $('assistPanel');
-    panel.hidden = !panel.hidden;
-    $('assistUploadBtn').lastChild.textContent = panel.hidden ? ' Upload Documents Now (Agent-Assisted)' : ' Hide Upload Panel';
-    if (!panel.hidden) renderAssistPanel();
-  });
 
   /* ══════════ Submit application — last step: routes to rate approval (if needed) then Onboarding review ══════════ */
   let appStatus = 'draft'; // 'draft' | 'pending-rate-approval' | 'pending-onboarding-review'

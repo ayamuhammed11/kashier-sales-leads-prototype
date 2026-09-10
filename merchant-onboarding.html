@@ -558,11 +558,11 @@
 
   /* ══════════ Per-service configuration — each selected service gets its own
      Financial Institution, Settlement type, and pricing, set up one at a time. ══════════ */
-  const serviceConfig = {}; // serviceConfig[service] = { bank, module, pricing: Map<tierKey, {tier,note}>, done }
+  const serviceConfig = {}; // serviceConfig[service] = { banks: [], module, pricing: Map<tierKey, {tier,note}>, done }
   let activeService = '';
 
   function ensureServiceConfig(service) {
-    if (!serviceConfig[service]) serviceConfig[service] = { bank: '', module: '', pricing: new Map(), done: false };
+    if (!serviceConfig[service]) serviceConfig[service] = { banks: [], module: '', pricing: new Map(), done: false };
   }
   function syncServiceConfigs() {
     criteria.services.forEach(ensureServiceConfig);
@@ -576,7 +576,10 @@
      relationship — the other services (Valu, OCTO, wallets-as-BNPL, Transfer, etc.) don't need it. */
   const BANK_REQUIRED_SERVICES = ['Card', 'Wallet', 'Bank Installments'];
   function bankRequiredFor(service) { return BANK_REQUIRED_SERVICES.some(s => service.endsWith(s)); }
-  function serviceReady(cfg, service) { return !!(cfg.module && (!bankRequiredFor(service) || cfg.bank)); }
+  /* Bank Installments can be activated with more than one bank at once (e.g. NBE and Bank Misr
+     together) — every other bank-settling service only ever needs a single institution. */
+  function bankMultiFor(service) { return service.endsWith('Bank Installments'); }
+  function serviceReady(cfg, service) { return !!(cfg.module && (!bankRequiredFor(service) || cfg.banks.length)); }
 
   function priceTierHTML(t, pricingMap) {
     const sel = pricingMap.get(t.key) || { tier: 'auto', note: '' };
@@ -685,10 +688,13 @@
     const merged = new Map();
     criteria.services.forEach(s => {
       const cfg = serviceConfig[s];
-      const m = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: cfg.bank, module: cfg.module, services: [s] });
-      m.forEach((via, name) => {
-        if (!merged.has(name)) merged.set(name, new Set());
-        via.forEach(v => merged.get(name).add(v));
+      const banks = cfg.banks.length ? cfg.banks : [''];
+      banks.forEach(bank => {
+        const m = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank, module: cfg.module, services: [s] });
+        m.forEach((via, name) => {
+          if (!merged.has(name)) merged.set(name, new Set());
+          via.forEach(v => merged.get(name).add(v));
+        });
       });
     });
     const out = new Map();
@@ -736,6 +742,7 @@
     const cfg = serviceConfig[service];
     const idx = criteria.services.indexOf(service);
     const needsBank = bankRequiredFor(service);
+    const multiBank = needsBank && bankMultiFor(service);
     const fieldsLabel = needsBank ? 'Financial Institution and Settlement type' : 'Settlement type';
 
     const pricingHTML = serviceReady(cfg, service)
@@ -749,11 +756,10 @@
       <div class="svc-setup-title">Service ${idx + 1} of ${criteria.services.length} — ${esc(service)}</div>
       <div class="crit-grid" style="margin-bottom: 22px;">
         ${needsBank ? `<div class="crit-group">
-          <div class="crit-label">Financial Institution<span class="req">*</span></div>
-          <select class="crit-select" id="svcBank">
-            <option value="">Select bank…</option>
-            ${BANKS.map(b => `<option value="${esc(b)}" ${cfg.bank === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
-          </select>
+          <div class="crit-label">Financial Institution<span class="req">*</span>${multiBank ? '<span class="opt">(select all that apply)</span>' : ''}</div>
+          <div class="crit-chips" id="svcBank">
+            ${BANKS.map(b => `<button type="button" class="crit-chip${cfg.banks.includes(b) ? ' on' : ''}" data-bank="${esc(b)}">${esc(b)}</button>`).join('')}
+          </div>
         </div>` : ''}
         <div class="crit-group">
           <div class="crit-label">Settlement type<span class="req">*</span></div>
@@ -770,7 +776,18 @@
     `;
 
     if (needsBank) {
-      wrap.querySelector('#svcBank').addEventListener('change', e => { cfg.bank = e.target.value; renderServiceSetup(); renderServiceTracker(); refreshAggregateAndSummary(); });
+      wrap.querySelectorAll('#svcBank .crit-chip').forEach(b => b.addEventListener('click', () => {
+        const bank = b.dataset.bank;
+        if (multiBank) {
+          const i = cfg.banks.indexOf(bank);
+          if (i >= 0) cfg.banks.splice(i, 1); else cfg.banks.push(bank);
+        } else {
+          cfg.banks = cfg.banks[0] === bank ? [] : [bank];
+        }
+        renderServiceSetup();
+        renderServiceTracker();
+        refreshAggregateAndSummary();
+      }));
     }
     wrap.querySelectorAll('#svcModule .crit-chip').forEach(b => b.addEventListener('click', () => {
       cfg.module = cfg.module === b.dataset.module ? '' : b.dataset.module;
@@ -782,7 +799,7 @@
   function handleServiceContinue() {
     const service = activeService;
     const cfg = serviceConfig[service];
-    if (!cfg.module || (bankRequiredFor(service) && !cfg.bank)) {
+    if (!cfg.module || (bankRequiredFor(service) && !cfg.banks.length)) {
       const fieldsLabel = bankRequiredFor(service) ? 'Financial Institution and Settlement type' : 'Settlement type';
       toast(`Select ${fieldsLabel} for ${stripChannel(service)} first`);
       return;
@@ -997,7 +1014,7 @@
     }
     const { total, done } = currentDocStatus();
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
-    const serviceConfigsPayload = criteria.services.map(s => ({ service: s, bank: serviceConfig[s].bank, module: serviceConfig[s].module }));
+    const serviceConfigsPayload = criteria.services.map(s => ({ service: s, banks: serviceConfig[s].banks, module: serviceConfig[s].module }));
     const qs = new URLSearchParams({
       id: 'APP-' + Date.now().toString().slice(-8),
       biz, email, phone,

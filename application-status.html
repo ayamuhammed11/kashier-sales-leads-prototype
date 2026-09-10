@@ -380,14 +380,17 @@
   const svcCfgCard = $('svcConfigList');
   if (svcCfgCard) {
     svcCfgCard.innerHTML = app.serviceConfigs.length
-      ? app.serviceConfigs.map(c => `
+      ? app.serviceConfigs.map(c => {
+          const banks = (c.banks && c.banks.length) ? c.banks.join(', ') : (c.bank || '');
+          return `
         <div class="svc-config-row">
           <div class="svc-config-name">${esc(c.service)}</div>
           <div class="svc-config-fields">
-            <div class="info-field"><div class="lbl">Financial Institution</div><div class="val${c.bank ? '' : ' muted'}">${esc(c.bank || 'Not set')}</div></div>
+            <div class="info-field"><div class="lbl">Financial Institution</div><div class="val${banks ? '' : ' muted'}">${esc(banks || 'Not set')}</div></div>
             <div class="info-field"><div class="lbl">Settlement Type</div><div class="val${c.module ? '' : ' muted'}">${esc(c.module || 'Not set')}</div></div>
           </div>
-        </div>`).join('')
+        </div>`;
+        }).join('')
       : '<div class="info-field val muted">No services configured</div>';
   }
 

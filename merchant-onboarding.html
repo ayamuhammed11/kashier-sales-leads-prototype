@@ -179,13 +179,12 @@
   .whn-ar { font-weight: 400; font-size: 12.5px; color: var(--cadet-05); margin-left: 8px; direction: rtl; display: inline-block; }
   .whn-via { font-size: 12px; color: var(--cadet-05); font-style: italic; margin-top: 3px; }
   .whn-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
-  .whn-count { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
   .whn-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
-  .whn-service-group { margin-bottom: 22px; }
-  .whn-service-group:last-child { margin-bottom: 0; }
-  .whn-service-heading { display: inline-flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-weight: 700;
-    font-size: 13.5px; color: var(--primary); background: var(--ocean-10); border-radius: 6px; padding: 4px 10px; margin-bottom: 8px; }
-  .whn-service-heading.common { color: var(--cadet-base); background: var(--muted); }
+  .whn-already { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; background: var(--success-bg); }
+  .whn-already-label { font-size: 12px; font-weight: 700; color: var(--success-text); margin-bottom: 8px; }
+  .whn-already-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); padding: 3px 0; }
+  .whn-already-check { width: 16px; height: 16px; color: var(--success); flex-shrink: 0; }
+  .whn-already-check svg { width: 100%; height: 100%; }
 
   /* Pricing — reused inside each service's setup panel */
   .price-service { padding: 16px 4px; border-bottom: 1px solid var(--border-subtle); }
@@ -375,7 +374,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           <div>
             <h2>2. Criteria &amp; Services</h2>
-            <p class="ch-sub">Pick the merchant type, industry, and every service this merchant needs. You'll set up the financial institution, settlement type, and pricing for each service next, then collect all the required documents in one place at the end.</p>
+            <p class="ch-sub">Pick the merchant type, industry, and every service this merchant needs. You'll set up the financial institution, settlement type, pricing, and required documents for each service next.</p>
           </div>
         </div>
         <div class="card-body">
@@ -406,7 +405,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
           <div>
             <h2>3. Service Setup</h2>
-            <p class="ch-sub">Configure each service one at a time — financial institution, settlement type, and pricing — then move on to the next service you selected above. Required documents are collected once, for all services, in the next step.</p>
+            <p class="ch-sub">Configure each service one at a time — financial institution, settlement type, pricing, and required documents — then move on to the next service you selected above. A document you've already uploaded for one service won't be asked for again if another service also needs it.</p>
           </div>
         </div>
         <div class="card-body">
@@ -415,27 +414,12 @@
         </div>
       </div>
 
-      <!-- STEP 4 — Documents -->
-      <div class="card">
-        <div class="card-head">
-          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m5.25 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-          <div>
-            <h2>4. Required Documents</h2>
-            <p class="ch-sub">Combined from every service you've configured above — the merchant (or you, on their behalf) will need to provide the following:</p>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="whn-count" id="whnCount">0 documents required</div>
-          <div id="whnList"></div>
-        </div>
-      </div>
-
-      <!-- STEP 5 — Submit -->
+      <!-- STEP 4 — Submit -->
       <div class="card">
         <div class="card-head">
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
           <div>
-            <h2>5. Submit Application</h2>
+            <h2>4. Submit Application</h2>
             <p class="ch-sub">Review the summary below, then send this application into the approval and onboarding workflow. Rates below Auto route to Manager/Head approval first; everything else goes straight to the Onboarding team.</p>
           </div>
         </div>
@@ -739,58 +723,8 @@
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
   }
-  function renderAggregatedDocs() {
-    const list = $('whnList');
-    const uniqueDocs = computeAggregatedDocs();
-    if (!criteria.services.length) {
-      list.innerHTML = '<div class="whn-empty">No documents required yet — configure at least one service above.</div>';
-      list.querySelectorAll('.doc-upload').forEach(wireDropzone);
-      $('whnCount').textContent = '0 documents required';
-      return;
-    }
-
-    // A document needed by more than one service is shown once, up top — not repeated in
-    // every service section it happens to also apply to.
-    const perService = new Map(criteria.services.map(s => [s, docsForService(s)]));
-    const countByDoc = new Map();
-    const viaByDoc = new Map();
-    perService.forEach(docsMap => docsMap.forEach((via, name) => {
-      countByDoc.set(name, (countByDoc.get(name) || 0) + 1);
-      if (!viaByDoc.has(name)) viaByDoc.set(name, new Set());
-      via.forEach(v => viaByDoc.get(name).add(v));
-    }));
-    const commonNames = new Set([...countByDoc.entries()].filter(([, c]) => c > 1).map(([n]) => n));
-
-    let html = '';
-    if (commonNames.size) {
-      html += `<div class="whn-service-group">
-        <div class="whn-service-heading common">Common to multiple services</div>
-        ${[...commonNames].map(name => reqItemHTML(name, [...viaByDoc.get(name)])).join('')}
-      </div>`;
-    }
-    html += criteria.services.map(s => {
-      const docsMap = perService.get(s);
-      if (!docsMap.size) {
-        return `<div class="whn-service-group">
-          <div class="whn-service-heading">${esc(s)}</div>
-          <div class="whn-empty">No documents required yet for this service — finish its settlement type above.</div>
-        </div>`;
-      }
-      const uniqueEntries = [...docsMap.entries()].filter(([name]) => !commonNames.has(name));
-      return `<div class="whn-service-group">
-        <div class="whn-service-heading">${esc(s)}</div>
-        ${uniqueEntries.length
-          ? uniqueEntries.map(([name, via]) => reqItemHTML(name, via)).join('')
-          : '<div class="whn-empty">Every document for this service is listed under Common to multiple services above.</div>'}
-      </div>`;
-    }).join('');
-
-    list.innerHTML = html;
-    list.querySelectorAll('.doc-upload').forEach(wireDropzone);
-    $('whnCount').textContent = uniqueDocs.size + ' document' + (uniqueDocs.size === 1 ? '' : 's') + ' required';
-  }
-
-  /* ══════════ Step 3 — Service Setup: one service configured at a time ══════════ */
+  /* ══════════ Step 3 — Service Setup: one service configured at a time, financial institution
+     through required documents, before moving to the next selected service ══════════ */
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
   function renderServiceTracker() {
     const el = $('svcTracker');
@@ -844,6 +778,19 @@
       ? keys.map(k => bankBlockHTML(service, k, cfg, needsBank)).join('')
       : `<div class="svc-empty">Select at least one Financial Institution above to set its settlement type and pricing.</div>`;
 
+    const fieldsLabel = needsBank ? 'Financial Institution and Settlement type' : 'Settlement type';
+    const allDocs = docsForService(service);
+    const stillNeeded = [...allDocs.entries()].filter(([name]) => !isDocDone(name));
+    const alreadyCovered = [...allDocs.entries()].filter(([name]) => isDocDone(name));
+    const docsHTML = !allDocs.size
+      ? `<div class="whn-empty">Select ${fieldsLabel} above to see the documents this service needs.</div>`
+      : `${alreadyCovered.length ? `<div class="whn-already">
+          <div class="whn-already-label">${alreadyCovered.length} document${alreadyCovered.length === 1 ? '' : 's'} already uploaded</div>
+          ${alreadyCovered.map(([name]) => `<div class="whn-already-row"><span class="whn-already-check">${CHECK_SVG}</span>${esc(name)}</div>`).join('')}
+        </div>` : ''}
+        ${stillNeeded.length ? stillNeeded.map(([name, via]) => reqItemHTML(name, via)).join('')
+          : (alreadyCovered.length ? '<div class="whn-empty">Nothing new to upload — every document for this service is already covered.</div>' : '')}`;
+
     const nextService = criteria.services[idx + 1];
     const continueLabel = nextService ? `Save &amp; Continue to ${esc(stripChannel(nextService))}` : (cfg.done ? 'Service Configured ✓' : 'Save &amp; Finish Service Setup');
 
@@ -858,6 +805,8 @@
         </div>
       </div>` : ''}
       ${bankSectionsHTML}
+      <div class="svc-subhead">Documents needed for ${esc(stripChannel(service))}</div>
+      <div style="margin-bottom: 22px;">${docsHTML}</div>
       <div class="whn-actions">
         <button type="button" class="btn btn-primary" id="svcContinueBtn">${continueLabel}</button>
       </div>
@@ -886,6 +835,7 @@
       renderServiceTracker();
       refreshAggregateAndSummary();
     }));
+    wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
   }
   function handleServiceContinue() {
     const service = activeService;
@@ -946,13 +896,11 @@
     renderSubmitSummary();
   });
   function refreshAggregateAndSummary() {
-    renderAggregatedDocs();
     renderSubmitSummary();
   }
   function refreshAll() {
     renderServiceTracker();
     renderServiceSetup();
-    renderAggregatedDocs();
     renderSubmitSummary();
   }
 
@@ -1015,7 +963,6 @@
   });
   function onDocFilesChanged() {
     renderServiceSetup();
-    renderAggregatedDocs();
     renderSubmitSummary();
   }
 
@@ -1171,7 +1118,6 @@
   renderCriteria();
   renderServiceTracker();
   renderServiceSetup();
-  renderAggregatedDocs();
 </script>
 
 <script>

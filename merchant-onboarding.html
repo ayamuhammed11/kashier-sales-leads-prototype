@@ -568,8 +568,8 @@
     activeService = firstPending || criteria.services[criteria.services.length - 1] || '';
   }
   /* Financial Institution only applies to services that actually settle through a bank
-     relationship — the other services (Valu, OCTO, wallets-as-BNPL, Transfer, etc.) don't need it. */
-  const BANK_REQUIRED_SERVICES = ['Card', 'Wallet', 'Bank Installments'];
+     relationship — the other services (Wallet, Valu, OCTO, Transfer, etc.) don't need it. */
+  const BANK_REQUIRED_SERVICES = ['Card', 'Bank Installments'];
   function bankRequiredFor(service) { return BANK_REQUIRED_SERVICES.some(s => service.endsWith(s)); }
   /* Bank Installments can be activated with more than one bank at once (e.g. NBE and Bank Misr
      together) — every other bank-settling service only ever needs a single institution. */

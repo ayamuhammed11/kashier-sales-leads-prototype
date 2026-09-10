@@ -155,6 +155,10 @@
   .svc-pill.current .svc-pill-dot { background: var(--primary); color: #fff; }
   .svc-pill.done { border-color: var(--success); color: var(--success-80); }
   .svc-pill.done .svc-pill-dot { background: var(--success); color: #fff; }
+  .svc-pill-channel { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
+  .svc-pill-channel.online { background: var(--ocean-10); color: var(--primary); }
+  .svc-pill-channel.pos { background: var(--accent-10); color: var(--accent); }
   .svc-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
   .svc-setup-title { font-size: 15px; font-weight: 700; color: var(--foreground); margin-bottom: 18px;
     padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); }
@@ -632,6 +636,7 @@
      The group header already supplies the channel, so each chip's own label only needs
      the method name — the stored value keeps the full "Online Card" / "POS Card" form. */
   const stripChannel = name => name.replace(/^(Online|POS) /, '');
+  const channelOf = name => name.startsWith('POS ') ? 'POS' : 'Online';
   function renderServiceCatalogChips() {
     const c = $('critService'); c.innerHTML = '';
     SERVICE_CATALOG.forEach(tier => {
@@ -711,6 +716,7 @@
       return `<button type="button" class="svc-pill ${cls}" data-service="${esc(s)}">
         <span class="svc-pill-dot">${cfg.done ? CHECK_SVG : i + 1}</span>
         ${esc(stripChannel(s))}
+        <span class="svc-pill-channel ${channelOf(s).toLowerCase()}">${channelOf(s)}</span>
       </button>`;
     }).join('');
     el.querySelectorAll('.svc-pill').forEach(btn => btn.addEventListener('click', () => {

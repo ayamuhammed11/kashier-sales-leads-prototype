@@ -222,6 +222,14 @@
   .status-pill.warn .dot { background: var(--warning); }
   .status-pill.info { background: var(--ocean-10); color: var(--primary); }
   .status-pill.info .dot { background: var(--primary); }
+  .status-pill.success { background: var(--success-bg); color: var(--success-text); }
+  .status-pill.success .dot { background: var(--success); }
+
+  .whn-already { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; background: var(--success-bg); }
+  .whn-already-label { font-size: 12px; font-weight: 700; color: var(--success-text); margin-bottom: 8px; }
+  .whn-already-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); padding: 3px 0; }
+  .whn-already-check { width: 16px; height: 16px; color: var(--success); flex-shrink: 0; }
+  .whn-already-check svg { width: 100%; height: 100%; }
 
   /* Step 5 — Submit */
   .submit-summary { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 16px; margin-bottom: 18px; }
@@ -516,6 +524,19 @@
     'Store Lease / Location Proof': { ar: 'عقد إيجار المتجر / إثبات الموقع', formats: 'PDF, JPG', size: 5, slots: 'single' },
   };
 
+  /* ══════════ Shared document uploads — a document is the same physical file no matter which
+     service asked for it, so it's stored once by name and reused everywhere it's required. ══════════ */
+  const docFiles = new Map(); // docName -> Map<slotLabel, {name, size}>
+  function docSlotDefs(name) {
+    const meta = DOC_META[name] || {};
+    return meta.slots === 'single' || !meta.slots ? [{ label: '' }] : meta.slots;
+  }
+  function isDocDone(name) {
+    const store = docFiles.get(name);
+    if (!store) return false;
+    return docSlotDefs(name).every(s => store.has(s.label));
+  }
+
   /* Same OR-within-group / AND-across-groups matching semantics as Document Rules */
   const RULES = [
     { name: 'Identity (universal)',    docs: ['National ID'],                                                entities: [], owners: [], industries: [], banks: [], modules: [], services: [] },
@@ -579,7 +600,11 @@
     const firstPending = criteria.services.find(s => !serviceConfig[s].done);
     activeService = firstPending || criteria.services[criteria.services.length - 1] || '';
   }
-  function serviceReady(cfg) { return !!(cfg.bank && cfg.module); }
+  /* Financial Institution only applies to services that actually settle through a bank
+     relationship — the other services (Valu, OCTO, wallets-as-BNPL, Transfer, etc.) don't need it. */
+  const BANK_REQUIRED_SERVICES = ['Card', 'Wallet', 'Bank Installments'];
+  function bankRequiredFor(service) { return BANK_REQUIRED_SERVICES.some(s => service.endsWith(s)); }
+  function serviceReady(cfg, service) { return !!(cfg.module && (!bankRequiredFor(service) || cfg.bank)); }
 
   function priceTierHTML(t, pricingMap) {
     const sel = pricingMap.get(t.key) || { tier: 'auto', note: '' };
@@ -612,7 +637,7 @@
     let total = 0, needsApproval = 0, unresolved = 0;
     criteria.services.forEach(s => {
       const cfg = serviceConfig[s];
-      if (!serviceReady(cfg)) return;
+      if (!serviceReady(cfg, s)) return;
       ratesForService(s).forEach(t => {
         total++;
         const sel = cfg.pricing.get(t.key);
@@ -685,12 +710,14 @@
   /* ══════════ Step 4 — Required Documents checklist (shared row renderer) ══════════ */
   function whnRowHTML(name, via) {
     const meta = DOC_META[name] || {};
+    const done = isDocDone(name);
     return `<div class="whn-row">
       <div class="whn-icon">${WHN_DOC_ICON}</div>
       <div class="whn-info">
         <div class="whn-name">${esc(name)}${meta.ar ? `<span class="whn-ar">${esc(meta.ar)}</span>` : ''}</div>
         <div class="whn-via">Required because: ${via.map(esc).join(', ')}</div>
       </div>
+      <span class="status-pill${done ? ' success' : ''}"><span class="dot"></span>${done ? 'Uploaded' : 'Required'}</span>
     </div>`;
   }
   function computeAggregatedDocs() {
@@ -745,15 +772,25 @@
     const service = activeService;
     const cfg = serviceConfig[service];
     const idx = criteria.services.indexOf(service);
+    const needsBank = bankRequiredFor(service);
+    const fieldsLabel = needsBank ? 'Financial Institution and Settlement type' : 'Settlement type';
 
     const docsMap = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: cfg.bank, module: cfg.module, services: [service] });
-    const docsHTML = docsMap.size
-      ? [...docsMap.entries()].map(([name, via]) => whnRowHTML(name, via)).join('')
-      : '<div class="whn-empty">Select Financial Institution and Settlement type to see the documents this service needs.</div>';
+    const docsEntries = [...docsMap.entries()];
+    const alreadyUploaded = docsEntries.filter(([name]) => isDocDone(name));
+    const stillNeeded = docsEntries.filter(([name]) => !isDocDone(name));
+    const docsHTML = docsEntries.length
+      ? `${alreadyUploaded.length ? `<div class="whn-already">
+          <div class="whn-already-label">${alreadyUploaded.length} document${alreadyUploaded.length === 1 ? '' : 's'} already uploaded for another service</div>
+          ${alreadyUploaded.map(([name]) => `<div class="whn-already-row"><span class="whn-already-check">${CHECK_SVG}</span>${esc(name)}</div>`).join('')}
+        </div>` : ''}
+        ${stillNeeded.length ? stillNeeded.map(([name, via]) => reqItemHTML(name, via)).join('')
+          : (alreadyUploaded.length ? '<div class="whn-empty">Nothing new to upload — every document for this service is already covered.</div>' : '')}`
+      : `<div class="whn-empty">Select ${fieldsLabel} to see the documents this service needs.</div>`;
 
-    const pricingHTML = serviceReady(cfg)
+    const pricingHTML = serviceReady(cfg, service)
       ? priceServiceHTML(service, cfg)
-      : '<div class="price-empty">Select Financial Institution and Settlement type above to see applicable rates.</div>';
+      : `<div class="price-empty">Select ${fieldsLabel} above to see applicable rates.</div>`;
 
     const nextService = criteria.services[idx + 1];
     const continueLabel = nextService ? `Save &amp; Continue to ${esc(stripChannel(nextService))}` : (cfg.done ? 'Service Configured ✓' : 'Save &amp; Finish Service Setup');
@@ -761,13 +798,13 @@
     wrap.innerHTML = `
       <div class="svc-setup-title">Service ${idx + 1} of ${criteria.services.length} — ${esc(service)}</div>
       <div class="crit-grid" style="margin-bottom: 22px;">
-        <div class="crit-group">
+        ${needsBank ? `<div class="crit-group">
           <div class="crit-label">Financial Institution<span class="req">*</span></div>
           <select class="crit-select" id="svcBank">
             <option value="">Select bank…</option>
             ${BANKS.map(b => `<option value="${esc(b)}" ${cfg.bank === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
           </select>
-        </div>
+        </div>` : ''}
         <div class="crit-group">
           <div class="crit-label">Settlement type<span class="req">*</span></div>
           <div class="crit-chips" id="svcModule">
@@ -784,19 +821,23 @@
       </div>
     `;
 
-    wrap.querySelector('#svcBank').addEventListener('change', e => { cfg.bank = e.target.value; renderServiceSetup(); renderServiceTracker(); refreshAggregateAndSummary(); });
+    if (needsBank) {
+      wrap.querySelector('#svcBank').addEventListener('change', e => { cfg.bank = e.target.value; renderServiceSetup(); renderServiceTracker(); refreshAggregateAndSummary(); });
+    }
     wrap.querySelectorAll('#svcModule .crit-chip').forEach(b => b.addEventListener('click', () => {
       cfg.module = cfg.module === b.dataset.module ? '' : b.dataset.module;
       renderServiceSetup();
       renderServiceTracker();
       refreshAggregateAndSummary();
     }));
+    wrap.querySelectorAll('.req-item .dz-block').forEach(wireDropzone);
   }
   function handleServiceContinue() {
     const service = activeService;
     const cfg = serviceConfig[service];
-    if (!cfg.bank || !cfg.module) {
-      toast(`Select Financial Institution and Settlement type for ${stripChannel(service)} first`);
+    if (!cfg.module || (bankRequiredFor(service) && !cfg.bank)) {
+      const fieldsLabel = bankRequiredFor(service) ? 'Financial Institution and Settlement type' : 'Settlement type';
+      toast(`Select ${fieldsLabel} for ${stripChannel(service)} first`);
       return;
     }
     let unresolved = false;
@@ -850,29 +891,56 @@
     renderSubmitSummary();
   }
 
-  /* ══════════ Agent-assisted upload panel (reuses the same req-item visual as the merchant's own view) ══════════ */
+  /* ══════════ Document uploads — shared by every service's own doc list (Step 3) and the
+     aggregated Agent-Assisted panel (Step 4): a document is stored once by name, so uploading
+     it anywhere marks it done everywhere it's required. ══════════ */
   function acceptAttr(formats) {
     const map = { PDF: '.pdf', JPG: '.jpg,.jpeg', PNG: '.png' };
     return (formats || 'PDF').split(',').map(s => s.trim().toUpperCase()).map(f => map[f] || '').filter(Boolean).join(',');
   }
-  function buildChip(f, label) {
-    const chip = document.createElement('div');
-    chip.className = 'dz-fchip'; chip._file = f;
-    chip.innerHTML = `${DOC_ICON}${label ? `<span class="flabel">${esc(label)}</span>` : ''}<span class="fname" title="${esc(f.name)}">${esc(f.name)}</span><span class="fsize">${esc(fmtSize(f.size))}</span><button class="rm" type="button" aria-label="Remove file" title="Remove">${RM_ICON}</button>`;
-    return chip;
+  function chipHTML(f, label) {
+    return `<div class="dz-fchip">${DOC_ICON}${label ? `<span class="flabel">${esc(label)}</span>` : ''}<span class="fname" title="${esc(f.name)}">${esc(f.name)}</span><span class="fsize">${esc(fmtSize(f.size))}</span><button class="rm" type="button" aria-label="Remove file" title="Remove">${RM_ICON}</button></div>`;
+  }
+  function reqItemHTML(name, via) {
+    const meta = DOC_META[name] || {};
+    const store = docFiles.get(name);
+    const blockHTML = s => {
+      const file = store && store.get(s.label);
+      const dzInner = `${DZ_ICO_SVG}<div class="dz-main"><span class="link">Click to browse</span> or drag &amp; drop</div><div class="dz-sub">${esc(meta.formats || 'PDF')} · up to ${meta.size || 10} MB</div><input type="file" accept="${acceptAttr(meta.formats)}" hidden>`;
+      return `<div class="dz-block" data-label="${esc(s.label)}">
+        ${s.label ? `<div class="dz-label">${esc(s.label)} <span class="req">*</span></div>` : ''}
+        <label class="dropzone"${file ? ' style="display:none"' : ''}>${dzInner}</label>
+        <div class="dz-files">${file ? chipHTML(file, s.label) : ''}</div>
+      </div>`;
+    };
+    const slots = docSlotDefs(name);
+    const slotsHTML = meta.slots === 'single' || !meta.slots
+      ? `<div class="req-slots single">${blockHTML(slots[0])}</div>`
+      : `<div class="req-slots">${slots.map(blockHTML).join('')}</div>`;
+    const done = isDocDone(name);
+    return `<div class="req-item" data-doc="${esc(name)}">
+      <div class="req-top">
+        <div class="req-thumb">${GENERIC_DOC_SVG}</div>
+        <div class="req-info">
+          <div class="req-title-row"><span class="req-title">${esc(name)}</span>${meta.ar ? `<span class="req-ar">${esc(meta.ar)}</span>` : ''}</div>
+          <div class="req-via">Required because: ${via.map(esc).join(', ')}</div>
+        </div>
+        <span class="status-pill${done ? ' success' : ''}"><span class="dot"></span>${done ? 'Uploaded' : 'Required'}</span>
+      </div>
+      ${slotsHTML}
+    </div>`;
   }
   function wireDropzone(block) {
     const zone = block.querySelector('.dropzone');
     const input = block.querySelector('input[type=file]');
-    const filesWrap = block.querySelector('.dz-files');
-    const multiple = input.hasAttribute('multiple');
     const label = block.dataset.label || '';
-    function addChip(f) { if (!multiple) filesWrap.innerHTML = ''; filesWrap.appendChild(buildChip(f, label)); }
+    const docName = block.closest('.req-item').dataset.doc;
     function handle(list) {
-      const valid = [...list]; if (!valid.length) return;
-      valid.forEach(addChip);
-      if (!multiple) zone.style.display = 'none';
-      updateAssistCount();
+      const files = [...list]; if (!files.length) return;
+      const f = files[0];
+      if (!docFiles.has(docName)) docFiles.set(docName, new Map());
+      docFiles.get(docName).set(label, { name: f.name, size: f.size });
+      onDocFilesChanged();
     }
     input.addEventListener('change', e => { handle(e.target.files); e.target.value = ''; });
     ['dragover', 'dragenter'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
@@ -882,52 +950,30 @@
   document.addEventListener('click', e => {
     const rmBtn = e.target.closest('.dz-fchip .rm');
     if (!rmBtn) return;
-    const chip = rmBtn.closest('.dz-fchip');
-    const block = chip.closest('.dz-block');
-    const zone = block.querySelector('.dropzone');
-    const multiple = block.querySelector('input[type=file]').hasAttribute('multiple');
-    chip.remove();
-    if (!multiple) zone.style.display = 'block';
-    updateAssistCount();
+    const block = rmBtn.closest('.dz-block');
+    const docName = block.closest('.req-item').dataset.doc;
+    const label = block.dataset.label || '';
+    const store = docFiles.get(docName);
+    if (store) { store.delete(label); if (!store.size) docFiles.delete(docName); }
+    onDocFilesChanged();
   });
   function updateAssistCount() {
-    const items = [...document.querySelectorAll('#assistList .req-item')];
-    const done = items.filter(it => [...it.querySelectorAll('.dz-block')].every(b => b.querySelector('.dz-files').children.length > 0)).length;
-    $('assistCount').textContent = done + ' of ' + items.length + ' attached';
-    renderSubmitSummary();
-  }
-  function reqItemHTML(name, via) {
-    const meta = DOC_META[name] || {};
-    const dzInner = `${DZ_ICO_SVG}<div class="dz-main"><span class="link">Click to browse</span> or drag &amp; drop</div><div class="dz-sub">${esc(meta.formats || 'PDF')} · up to ${meta.size || 10} MB</div><input type="file" accept="${acceptAttr(meta.formats)}" hidden>`;
-    const slotsHTML = meta.slots === 'single'
-      ? `<div class="req-slots single"><div class="dz-block" data-label=""><label class="dropzone">${dzInner}</label><div class="dz-files"></div></div></div>`
-      : `<div class="req-slots">${(meta.slots || []).map(s => `<div class="dz-block" data-label="${esc(s.label)}"><div class="dz-label">${esc(s.label)} <span class="req">*</span></div><label class="dropzone">${dzInner}</label><div class="dz-files"></div></div>`).join('')}</div>`;
-    return `<div class="req-item" data-doc="${esc(name)}">
-      <div class="req-top">
-        <div class="req-thumb">${GENERIC_DOC_SVG}</div>
-        <div class="req-info">
-          <div class="req-title-row"><span class="req-title">${esc(name)}</span>${meta.ar ? `<span class="req-ar">${esc(meta.ar)}</span>` : ''}</div>
-          <div class="req-via">Required because: ${via.map(esc).join(', ')}</div>
-        </div>
-        <span class="status-pill"><span class="dot"></span>Required</span>
-      </div>
-      ${slotsHTML}
-    </div>`;
+    const map = computeAggregatedDocs();
+    let done = 0;
+    map.forEach((via, name) => { if (isDocDone(name)) done++; });
+    $('assistCount').textContent = done + ' of ' + map.size + ' attached';
   }
   function renderAssistPanel() {
     const map = computeAggregatedDocs();
     const list = $('assistList');
-    const existing = new Map([...list.querySelectorAll('.req-item')].map(it => [it.dataset.doc, it]));
-    existing.forEach((el, name) => { if (!map.has(name)) el.remove(); });
-    map.forEach((via, name) => {
-      if (existing.has(name)) return;
-      const wrap = document.createElement('div');
-      wrap.innerHTML = reqItemHTML(name, via);
-      const item = wrap.firstElementChild;
-      list.appendChild(item);
-      item.querySelectorAll('.dz-block').forEach(wireDropzone);
-    });
+    list.innerHTML = [...map.entries()].map(([name, via]) => reqItemHTML(name, via)).join('');
+    list.querySelectorAll('.dz-block').forEach(wireDropzone);
     updateAssistCount();
+  }
+  function onDocFilesChanged() {
+    renderServiceSetup();
+    renderAggregatedDocs();
+    renderSubmitSummary();
   }
 
   $('assistUploadBtn').addEventListener('click', () => {
@@ -945,10 +991,10 @@
     'pending-onboarding-review': { label: 'Pending Onboarding Review',  cls: 'info' },
   };
   function currentDocStatus() {
-    const total = computeAggregatedDocs().size;
-    const items = [...document.querySelectorAll('#assistList .req-item')];
-    const done = items.length ? items.filter(it => [...it.querySelectorAll('.dz-block')].every(b => b.querySelector('.dz-files').children.length > 0)).length : 0;
-    return { total, done };
+    const map = computeAggregatedDocs();
+    let done = 0;
+    map.forEach((via, name) => { if (isDocDone(name)) done++; });
+    return { total: map.size, done };
   }
   function approvalStatus() {
     const { needsApproval, unresolved } = aggregatePricingStats();
@@ -1022,7 +1068,7 @@
       activeService = notConfigured;
       renderServiceTracker();
       renderServiceSetup();
-      toast(`Finish setting up ${stripChannel(notConfigured)} — Financial Institution, Settlement type, and pricing — before submitting`);
+      toast(`Finish setting up ${stripChannel(notConfigured)} — ${bankRequiredFor(notConfigured) ? 'Financial Institution, Settlement type,' : 'Settlement type,'} and pricing — before submitting`);
       $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }

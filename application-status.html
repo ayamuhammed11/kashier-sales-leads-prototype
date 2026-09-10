@@ -131,7 +131,9 @@
   .svc-config-list { display: flex; flex-direction: column; gap: 10px; }
   .svc-config-row { border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 14px; }
   .svc-config-name { font-size: 13px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
-  .svc-config-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+  .svc-config-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+  .svc-config-fields:first-of-type { border-top: none; padding-top: 0; }
+  .svc-config-fields:last-of-type { padding-bottom: 0; }
 
   /* Timeline / stepper */
   .stepper { display: flex; flex-direction: column; gap: 0; }
@@ -381,14 +383,22 @@
   if (svcCfgCard) {
     svcCfgCard.innerHTML = app.serviceConfigs.length
       ? app.serviceConfigs.map(c => {
-          const banks = (c.banks && c.banks.length) ? c.banks.join(', ') : (c.bank || '');
+          // New shape: c.configs = [{bank, module}, ...] — one entry per bank, each with its own
+          // settlement type. Older links may carry c.banks (array of names) + a single c.module,
+          // or the oldest single c.bank + c.module — normalize all of them into rows.
+          const rows = (c.configs && c.configs.length)
+            ? c.configs
+            : (c.banks && c.banks.length)
+              ? c.banks.map(b => ({ bank: b, module: c.module || '' }))
+              : [{ bank: c.bank || '', module: c.module || '' }];
           return `
         <div class="svc-config-row">
           <div class="svc-config-name">${esc(c.service)}</div>
+          ${rows.map(r => `
           <div class="svc-config-fields">
-            <div class="info-field"><div class="lbl">Financial Institution</div><div class="val${banks ? '' : ' muted'}">${esc(banks || 'Not set')}</div></div>
-            <div class="info-field"><div class="lbl">Settlement Type</div><div class="val${c.module ? '' : ' muted'}">${esc(c.module || 'Not set')}</div></div>
-          </div>
+            ${r.bank ? `<div class="info-field"><div class="lbl">Financial Institution</div><div class="val">${esc(r.bank)}</div></div>` : ''}
+            <div class="info-field"><div class="lbl">Settlement Type</div><div class="val${r.module ? '' : ' muted'}">${esc(r.module || 'Not set')}</div></div>
+          </div>`).join('')}
         </div>`;
         }).join('')
       : '<div class="info-field val muted">No services configured</div>';

@@ -163,6 +163,10 @@
   .svc-setup-title { font-size: 15px; font-weight: 700; color: var(--foreground); margin-bottom: 18px;
     padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); }
   .svc-subhead { font-size: 13px; font-weight: 700; color: var(--foreground); margin-bottom: 10px; }
+  .bank-config-block { padding: 18px; border: 1px solid var(--border-subtle); border-radius: 10px; background: #FAFBFC; margin-bottom: 16px; }
+  .bank-config-block:last-of-type { margin-bottom: 22px; }
+  .bank-config-heading { display: inline-flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-weight: 700;
+    font-size: 13.5px; color: var(--primary); background: var(--ocean-10); border-radius: 6px; padding: 4px 10px; margin-bottom: 16px; }
 
   /* Step 4 — Required Documents */
   .whn-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border-subtle); }
@@ -177,6 +181,11 @@
   .whn-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
   .whn-count { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
   .whn-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
+  .whn-service-group { margin-bottom: 22px; }
+  .whn-service-group:last-child { margin-bottom: 0; }
+  .whn-service-heading { display: inline-flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-weight: 700;
+    font-size: 13.5px; color: var(--primary); background: var(--ocean-10); border-radius: 6px; padding: 4px 10px; margin-bottom: 8px; }
+  .whn-service-heading.common { color: var(--cadet-base); background: var(--muted); }
 
   /* Pricing — reused inside each service's setup panel */
   .price-service { padding: 16px 4px; border-bottom: 1px solid var(--border-subtle); }
@@ -556,13 +565,15 @@
   ];
   const ratesForService = service => service.includes('Card') ? CARD_RATE_TIERS : DEFAULT_RATE_TIERS;
 
-  /* ══════════ Per-service configuration — each selected service gets its own
-     Financial Institution, Settlement type, and pricing, set up one at a time. ══════════ */
-  const serviceConfig = {}; // serviceConfig[service] = { banks: [], module, pricing: Map<tierKey, {tier,note}>, done }
+  /* ══════════ Per-service configuration — each selected service gets its own Financial
+     Institution(s), and each of those banks gets its OWN settlement type and pricing
+     (a merchant activating Bank Installments with NBE and Bank Misr can settle and price
+     each bank differently). Services that don't need a bank keep a single implicit '' key. ══════════ */
+  const serviceConfig = {}; // serviceConfig[service] = { banks: [], bankConfigs: { [bank]: {module, pricing: Map} }, done }
   let activeService = '';
 
   function ensureServiceConfig(service) {
-    if (!serviceConfig[service]) serviceConfig[service] = { banks: [], module: '', pricing: new Map(), done: false };
+    if (!serviceConfig[service]) serviceConfig[service] = { banks: [], bankConfigs: {}, done: false };
   }
   function syncServiceConfigs() {
     criteria.services.forEach(ensureServiceConfig);
@@ -579,11 +590,22 @@
   /* Bank Installments can be activated with more than one bank at once (e.g. NBE and Bank Misr
      together) — every other bank-settling service only ever needs a single institution. */
   function bankMultiFor(service) { return service.endsWith('Bank Installments'); }
-  function serviceReady(cfg, service) { return !!(cfg.module && (!bankRequiredFor(service) || cfg.banks.length)); }
+  /* The keys that need their own settlement type + pricing for this service: one per selected
+     bank when the service needs a bank, or a single '' key (no Financial Institution) otherwise. */
+  function bankKeysFor(cfg, service) { return bankRequiredFor(service) ? cfg.banks : ['']; }
+  function ensureBankConfig(cfg, key) {
+    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: '', pricing: new Map() };
+    return cfg.bankConfigs[key];
+  }
+  function serviceReady(cfg, service) {
+    const keys = bankKeysFor(cfg, service);
+    if (!keys.length) return false;
+    return keys.every(k => cfg.bankConfigs[k] && cfg.bankConfigs[k].module);
+  }
 
-  function priceTierHTML(t, pricingMap) {
+  function priceTierHTML(t, pricingMap, bankKey) {
     const sel = pricingMap.get(t.key) || { tier: 'auto', note: '' };
-    const chip = (tier, cls, label, sub) => `<button type="button" class="rate-tier-chip ${cls}${sel.tier === tier ? ' on' : ''}" data-key="${esc(t.key)}" data-tier="${tier}">${label}<span class="rtc-sub">${esc(sub)}</span></button>`;
+    const chip = (tier, cls, label, sub) => `<button type="button" class="rate-tier-chip ${cls}${sel.tier === tier ? ' on' : ''}" data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" data-tier="${tier}">${label}<span class="rtc-sub">${esc(sub)}</span></button>`;
     const needsNote = sel.tier !== 'auto';
     return `<div class="price-tier">
       <div class="price-tier-label">${esc(t.label)}</div>
@@ -600,26 +622,29 @@
         ${chip('head', 'head', 'Head approval', 'under ' + t.manager + '%')}
       </div>
       ${needsNote ? `<div class="price-note">
-        <textarea class="inp${sel.note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${sel.tier === 'manager' ? 'Manager' : 'Head'}-approved rate?" data-key="${esc(t.key)}">${esc(sel.note)}</textarea>
+        <textarea class="inp${sel.note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${sel.tier === 'manager' ? 'Manager' : 'Head'}-approved rate?" data-bank="${esc(bankKey)}" data-key="${esc(t.key)}">${esc(sel.note)}</textarea>
         <div class="price-note-hint">Required — this rate needs ${sel.tier === 'manager' ? 'Manager' : 'Head'} sign-off before you can continue.</div>
       </div>` : ''}
     </div>`;
   }
-  function priceServiceHTML(service, cfg) {
-    return ratesForService(service).map(t => priceTierHTML(t, cfg.pricing)).join('');
+  function priceBankHTML(service, bankKey, bc) {
+    return ratesForService(service).map(t => priceTierHTML(t, bc.pricing, bankKey)).join('');
   }
   function aggregatePricingStats() {
     let total = 0, needsApproval = 0, unresolved = 0;
     criteria.services.forEach(s => {
       const cfg = serviceConfig[s];
-      if (!serviceReady(cfg, s)) return;
-      ratesForService(s).forEach(t => {
-        total++;
-        const sel = cfg.pricing.get(t.key);
-        if (sel && sel.tier !== 'auto') {
-          needsApproval++;
-          if (!sel.note.trim()) unresolved++;
-        }
+      bankKeysFor(cfg, s).forEach(k => {
+        const bc = cfg.bankConfigs[k];
+        if (!bc || !bc.module) return;
+        ratesForService(s).forEach(t => {
+          total++;
+          const sel = bc.pricing.get(t.key);
+          if (sel && sel.tier !== 'auto') {
+            needsApproval++;
+            if (!sel.note.trim()) unresolved++;
+          }
+        });
       });
     });
     return { total, needsApproval, unresolved };
@@ -683,18 +708,31 @@
   fillSelect('critIndustry', INDUSTRIES);
   $('critIndustry').addEventListener('change', e => { criteria.industry = e.target.value; refreshAll(); });
 
-  /* ══════════ Step 4 — Required Documents (single upload-capable list, shared with Step 3) ══════════ */
+  /* ══════════ Step 4 — Required Documents, grouped per service exactly as Document Rules
+     configures it for that service (its own entity/owner/industry/bank/module/service match) —
+     a document needed by more than one service is uploaded once and shows Uploaded in every
+     group it belongs to, since every row reads/writes the same shared docFiles store. ══════════ */
+  function docsForService(s) {
+    const cfg = serviceConfig[s];
+    const merged = new Map();
+    bankKeysFor(cfg, s).forEach(bank => {
+      const bc = cfg.bankConfigs[bank];
+      const m = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank, module: bc ? bc.module : '', services: [s] });
+      m.forEach((via, name) => {
+        if (!merged.has(name)) merged.set(name, new Set());
+        via.forEach(v => merged.get(name).add(v));
+      });
+    });
+    const out = new Map();
+    merged.forEach((set, name) => out.set(name, [...set]));
+    return out;
+  }
   function computeAggregatedDocs() {
     const merged = new Map();
     criteria.services.forEach(s => {
-      const cfg = serviceConfig[s];
-      const banks = cfg.banks.length ? cfg.banks : [''];
-      banks.forEach(bank => {
-        const m = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank, module: cfg.module, services: [s] });
-        m.forEach((via, name) => {
-          if (!merged.has(name)) merged.set(name, new Set());
-          via.forEach(v => merged.get(name).add(v));
-        });
+      docsForService(s).forEach((via, name) => {
+        if (!merged.has(name)) merged.set(name, new Set());
+        via.forEach(v => merged.get(name).add(v));
       });
     });
     const out = new Map();
@@ -702,13 +740,54 @@
     return out;
   }
   function renderAggregatedDocs() {
-    const map = computeAggregatedDocs();
     const list = $('whnList');
-    list.innerHTML = map.size
-      ? [...map.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')
-      : '<div class="whn-empty">No documents required yet — configure at least one service above.</div>';
+    const uniqueDocs = computeAggregatedDocs();
+    if (!criteria.services.length) {
+      list.innerHTML = '<div class="whn-empty">No documents required yet — configure at least one service above.</div>';
+      list.querySelectorAll('.doc-upload').forEach(wireDropzone);
+      $('whnCount').textContent = '0 documents required';
+      return;
+    }
+
+    // A document needed by more than one service is shown once, up top — not repeated in
+    // every service section it happens to also apply to.
+    const perService = new Map(criteria.services.map(s => [s, docsForService(s)]));
+    const countByDoc = new Map();
+    const viaByDoc = new Map();
+    perService.forEach(docsMap => docsMap.forEach((via, name) => {
+      countByDoc.set(name, (countByDoc.get(name) || 0) + 1);
+      if (!viaByDoc.has(name)) viaByDoc.set(name, new Set());
+      via.forEach(v => viaByDoc.get(name).add(v));
+    }));
+    const commonNames = new Set([...countByDoc.entries()].filter(([, c]) => c > 1).map(([n]) => n));
+
+    let html = '';
+    if (commonNames.size) {
+      html += `<div class="whn-service-group">
+        <div class="whn-service-heading common">Common to multiple services</div>
+        ${[...commonNames].map(name => reqItemHTML(name, [...viaByDoc.get(name)])).join('')}
+      </div>`;
+    }
+    html += criteria.services.map(s => {
+      const docsMap = perService.get(s);
+      if (!docsMap.size) {
+        return `<div class="whn-service-group">
+          <div class="whn-service-heading">${esc(s)}</div>
+          <div class="whn-empty">No documents required yet for this service — finish its settlement type above.</div>
+        </div>`;
+      }
+      const uniqueEntries = [...docsMap.entries()].filter(([name]) => !commonNames.has(name));
+      return `<div class="whn-service-group">
+        <div class="whn-service-heading">${esc(s)}</div>
+        ${uniqueEntries.length
+          ? uniqueEntries.map(([name, via]) => reqItemHTML(name, via)).join('')
+          : '<div class="whn-empty">Every document for this service is listed under Common to multiple services above.</div>'}
+      </div>`;
+    }).join('');
+
+    list.innerHTML = html;
     list.querySelectorAll('.doc-upload').forEach(wireDropzone);
-    $('whnCount').textContent = map.size + ' document' + (map.size === 1 ? '' : 's') + ' required';
+    $('whnCount').textContent = uniqueDocs.size + ' document' + (uniqueDocs.size === 1 ? '' : 's') + ' required';
   }
 
   /* ══════════ Step 3 — Service Setup: one service configured at a time ══════════ */
@@ -731,6 +810,22 @@
       renderServiceSetup();
     }));
   }
+  function bankBlockHTML(service, bankKey, cfg, showBankLabel) {
+    const bc = ensureBankConfig(cfg, bankKey);
+    const label = showBankLabel ? esc(bankKey) : esc(stripChannel(service));
+    const pricingHTML = bc.module
+      ? priceBankHTML(service, bankKey, bc)
+      : `<div class="price-empty">Select Settlement type${showBankLabel ? ' for ' + label : ''} above to see applicable rates.</div>`;
+    return `<div class="bank-config-block">
+      ${showBankLabel ? `<div class="bank-config-heading">${label}</div>` : ''}
+      <div class="svc-subhead">Settlement type${showBankLabel ? ' for ' + label : ''}</div>
+      <div class="crit-chips svc-module-group" data-bank="${esc(bankKey)}" style="margin-bottom: 16px;">
+        ${MODULES.map(m => `<button type="button" class="crit-chip${bc.module === m ? ' on' : ''}" data-module="${esc(m)}">${esc(m)}</button>`).join('')}
+      </div>
+      <div class="svc-subhead">Pricing${showBankLabel ? ' for ' + label : ''}</div>
+      <div>${pricingHTML}</div>
+    </div>`;
+  }
   function renderServiceSetup() {
     const wrap = $('serviceSetupBody');
     if (!criteria.services.length) {
@@ -743,33 +838,26 @@
     const idx = criteria.services.indexOf(service);
     const needsBank = bankRequiredFor(service);
     const multiBank = needsBank && bankMultiFor(service);
-    const fieldsLabel = needsBank ? 'Financial Institution and Settlement type' : 'Settlement type';
+    const keys = bankKeysFor(cfg, service);
 
-    const pricingHTML = serviceReady(cfg, service)
-      ? priceServiceHTML(service, cfg)
-      : `<div class="price-empty">Select ${fieldsLabel} above to see applicable rates.</div>`;
+    const bankSectionsHTML = keys.length
+      ? keys.map(k => bankBlockHTML(service, k, cfg, needsBank)).join('')
+      : `<div class="svc-empty">Select at least one Financial Institution above to set its settlement type and pricing.</div>`;
 
     const nextService = criteria.services[idx + 1];
     const continueLabel = nextService ? `Save &amp; Continue to ${esc(stripChannel(nextService))}` : (cfg.done ? 'Service Configured ✓' : 'Save &amp; Finish Service Setup');
 
     wrap.innerHTML = `
       <div class="svc-setup-title">Service ${idx + 1} of ${criteria.services.length} — ${esc(service)}</div>
-      <div class="crit-grid" style="margin-bottom: 22px;">
-        ${needsBank ? `<div class="crit-group">
-          <div class="crit-label">Financial Institution<span class="req">*</span>${multiBank ? '<span class="opt">(select all that apply)</span>' : ''}</div>
+      ${needsBank ? `<div class="crit-grid" style="margin-bottom: 22px;">
+        <div class="crit-group full">
+          <div class="crit-label">Financial Institution<span class="req">*</span>${multiBank ? '<span class="opt">(select all that apply — each gets its own settlement type and pricing)</span>' : ''}</div>
           <div class="crit-chips" id="svcBank">
             ${BANKS.map(b => `<button type="button" class="crit-chip${cfg.banks.includes(b) ? ' on' : ''}" data-bank="${esc(b)}">${esc(b)}</button>`).join('')}
           </div>
-        </div>` : ''}
-        <div class="crit-group">
-          <div class="crit-label">Settlement type<span class="req">*</span></div>
-          <div class="crit-chips" id="svcModule">
-            ${MODULES.map(m => `<button type="button" class="crit-chip${cfg.module === m ? ' on' : ''}" data-module="${esc(m)}">${esc(m)}</button>`).join('')}
-          </div>
         </div>
-      </div>
-      <div class="svc-subhead">Pricing for ${esc(stripChannel(service))}</div>
-      <div>${pricingHTML}</div>
+      </div>` : ''}
+      ${bankSectionsHTML}
       <div class="whn-actions">
         <button type="button" class="btn btn-primary" id="svcContinueBtn">${continueLabel}</button>
       </div>
@@ -780,17 +868,20 @@
         const bank = b.dataset.bank;
         if (multiBank) {
           const i = cfg.banks.indexOf(bank);
-          if (i >= 0) cfg.banks.splice(i, 1); else cfg.banks.push(bank);
+          if (i >= 0) cfg.banks.splice(i, 1); else { cfg.banks.push(bank); ensureBankConfig(cfg, bank); }
         } else {
           cfg.banks = cfg.banks[0] === bank ? [] : [bank];
+          if (cfg.banks.length) ensureBankConfig(cfg, bank);
         }
         renderServiceSetup();
         renderServiceTracker();
         refreshAggregateAndSummary();
       }));
     }
-    wrap.querySelectorAll('#svcModule .crit-chip').forEach(b => b.addEventListener('click', () => {
-      cfg.module = cfg.module === b.dataset.module ? '' : b.dataset.module;
+    wrap.querySelectorAll('.svc-module-group .crit-chip').forEach(b => b.addEventListener('click', () => {
+      const bankKey = b.closest('.svc-module-group').dataset.bank;
+      const bc = ensureBankConfig(cfg, bankKey);
+      bc.module = bc.module === b.dataset.module ? '' : b.dataset.module;
       renderServiceSetup();
       renderServiceTracker();
       refreshAggregateAndSummary();
@@ -799,13 +890,21 @@
   function handleServiceContinue() {
     const service = activeService;
     const cfg = serviceConfig[service];
-    if (!cfg.module || (bankRequiredFor(service) && !cfg.banks.length)) {
-      const fieldsLabel = bankRequiredFor(service) ? 'Financial Institution and Settlement type' : 'Settlement type';
-      toast(`Select ${fieldsLabel} for ${stripChannel(service)} first`);
+    const keys = bankKeysFor(cfg, service);
+    if (bankRequiredFor(service) && !keys.length) {
+      toast(`Select Financial Institution for ${stripChannel(service)} first`);
+      return;
+    }
+    const missingModuleKey = keys.find(k => !cfg.bankConfigs[k] || !cfg.bankConfigs[k].module);
+    if (missingModuleKey !== undefined) {
+      const label = bankRequiredFor(service) ? `Settlement type for ${missingModuleKey}` : 'Settlement type';
+      toast(`Select ${label} for ${stripChannel(service)} first`);
       return;
     }
     let unresolved = false;
-    cfg.pricing.forEach(sel => { if (sel.tier !== 'auto' && !sel.note.trim()) unresolved = true; });
+    keys.forEach(k => {
+      cfg.bankConfigs[k].pricing.forEach(sel => { if (sel.tier !== 'auto' && !sel.note.trim()) unresolved = true; });
+    });
     if (unresolved) {
       toast('Add an approval note for every rate below Auto before continuing');
       return;
@@ -827,8 +926,9 @@
     const chip = e.target.closest('.rate-tier-chip');
     if (chip) {
       const cfg = serviceConfig[activeService];
-      const cur = cfg.pricing.get(chip.dataset.key) || { tier: 'auto', note: '' };
-      cfg.pricing.set(chip.dataset.key, { tier: chip.dataset.tier, note: cur.note });
+      const bc = ensureBankConfig(cfg, chip.dataset.bank);
+      const cur = bc.pricing.get(chip.dataset.key) || { tier: 'auto', note: '' };
+      bc.pricing.set(chip.dataset.key, { tier: chip.dataset.tier, note: cur.note });
       renderServiceSetup();
       refreshAggregateAndSummary();
       return;
@@ -839,8 +939,9 @@
     const ta = e.target.closest('textarea[data-key]');
     if (!ta) return;
     const cfg = serviceConfig[activeService];
-    const cur = cfg.pricing.get(ta.dataset.key) || { tier: 'auto', note: '' };
-    cfg.pricing.set(ta.dataset.key, { tier: cur.tier, note: ta.value });
+    const bc = ensureBankConfig(cfg, ta.dataset.bank);
+    const cur = bc.pricing.get(ta.dataset.key) || { tier: 'auto', note: '' };
+    bc.pricing.set(ta.dataset.key, { tier: cur.tier, note: ta.value });
     ta.classList.toggle('invalid', !ta.value.trim());
     renderSubmitSummary();
   });
@@ -1014,7 +1115,11 @@
     }
     const { total, done } = currentDocStatus();
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
-    const serviceConfigsPayload = criteria.services.map(s => ({ service: s, banks: serviceConfig[s].banks, module: serviceConfig[s].module }));
+    const serviceConfigsPayload = criteria.services.map(s => {
+      const cfg = serviceConfig[s];
+      const configs = bankKeysFor(cfg, s).map(k => ({ bank: k, module: (cfg.bankConfigs[k] && cfg.bankConfigs[k].module) || '' }));
+      return { service: s, configs };
+    });
     const qs = new URLSearchParams({
       id: 'APP-' + Date.now().toString().slice(-8),
       biz, email, phone,

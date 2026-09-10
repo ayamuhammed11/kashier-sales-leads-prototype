@@ -238,12 +238,6 @@
   .status-pill.success { background: var(--success-bg); color: var(--success-text); }
   .status-pill.success .dot { background: var(--success); }
 
-  .whn-already { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; background: var(--success-bg); }
-  .whn-already-label { font-size: 12px; font-weight: 700; color: var(--success-text); margin-bottom: 8px; }
-  .whn-already-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); padding: 3px 0; }
-  .whn-already-check { width: 16px; height: 16px; color: var(--success); flex-shrink: 0; }
-  .whn-already-check svg { width: 100%; height: 100%; }
-
   /* Step 5 — Submit */
   .submit-summary { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 16px; margin-bottom: 18px; }
   .submit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border-subtle); }
@@ -368,7 +362,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           <div>
             <h2>2. Criteria &amp; Services</h2>
-            <p class="ch-sub">Pick the merchant type, industry, and every service this merchant needs. You'll set up the financial institution, settlement type, documents, and pricing for each service next.</p>
+            <p class="ch-sub">Pick the merchant type, industry, and every service this merchant needs. You'll set up the financial institution, settlement type, and pricing for each service next, then collect all the required documents in one place at the end.</p>
           </div>
         </div>
         <div class="card-body">
@@ -399,7 +393,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
           <div>
             <h2>3. Service Setup</h2>
-            <p class="ch-sub">Configure each service one at a time — financial institution, settlement type, required documents, and pricing — then move on to the next service you selected above.</p>
+            <p class="ch-sub">Configure each service one at a time — financial institution, settlement type, and pricing — then move on to the next service you selected above. Required documents are collected once, for all services, in the next step.</p>
           </div>
         </div>
         <div class="card-body">
@@ -738,19 +732,6 @@
     const needsBank = bankRequiredFor(service);
     const fieldsLabel = needsBank ? 'Financial Institution and Settlement type' : 'Settlement type';
 
-    const docsMap = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: cfg.bank, module: cfg.module, services: [service] });
-    const docsEntries = [...docsMap.entries()];
-    const alreadyUploaded = docsEntries.filter(([name]) => isDocDone(name));
-    const stillNeeded = docsEntries.filter(([name]) => !isDocDone(name));
-    const docsHTML = docsEntries.length
-      ? `${alreadyUploaded.length ? `<div class="whn-already">
-          <div class="whn-already-label">${alreadyUploaded.length} document${alreadyUploaded.length === 1 ? '' : 's'} already uploaded for another service</div>
-          ${alreadyUploaded.map(([name]) => `<div class="whn-already-row"><span class="whn-already-check">${CHECK_SVG}</span>${esc(name)}</div>`).join('')}
-        </div>` : ''}
-        ${stillNeeded.length ? stillNeeded.map(([name, via]) => reqItemHTML(name, via)).join('')
-          : (alreadyUploaded.length ? '<div class="whn-empty">Nothing new to upload — every document for this service is already covered.</div>' : '')}`
-      : `<div class="whn-empty">Select ${fieldsLabel} to see the documents this service needs.</div>`;
-
     const pricingHTML = serviceReady(cfg, service)
       ? priceServiceHTML(service, cfg)
       : `<div class="price-empty">Select ${fieldsLabel} above to see applicable rates.</div>`;
@@ -775,8 +756,6 @@
           </div>
         </div>
       </div>
-      <div class="svc-subhead">Documents needed for ${esc(stripChannel(service))}</div>
-      <div style="margin-bottom: 22px;">${docsHTML}</div>
       <div class="svc-subhead">Pricing for ${esc(stripChannel(service))}</div>
       <div>${pricingHTML}</div>
       <div class="whn-actions">
@@ -793,7 +772,6 @@
       renderServiceTracker();
       refreshAggregateAndSummary();
     }));
-    wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
   }
   function handleServiceContinue() {
     const service = activeService;

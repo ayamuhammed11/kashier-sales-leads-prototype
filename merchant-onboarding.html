@@ -142,7 +142,25 @@
   .crit-chip:hover { border-color: var(--cadet-05); }
   .crit-chip.on { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
 
-  /* Step 3 — What Happens Next */
+  /* Step 3 — Service Setup */
+  .svc-tracker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .svc-pill { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); border-radius: 999px;
+    padding: 6px 14px 6px 6px; font-size: 13px; font-weight: 600; font-family: inherit; color: var(--cadet-base);
+    background: #fff; cursor: pointer; transition: border-color .12s ease, background .12s ease, color .12s ease; }
+  .svc-pill:hover { border-color: var(--cadet-05); }
+  .svc-pill-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--muted); color: var(--cadet-base);
+    display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .svc-pill-dot svg { width: 12px; height: 12px; }
+  .svc-pill.current { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
+  .svc-pill.current .svc-pill-dot { background: var(--primary); color: #fff; }
+  .svc-pill.done { border-color: var(--success); color: var(--success-80); }
+  .svc-pill.done .svc-pill-dot { background: var(--success); color: #fff; }
+  .svc-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
+  .svc-setup-title { font-size: 15px; font-weight: 700; color: var(--foreground); margin-bottom: 18px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); }
+  .svc-subhead { font-size: 13px; font-weight: 700; color: var(--foreground); margin-bottom: 10px; }
+
+  /* Step 4 — Required Documents */
   .whn-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border-subtle); }
   .whn-row:last-child { border-bottom: none; }
   .whn-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--ocean-10); color: var(--primary);
@@ -156,7 +174,7 @@
   .whn-count { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 6px; }
   .whn-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-subtle); }
 
-  /* Step 4 — Pricing */
+  /* Pricing — reused inside each service's setup panel */
   .price-service { padding: 16px 4px; border-bottom: 1px solid var(--border-subtle); }
   .price-service:last-child { border-bottom: none; }
   .price-service-name { font-weight: 700; font-size: 14px; color: var(--foreground); margin-bottom: 10px; }
@@ -355,7 +373,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           <div>
             <h2>2. Criteria &amp; Services</h2>
-            <p class="ch-sub">The same conditions configured in Document Rules. Pick what applies to this merchant — the required documents below update instantly.</p>
+            <p class="ch-sub">Pick the merchant type, industry, and every service this merchant needs. You'll set up the financial institution, settlement type, documents, and pricing for each service next.</p>
           </div>
         </div>
         <div class="card-body">
@@ -372,14 +390,6 @@
               <div class="crit-label">Industry<span class="req">*</span></div>
               <select class="crit-select" id="critIndustry"><option value="">Select industry…</option></select>
             </div>
-            <div class="crit-group">
-              <div class="crit-label">Financial Institution<span class="req">*</span></div>
-              <select class="crit-select" id="critBank"><option value="">Select bank…</option></select>
-            </div>
-            <div class="crit-group">
-              <div class="crit-label">Settlement type<span class="req">*</span></div>
-              <div class="crit-chips" id="critModule"></div>
-            </div>
             <div class="crit-group full">
               <div class="crit-label">Services<span class="opt">(select all that apply)</span></div>
               <div id="critService"></div>
@@ -388,13 +398,28 @@
         </div>
       </div>
 
-      <!-- STEP 3 — What Happens Next -->
+      <!-- STEP 3 — Service Setup -->
+      <div class="card" id="serviceSetupCard">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+          <div>
+            <h2>3. Service Setup</h2>
+            <p class="ch-sub">Configure each service one at a time — financial institution, settlement type, required documents, and pricing — then move on to the next service you selected above.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="svc-tracker" id="svcTracker"></div>
+          <div id="serviceSetupBody"></div>
+        </div>
+      </div>
+
+      <!-- STEP 4 — Documents -->
       <div class="card">
         <div class="card-head">
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m5.25 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
           <div>
-            <h2>3. What Happens Next — Required Documents</h2>
-            <p class="ch-sub">Based on the criteria above, the merchant (or you, on their behalf) will need to provide the following:</p>
+            <h2>4. Required Documents</h2>
+            <p class="ch-sub">Combined from every service you've configured above — the merchant (or you, on their behalf) will need to provide the following:</p>
           </div>
         </div>
         <div class="card-body">
@@ -412,21 +437,6 @@
             <div class="assist-summary" id="assistCount">0 of 0 attached</div>
             <div id="assistList"></div>
           </div>
-        </div>
-      </div>
-
-      <!-- STEP 4 — Pricing -->
-      <div class="card">
-        <div class="card-head">
-          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m3.75-9.75a2.625 2.625 0 0 0-2.625-1.5H11.25a2.25 2.25 0 0 0 0 4.5h1.5a2.25 2.25 0 0 1 0 4.5h-2.125a2.625 2.625 0 0 1-2.625-1.5"/></svg>
-          <div>
-            <h2>4. Pricing — Rate Selection</h2>
-            <p class="ch-sub">Rates are matched from the Pricing Rules module using the criteria above. Pick the rate to onboard this merchant at for each service — anything below Auto needs an approval note.</p>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="whn-count" id="pricingCount">0 of 0 rates selected</div>
-          <div id="pricingList"></div>
         </div>
       </div>
 
@@ -518,7 +528,7 @@
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', bank: '', module: '', services: [] };
+  const criteria = { entity: '', owner: '', industry: '', services: [] };
 
   function ruleMatches(r, cfg) {
     if (r.entities.length && !r.entities.includes(cfg.entity)) return false;
@@ -553,13 +563,27 @@
   ];
   const ratesForService = service => service.includes('Card') ? CARD_RATE_TIERS : DEFAULT_RATE_TIERS;
 
-  const pricingSelections = new Map(); // `${service}::${tierKey}` -> { tier: 'auto'|'manager'|'head', note }
-  const priceKey = (service, tierKey) => service + '::' + tierKey;
+  /* ══════════ Per-service configuration — each selected service gets its own
+     Financial Institution, Settlement type, and pricing, set up one at a time. ══════════ */
+  const serviceConfig = {}; // serviceConfig[service] = { bank, module, pricing: Map<tierKey, {tier,note}>, done }
+  let activeService = '';
 
-  function priceTierHTML(service, t) {
-    const key = priceKey(service, t.key);
-    const sel = pricingSelections.get(key) || { tier: 'auto', note: '' };
-    const chip = (tier, cls, label, sub) => `<button type="button" class="rate-tier-chip ${cls}${sel.tier === tier ? ' on' : ''}" data-service="${esc(service)}" data-key="${esc(t.key)}" data-tier="${tier}">${label}<span class="rtc-sub">${esc(sub)}</span></button>`;
+  function ensureServiceConfig(service) {
+    if (!serviceConfig[service]) serviceConfig[service] = { bank: '', module: '', pricing: new Map(), done: false };
+  }
+  function syncServiceConfigs() {
+    criteria.services.forEach(ensureServiceConfig);
+    Object.keys(serviceConfig).forEach(s => { if (!criteria.services.includes(s)) delete serviceConfig[s]; });
+  }
+  function pickActiveService() {
+    const firstPending = criteria.services.find(s => !serviceConfig[s].done);
+    activeService = firstPending || criteria.services[criteria.services.length - 1] || '';
+  }
+  function serviceReady(cfg) { return !!(cfg.bank && cfg.module); }
+
+  function priceTierHTML(t, pricingMap) {
+    const sel = pricingMap.get(t.key) || { tier: 'auto', note: '' };
+    const chip = (tier, cls, label, sub) => `<button type="button" class="rate-tier-chip ${cls}${sel.tier === tier ? ' on' : ''}" data-key="${esc(t.key)}" data-tier="${tier}">${label}<span class="rtc-sub">${esc(sub)}</span></button>`;
     const needsNote = sel.tier !== 'auto';
     return `<div class="price-tier">
       <div class="price-tier-label">${esc(t.label)}</div>
@@ -576,65 +600,30 @@
         ${chip('head', 'head', 'Head approval', 'under ' + t.manager + '%')}
       </div>
       ${needsNote ? `<div class="price-note">
-        <textarea class="inp${sel.note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${sel.tier === 'manager' ? 'Manager' : 'Head'}-approved rate?" data-service="${esc(service)}" data-key="${esc(t.key)}">${esc(sel.note)}</textarea>
-        <div class="price-note-hint">Required — this rate needs ${sel.tier === 'manager' ? 'Manager' : 'Head'} sign-off before the application can be created.</div>
+        <textarea class="inp${sel.note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${sel.tier === 'manager' ? 'Manager' : 'Head'}-approved rate?" data-key="${esc(t.key)}">${esc(sel.note)}</textarea>
+        <div class="price-note-hint">Required — this rate needs ${sel.tier === 'manager' ? 'Manager' : 'Head'} sign-off before you can continue.</div>
       </div>` : ''}
     </div>`;
   }
-  function priceServiceHTML(service) {
-    return `<div class="price-service" data-service="${esc(service)}">
-      <div class="price-service-name">${esc(service)}</div>
-      ${ratesForService(service).map(t => priceTierHTML(service, t)).join('')}
-    </div>`;
+  function priceServiceHTML(service, cfg) {
+    return ratesForService(service).map(t => priceTierHTML(t, cfg.pricing)).join('');
   }
-  function pricingStats() {
-    let total = 0, needsApproval = 0;
-    if (criteria.module && criteria.industry && criteria.bank) {
-      criteria.services.forEach(s => ratesForService(s).forEach(t => {
+  function aggregatePricingStats() {
+    let total = 0, needsApproval = 0, unresolved = 0;
+    criteria.services.forEach(s => {
+      const cfg = serviceConfig[s];
+      if (!serviceReady(cfg)) return;
+      ratesForService(s).forEach(t => {
         total++;
-        const sel = pricingSelections.get(priceKey(s, t.key));
-        if (sel && sel.tier !== 'auto') needsApproval++;
-      }));
-    }
-    return { total, needsApproval };
+        const sel = cfg.pricing.get(t.key);
+        if (sel && sel.tier !== 'auto') {
+          needsApproval++;
+          if (!sel.note.trim()) unresolved++;
+        }
+      });
+    });
+    return { total, needsApproval, unresolved };
   }
-  function updatePricingCount() {
-    const { total, needsApproval } = pricingStats();
-    $('pricingCount').textContent = total
-      ? total + ' rate line item' + (total === 1 ? '' : 's') + (needsApproval ? ' · ' + needsApproval + ' pending approval' : '')
-      : '0 of 0 rates selected';
-    renderSubmitSummary();
-  }
-  function renderPricing() {
-    [...pricingSelections.keys()].forEach(k => { if (!criteria.services.includes(k.split('::')[0])) pricingSelections.delete(k); });
-    const missing = [
-      !criteria.industry && 'Industry',
-      !criteria.bank && 'Financial Institution',
-      !criteria.module && 'Settlement type',
-      !criteria.services.length && 'at least one Service',
-    ].filter(Boolean);
-    $('pricingList').innerHTML = !missing.length
-      ? criteria.services.map(priceServiceHTML).join('')
-      : `<div class="price-empty">Select ${missing.join(', ')} above to see applicable rates.</div>`;
-    updatePricingCount();
-  }
-  $('pricingList').addEventListener('click', e => {
-    const chip = e.target.closest('.rate-tier-chip');
-    if (!chip) return;
-    const { service, key, tier } = chip.dataset;
-    const cur = pricingSelections.get(priceKey(service, key)) || { tier: 'auto', note: '' };
-    pricingSelections.set(priceKey(service, key), { tier, note: cur.note });
-    renderPricing();
-  });
-  $('pricingList').addEventListener('input', e => {
-    const ta = e.target.closest('textarea');
-    if (!ta) return;
-    const { service, key } = ta.dataset;
-    const cur = pricingSelections.get(priceKey(service, key)) || { tier: 'auto', note: '' };
-    pricingSelections.set(priceKey(service, key), { tier: cur.tier, note: ta.value });
-    ta.classList.toggle('invalid', !ta.value.trim());
-    updatePricingCount();
-  });
 
   /* ══════════ Step 2 — chip groups ══════════ */
   function renderSingleChips(containerId, options, key) {
@@ -642,20 +631,7 @@
     options.forEach(opt => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'crit-chip' + (criteria[key] === opt ? ' on' : ''); b.textContent = opt;
-      b.addEventListener('click', () => { criteria[key] = criteria[key] === opt ? '' : opt; renderCriteria(); onCriteriaChange(); });
-      c.appendChild(b);
-    });
-  }
-  function renderMultiChips(containerId, options, key) {
-    const c = $(containerId); c.innerHTML = '';
-    options.forEach(opt => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'crit-chip' + (criteria[key].includes(opt) ? ' on' : ''); b.textContent = opt;
-      b.addEventListener('click', () => {
-        const i = criteria[key].indexOf(opt);
-        if (i >= 0) criteria[key].splice(i, 1); else criteria[key].push(opt);
-        renderCriteria(); onCriteriaChange();
-      });
+      b.addEventListener('click', () => { criteria[key] = criteria[key] === opt ? '' : opt; renderCriteria(); refreshAll(); });
       c.appendChild(b);
     });
   }
@@ -682,8 +658,10 @@
         b.addEventListener('click', () => {
           const i = criteria.services.indexOf(name);
           if (i >= 0) criteria.services.splice(i, 1); else criteria.services.push(name);
+          syncServiceConfigs();
+          pickActiveService();
           renderCriteria();
-          onCriteriaChange();
+          refreshAll();
         });
         row.appendChild(b);
       });
@@ -695,7 +673,6 @@
   function renderCriteria() {
     renderSingleChips('critEntity', ENTITIES, 'entity');
     renderSingleChips('critOwner', OWNERS, 'owner');
-    renderSingleChips('critModule', MODULES, 'module');
     renderServiceCatalogChips();
   }
   function fillSelect(id, options) {
@@ -703,11 +680,9 @@
     options.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; s.appendChild(opt); });
   }
   fillSelect('critIndustry', INDUSTRIES);
-  fillSelect('critBank', BANKS);
-  $('critIndustry').addEventListener('change', e => { criteria.industry = e.target.value; onCriteriaChange(); });
-  $('critBank').addEventListener('change', e => { criteria.bank = e.target.value; onCriteriaChange(); });
+  $('critIndustry').addEventListener('change', e => { criteria.industry = e.target.value; refreshAll(); });
 
-  /* ══════════ Step 3 — What Happens Next checklist ══════════ */
+  /* ══════════ Step 4 — Required Documents checklist (shared row renderer) ══════════ */
   function whnRowHTML(name, via) {
     const meta = DOC_META[name] || {};
     return `<div class="whn-row">
@@ -718,12 +693,161 @@
       </div>
     </div>`;
   }
-  function computeAndRenderWHN() {
-    const map = computeRequiredDocs(criteria);
+  function computeAggregatedDocs() {
+    const merged = new Map();
+    criteria.services.forEach(s => {
+      const cfg = serviceConfig[s];
+      const m = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: cfg.bank, module: cfg.module, services: [s] });
+      m.forEach((via, name) => {
+        if (!merged.has(name)) merged.set(name, new Set());
+        via.forEach(v => merged.get(name).add(v));
+      });
+    });
+    const out = new Map();
+    merged.forEach((set, name) => out.set(name, [...set]));
+    return out;
+  }
+  function renderAggregatedDocs() {
+    const map = computeAggregatedDocs();
     $('whnList').innerHTML = map.size
       ? [...map.entries()].map(([name, via]) => whnRowHTML(name, via)).join('')
-      : '<div class="whn-empty">No documents required yet — select the criteria above.</div>';
+      : '<div class="whn-empty">No documents required yet — configure at least one service above.</div>';
     $('whnCount').textContent = map.size + ' document' + (map.size === 1 ? '' : 's') + ' required';
+    if (!$('assistPanel').hidden) renderAssistPanel();
+  }
+
+  /* ══════════ Step 3 — Service Setup: one service configured at a time ══════════ */
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+  function renderServiceTracker() {
+    const el = $('svcTracker');
+    if (!criteria.services.length) { el.innerHTML = ''; return; }
+    el.innerHTML = criteria.services.map((s, i) => {
+      const cfg = serviceConfig[s];
+      const cls = s === activeService ? 'current' : cfg.done ? 'done' : '';
+      return `<button type="button" class="svc-pill ${cls}" data-service="${esc(s)}">
+        <span class="svc-pill-dot">${cfg.done ? CHECK_SVG : i + 1}</span>
+        ${esc(stripChannel(s))}
+      </button>`;
+    }).join('');
+    el.querySelectorAll('.svc-pill').forEach(btn => btn.addEventListener('click', () => {
+      activeService = btn.dataset.service;
+      renderServiceTracker();
+      renderServiceSetup();
+    }));
+  }
+  function renderServiceSetup() {
+    const wrap = $('serviceSetupBody');
+    if (!criteria.services.length) {
+      wrap.innerHTML = '<div class="svc-empty">Select at least one service in Step 2 to start configuring it here.</div>';
+      return;
+    }
+    if (!activeService || !criteria.services.includes(activeService)) pickActiveService();
+    const service = activeService;
+    const cfg = serviceConfig[service];
+    const idx = criteria.services.indexOf(service);
+
+    const docsMap = computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry, bank: cfg.bank, module: cfg.module, services: [service] });
+    const docsHTML = docsMap.size
+      ? [...docsMap.entries()].map(([name, via]) => whnRowHTML(name, via)).join('')
+      : '<div class="whn-empty">Select Financial Institution and Settlement type to see the documents this service needs.</div>';
+
+    const pricingHTML = serviceReady(cfg)
+      ? priceServiceHTML(service, cfg)
+      : '<div class="price-empty">Select Financial Institution and Settlement type above to see applicable rates.</div>';
+
+    const nextService = criteria.services[idx + 1];
+    const continueLabel = nextService ? `Save &amp; Continue to ${esc(stripChannel(nextService))}` : (cfg.done ? 'Service Configured ✓' : 'Save &amp; Finish Service Setup');
+
+    wrap.innerHTML = `
+      <div class="svc-setup-title">Service ${idx + 1} of ${criteria.services.length} — ${esc(service)}</div>
+      <div class="crit-grid" style="margin-bottom: 22px;">
+        <div class="crit-group">
+          <div class="crit-label">Financial Institution<span class="req">*</span></div>
+          <select class="crit-select" id="svcBank">
+            <option value="">Select bank…</option>
+            ${BANKS.map(b => `<option value="${esc(b)}" ${cfg.bank === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="crit-group">
+          <div class="crit-label">Settlement type<span class="req">*</span></div>
+          <div class="crit-chips" id="svcModule">
+            ${MODULES.map(m => `<button type="button" class="crit-chip${cfg.module === m ? ' on' : ''}" data-module="${esc(m)}">${esc(m)}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="svc-subhead">Documents needed for ${esc(stripChannel(service))}</div>
+      <div style="margin-bottom: 22px;">${docsHTML}</div>
+      <div class="svc-subhead">Pricing for ${esc(stripChannel(service))}</div>
+      <div>${pricingHTML}</div>
+      <div class="whn-actions">
+        <button type="button" class="btn btn-primary" id="svcContinueBtn">${continueLabel}</button>
+      </div>
+    `;
+
+    wrap.querySelector('#svcBank').addEventListener('change', e => { cfg.bank = e.target.value; renderServiceSetup(); renderServiceTracker(); refreshAggregateAndSummary(); });
+    wrap.querySelectorAll('#svcModule .crit-chip').forEach(b => b.addEventListener('click', () => {
+      cfg.module = cfg.module === b.dataset.module ? '' : b.dataset.module;
+      renderServiceSetup();
+      renderServiceTracker();
+      refreshAggregateAndSummary();
+    }));
+  }
+  function handleServiceContinue() {
+    const service = activeService;
+    const cfg = serviceConfig[service];
+    if (!cfg.bank || !cfg.module) {
+      toast(`Select Financial Institution and Settlement type for ${stripChannel(service)} first`);
+      return;
+    }
+    let unresolved = false;
+    cfg.pricing.forEach(sel => { if (sel.tier !== 'auto' && !sel.note.trim()) unresolved = true; });
+    if (unresolved) {
+      toast('Add an approval note for every rate below Auto before continuing');
+      return;
+    }
+    cfg.done = true;
+    const idx = criteria.services.indexOf(service);
+    const next = criteria.services[idx + 1];
+    if (next) {
+      activeService = next;
+      toast(`${stripChannel(service)} saved — now set up ${stripChannel(next)}.`);
+    } else {
+      toast('All services are configured. Review the documents below, then submit.');
+    }
+    renderServiceTracker();
+    renderServiceSetup();
+    refreshAggregateAndSummary();
+  }
+  $('serviceSetupBody').addEventListener('click', e => {
+    const chip = e.target.closest('.rate-tier-chip');
+    if (chip) {
+      const cfg = serviceConfig[activeService];
+      const cur = cfg.pricing.get(chip.dataset.key) || { tier: 'auto', note: '' };
+      cfg.pricing.set(chip.dataset.key, { tier: chip.dataset.tier, note: cur.note });
+      renderServiceSetup();
+      refreshAggregateAndSummary();
+      return;
+    }
+    if (e.target.closest('#svcContinueBtn')) handleServiceContinue();
+  });
+  $('serviceSetupBody').addEventListener('input', e => {
+    const ta = e.target.closest('textarea[data-key]');
+    if (!ta) return;
+    const cfg = serviceConfig[activeService];
+    const cur = cfg.pricing.get(ta.dataset.key) || { tier: 'auto', note: '' };
+    cfg.pricing.set(ta.dataset.key, { tier: cur.tier, note: ta.value });
+    ta.classList.toggle('invalid', !ta.value.trim());
+    renderSubmitSummary();
+  });
+  function refreshAggregateAndSummary() {
+    renderAggregatedDocs();
+    renderSubmitSummary();
+  }
+  function refreshAll() {
+    renderServiceTracker();
+    renderServiceSetup();
+    renderAggregatedDocs();
+    renderSubmitSummary();
   }
 
   /* ══════════ Agent-assisted upload panel (reuses the same req-item visual as the merchant's own view) ══════════ */
@@ -791,7 +915,7 @@
     </div>`;
   }
   function renderAssistPanel() {
-    const map = computeRequiredDocs(criteria);
+    const map = computeAggregatedDocs();
     const list = $('assistList');
     const existing = new Map([...list.querySelectorAll('.req-item')].map(it => [it.dataset.doc, it]));
     existing.forEach((el, name) => { if (!map.has(name)) el.remove(); });
@@ -804,13 +928,6 @@
       item.querySelectorAll('.dz-block').forEach(wireDropzone);
     });
     updateAssistCount();
-  }
-
-  function onCriteriaChange() {
-    computeAndRenderWHN();
-    renderPricing();
-    if (!$('assistPanel').hidden) renderAssistPanel();
-    renderSubmitSummary();
   }
 
   $('assistUploadBtn').addEventListener('click', () => {
@@ -828,15 +945,13 @@
     'pending-onboarding-review': { label: 'Pending Onboarding Review',  cls: 'info' },
   };
   function currentDocStatus() {
-    const total = computeRequiredDocs(criteria).size;
+    const total = computeAggregatedDocs().size;
     const items = [...document.querySelectorAll('#assistList .req-item')];
     const done = items.length ? items.filter(it => [...it.querySelectorAll('.dz-block')].every(b => b.querySelector('.dz-files').children.length > 0)).length : 0;
     return { total, done };
   }
   function approvalStatus() {
-    const { needsApproval } = pricingStats();
-    let unresolved = 0;
-    pricingSelections.forEach(sel => { if (sel.tier !== 'auto' && !sel.note.trim()) unresolved++; });
+    const { needsApproval, unresolved } = aggregatePricingStats();
     return { needsApproval, unresolved };
   }
   function renderSubmitSummary() {
@@ -890,31 +1005,42 @@
       $('mBiz').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    const critChecks = [['critEntity', criteria.entity], ['critIndustry', criteria.industry], ['critBank', criteria.bank], ['critModule', criteria.module]];
+    const critChecks = [['critEntity', criteria.entity], ['critIndustry', criteria.industry]];
     let critOk = true;
     critChecks.forEach(([id, val]) => {
       $(id).classList.toggle('invalid', !val);
       if (!val) critOk = false;
     });
+    if (!criteria.services.length) critOk = false;
     if (!critOk) {
-      toast('Fill in Merchant Type, Industry, Financial Institution and Settlement type first');
+      toast('Fill in Merchant Type, Industry and at least one Service first');
       $('critEntity').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const notConfigured = criteria.services.find(s => !serviceConfig[s].done);
+    if (notConfigured) {
+      activeService = notConfigured;
+      renderServiceTracker();
+      renderServiceSetup();
+      toast(`Finish setting up ${stripChannel(notConfigured)} — Financial Institution, Settlement type, and pricing — before submitting`);
+      $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     const { unresolved, needsApproval } = approvalStatus();
     if (unresolved) {
       toast('Add an approval note for every rate below Auto before submitting');
-      const badTa = $('pricingList').querySelector('textarea.invalid');
-      if (badTa) badTa.closest('.price-tier').scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     const { total, done } = currentDocStatus();
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
+    const serviceConfigsPayload = criteria.services.map(s => ({ service: s, bank: serviceConfig[s].bank, module: serviceConfig[s].module }));
     const qs = new URLSearchParams({
       id: 'APP-' + Date.now().toString().slice(-8),
       biz, email, phone,
-      entity: criteria.entity, industry: criteria.industry, bank: criteria.bank, module: criteria.module,
-      services: criteria.services.join(','), total, done, needsApproval, status,
+      entity: criteria.entity, industry: criteria.industry,
+      services: criteria.services.join(','),
+      serviceConfigs: JSON.stringify(serviceConfigsPayload),
+      total, done, needsApproval, status,
       actor: 'Aya Muhammed', ts: new Date().toISOString(),
     });
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
@@ -957,8 +1083,9 @@
 
   /* ══════════ Init ══════════ */
   renderCriteria();
-  computeAndRenderWHN();
-  renderPricing();
+  renderServiceTracker();
+  renderServiceSetup();
+  renderAggregatedDocs();
 </script>
 
 <script>

@@ -128,6 +128,11 @@
   .svc-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .svc-chip { font-size: 12px; font-weight: 600; color: var(--cadet-base); background: var(--muted); border-radius: 999px; padding: 4px 10px; }
 
+  .svc-config-list { display: flex; flex-direction: column; gap: 10px; }
+  .svc-config-row { border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px 14px; }
+  .svc-config-name { font-size: 13px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
+  .svc-config-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+
   /* Timeline / stepper */
   .stepper { display: flex; flex-direction: column; gap: 0; }
   .step { display: flex; gap: 12px; position: relative; padding-bottom: 22px; }
@@ -262,6 +267,7 @@
                 <div class="info-field" style="margin-bottom:8px"><div class="lbl">Services</div></div>
                 <div class="svc-chip-row" id="serviceChips"></div>
               </div>
+              <div class="svc-config-list" id="svcConfigList" style="margin-top:16px"></div>
             </div>
           </div>
 
@@ -324,8 +330,7 @@
     phone: p.get('phone') || '',
     entity: p.get('entity') || '',
     industry: p.get('industry') || '',
-    bank: p.get('bank') || '',
-    module: p.get('module') || '',
+    serviceConfigs: (() => { try { return JSON.parse(p.get('serviceConfigs') || '[]'); } catch (e) { return []; } })(),
     services: (p.get('services') || '').split(',').filter(Boolean),
     total: Number(p.get('total') || 0),
     done: Number(p.get('done') || 0),
@@ -364,8 +369,6 @@
   $('summaryGrid').innerHTML = [
     ['Merchant Type', app.entity],
     ['Industry', app.industry],
-    ['Financial Institution', app.bank],
-    ['Settlement Type', app.module],
     ['Documents', `${app.done} of ${app.total} attached`],
     ['Pricing', app.needsApproval ? `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} pending approval` : 'All rates Auto'],
   ].map(([l, v]) => `<div class="info-field"><div class="lbl">${esc(l)}</div><div class="val${v ? '' : ' muted'}">${esc(v || 'Not set')}</div></div>`).join('');
@@ -373,6 +376,20 @@
   $('serviceChips').innerHTML = app.services.length
     ? app.services.map(s => `<span class="svc-chip">${esc(s)}</span>`).join('')
     : '<span class="info-field val muted">No services selected</span>';
+
+  const svcCfgCard = $('svcConfigList');
+  if (svcCfgCard) {
+    svcCfgCard.innerHTML = app.serviceConfigs.length
+      ? app.serviceConfigs.map(c => `
+        <div class="svc-config-row">
+          <div class="svc-config-name">${esc(c.service)}</div>
+          <div class="svc-config-fields">
+            <div class="info-field"><div class="lbl">Financial Institution</div><div class="val${c.bank ? '' : ' muted'}">${esc(c.bank || 'Not set')}</div></div>
+            <div class="info-field"><div class="lbl">Settlement Type</div><div class="val${c.module ? '' : ' muted'}">${esc(c.module || 'Not set')}</div></div>
+          </div>
+        </div>`).join('')
+      : '<div class="info-field val muted">No services configured</div>';
+  }
 
   function renderStepper() {
     const steps = [

@@ -252,7 +252,6 @@
   .submit-row .val { font-size: 13px; font-weight: 700; color: var(--foreground); }
 
   .assist-panel { border-top: 1px dashed var(--border); margin-top: 18px; padding-top: 18px; }
-  .assist-summary { font-size: 13px; font-weight: 600; color: var(--cadet-base); margin-bottom: 10px; }
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--primary);
     color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0;
@@ -431,7 +430,6 @@
           </div>
 
           <div class="assist-panel" id="assistPanel" hidden>
-            <div class="assist-summary" id="assistCount">0 of 0 attached</div>
             <div id="assistList"></div>
           </div>
         </div>
@@ -936,18 +934,11 @@
     if (store) { store.delete(label); if (!store.size) docFiles.delete(docName); }
     onDocFilesChanged();
   });
-  function updateAssistCount() {
-    const map = computeAggregatedDocs();
-    let done = 0;
-    map.forEach((via, name) => { if (isDocDone(name)) done++; });
-    $('assistCount').textContent = done + ' of ' + map.size + ' attached';
-  }
   function renderAssistPanel() {
     const map = computeAggregatedDocs();
     const list = $('assistList');
     list.innerHTML = [...map.entries()].map(([name, via]) => reqItemHTML(name, via)).join('');
     list.querySelectorAll('.doc-upload').forEach(wireDropzone);
-    updateAssistCount();
   }
   function onDocFilesChanged() {
     renderServiceSetup();

@@ -147,7 +147,9 @@
   .crit-chip.on { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
 
   /* Step 3 — Service Setup */
-  .svc-tracker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .svc-tracker { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .svc-tracker-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .svc-tracker-divider { width: 1px; align-self: stretch; min-height: 30px; background: var(--border); }
   .svc-pill { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); border-radius: 999px;
     padding: 6px 14px 6px 6px; font-size: 13px; font-weight: 600; font-family: inherit; color: var(--cadet-base);
     background: #fff; cursor: pointer; transition: border-color .12s ease, background .12s ease, color .12s ease; }
@@ -159,10 +161,6 @@
   .svc-pill.current .svc-pill-dot { background: var(--primary); color: #fff; }
   .svc-pill.done { border-color: var(--success); color: var(--success-80); }
   .svc-pill.done .svc-pill-dot { background: var(--success); color: #fff; }
-  .svc-pill-channel { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-    border-radius: 4px; padding: 2px 6px; flex-shrink: 0; }
-  .svc-pill-channel.online { background: var(--ocean-10); color: var(--primary); }
-  .svc-pill-channel.pos { background: var(--accent-10); color: var(--accent); }
   .svc-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
   .svc-setup-title { font-size: 15px; font-weight: 700; color: var(--foreground); margin-bottom: 18px;
     padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); }
@@ -779,15 +777,23 @@
   function renderServiceTracker() {
     const el = $('svcTracker');
     if (!criteria.services.length) { el.innerHTML = ''; return; }
-    el.innerHTML = criteria.services.map((s, i) => {
+    const pillHTML = s => {
+      const i = criteria.services.indexOf(s);
       const cfg = serviceConfig[s];
       const cls = s === activeService ? 'current' : cfg.done ? 'done' : '';
       return `<button type="button" class="svc-pill ${cls}" data-service="${esc(s)}">
         <span class="svc-pill-dot">${cfg.done ? CHECK_SVG : i + 1}</span>
         ${esc(stripChannel(s))}
-        <span class="svc-pill-channel ${channelOf(s).toLowerCase()}">${channelOf(s)}</span>
       </button>`;
-    }).join('');
+    };
+    // Group by channel (without labeling the group) so Online and POS services are
+    // visually separated instead of interleaved in selection order.
+    const groups = ['Online', 'POS']
+      .map(ch => criteria.services.filter(s => channelOf(s) === ch))
+      .filter(g => g.length);
+    el.innerHTML = groups
+      .map(g => `<div class="svc-tracker-group">${g.map(pillHTML).join('')}</div>`)
+      .join('<div class="svc-tracker-divider"></div>');
     el.querySelectorAll('.svc-pill').forEach(btn => btn.addEventListener('click', () => {
       activeService = btn.dataset.service;
       renderServiceTracker();

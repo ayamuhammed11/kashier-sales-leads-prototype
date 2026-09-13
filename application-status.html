@@ -332,6 +332,7 @@
     phone: p.get('phone') || '',
     entity: p.get('entity') || '',
     industry: p.get('industry') || '',
+    posTerminals: p.get('posTerminals') || '',
     serviceConfigs: (() => { try { return JSON.parse(p.get('serviceConfigs') || '[]'); } catch (e) { return []; } })(),
     services: (p.get('services') || '').split(',').filter(Boolean),
     total: Number(p.get('total') || 0),
@@ -377,6 +378,7 @@
   $('summaryGrid').innerHTML = [
     ['Merchant Type', app.entity],
     ['Industry', app.industry],
+    ...(app.posTerminals ? [['POS Terminals', app.posTerminals]] : []),
     ['Documents', docsDisplay],
     ['Pricing', app.needsApproval ? `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} pending approval` : 'All rates Auto'],
   ].map(([l, v]) => `<div class="info-field"><div class="lbl">${esc(l)}</div><div class="val${v ? '' : ' muted'}">${esc(v || 'Not set')}</div></div>`).join('');

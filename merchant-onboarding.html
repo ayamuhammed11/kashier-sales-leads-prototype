@@ -136,6 +136,10 @@
   .svc-group:last-child { margin-bottom: 0; }
   .svc-group-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
     color: var(--cadet-05); margin-bottom: 8px; }
+  .pos-activate { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pos-terminals-field { display: flex; align-items: center; gap: 8px; }
+  .pos-terminals-field .lbl { font-size: 12.5px; font-weight: 600; color: var(--cadet-base); white-space: nowrap; }
+  .pos-terminals-field .inp { width: 90px; }
   .crit-chip { border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600;
     font-family: inherit; color: var(--cadet-base); background: #fff; cursor: pointer;
     transition: border-color .12s ease, background .12s ease, color .12s ease; }
@@ -514,7 +518,7 @@
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', services: [] };
+  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '' };
 
   function ruleMatches(r, cfg) {
     if (r.entities.length && !r.entities.includes(cfg.entity)) return false;
@@ -649,6 +653,14 @@
      the method name — the stored value keeps the full "Online Card" / "POS Card" form. */
   const stripChannel = name => name.replace(/^(Online|POS) /, '');
   const channelOf = name => name.startsWith('POS ') ? 'POS' : 'Online';
+  function toggleServiceChip(name) {
+    const i = criteria.services.indexOf(name);
+    if (i >= 0) criteria.services.splice(i, 1); else criteria.services.push(name);
+    syncServiceConfigs();
+    pickActiveService();
+    renderCriteria();
+    refreshAll();
+  }
   function renderServiceCatalogChips() {
     const c = $('critService'); c.innerHTML = '';
     SERVICE_CATALOG.forEach(tier => {
@@ -658,6 +670,44 @@
       label.className = 'svc-group-label';
       label.textContent = tier.tier;
       group.appendChild(label);
+
+      if (tier.tier === 'POS') {
+        const activate = document.createElement('div');
+        activate.className = 'pos-activate';
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'crit-chip' + (criteria.posEnabled ? ' on' : '');
+        toggle.textContent = 'Activate POS for this merchant';
+        toggle.addEventListener('click', () => {
+          criteria.posEnabled = !criteria.posEnabled;
+          if (!criteria.posEnabled) {
+            criteria.services = criteria.services.filter(s => !s.startsWith('POS '));
+            syncServiceConfigs();
+            pickActiveService();
+          }
+          renderCriteria();
+          refreshAll();
+        });
+        activate.appendChild(toggle);
+        if (criteria.posEnabled) {
+          const field = document.createElement('div');
+          field.className = 'pos-terminals-field';
+          field.innerHTML = `<label class="lbl" for="posTerminals">Number of Terminals<span class="req">*</span></label>
+            <input type="number" min="1" step="1" class="inp" id="posTerminals" placeholder="e.g. 2" value="${esc(criteria.posTerminals)}">`;
+          activate.appendChild(field);
+        }
+        group.appendChild(activate);
+
+        if (!criteria.posEnabled) {
+          const empty = document.createElement('div');
+          empty.className = 'svc-empty';
+          empty.textContent = 'Activate POS above to choose which POS services this merchant needs.';
+          group.appendChild(empty);
+          c.appendChild(group);
+          return;
+        }
+      }
+
       const row = document.createElement('div');
       row.className = 'crit-chips';
       tier.services.forEach(name => {
@@ -665,19 +715,16 @@
         b.type = 'button';
         b.className = 'crit-chip' + (criteria.services.includes(name) ? ' on' : '');
         b.textContent = stripChannel(name);
-        b.addEventListener('click', () => {
-          const i = criteria.services.indexOf(name);
-          if (i >= 0) criteria.services.splice(i, 1); else criteria.services.push(name);
-          syncServiceConfigs();
-          pickActiveService();
-          renderCriteria();
-          refreshAll();
-        });
+        b.addEventListener('click', () => toggleServiceChip(name));
         row.appendChild(b);
       });
       group.appendChild(row);
       c.appendChild(group);
     });
+    if (criteria.posEnabled) {
+      const input = $('posTerminals');
+      if (input) input.addEventListener('input', e => { criteria.posTerminals = e.target.value; renderSubmitSummary(); });
+    }
   }
 
   function renderCriteria() {
@@ -1054,6 +1101,13 @@
       $('critEntity').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
+    if (criteria.posEnabled && !(Number(criteria.posTerminals) > 0)) {
+      const input = $('posTerminals');
+      if (input) input.classList.add('invalid');
+      toast('Enter the number of POS terminals to activate first');
+      $('critEntity').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     const notConfigured = criteria.services.find(s => !serviceConfig[s].done);
     if (notConfigured) {
       activeService = notConfigured;
@@ -1095,6 +1149,7 @@
       total, done, needsApproval, status,
       actor: 'Aya Muhammed', ts: new Date().toISOString(),
     });
+    if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
     const trackURL = 'application-status.html?' + qs.toString();
 

@@ -1153,16 +1153,21 @@
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
     const trackURL = 'application-status.html?' + qs.toString();
 
-    // Advance the originating lead to "Submitted" and hand it the tracking link —
-    // My Leads / Lead Details read the same localStorage keys to stay in sync.
+    // Advance the originating lead straight to whichever stage follows submission —
+    // Waiting Rate Approval if any rate needs sign-off, else straight to Onboarding
+    // Review — and hand it the tracking link. My Leads / Lead Details read the same
+    // localStorage keys to stay in sync.
     if (sourceLeadId) {
       try {
         const statusStore = JSON.parse(localStorage.getItem('kashierLeadStatusOverrides') || '{}');
-        statusStore[sourceLeadId] = 'submitted';
+        statusStore[sourceLeadId] = needsApproval ? 'rate-approval' : 'onboarding-review';
         localStorage.setItem('kashierLeadStatusOverrides', JSON.stringify(statusStore));
         const appStore = JSON.parse(localStorage.getItem('kashierLeadApplications') || '{}');
         appStore[sourceLeadId] = trackURL;
         localStorage.setItem('kashierLeadApplications', JSON.stringify(appStore));
+        const rateApprovalStore = JSON.parse(localStorage.getItem('kashierLeadRateApproval') || '{}');
+        rateApprovalStore[sourceLeadId] = !!needsApproval;
+        localStorage.setItem('kashierLeadRateApproval', JSON.stringify(rateApprovalStore));
       } catch (e) { /* storage unavailable */ }
     }
 

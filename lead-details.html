@@ -432,7 +432,7 @@
   function pipelineFor(l) { return l.needsRateApproval ? PIPELINE : PIPELINE.filter(k => k !== 'rate-approval'); }
 
   const LEADS = {
-    'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    source: 'Referral', status: 'submitted', needsRateApproval: true, assigned: '2026-08-28', mid: 'MID-10237-114',
+    'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    source: 'Referral', status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-28', mid: 'MID-10237-114',
       activity: [
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-06 14:20', text: 'Submitted the onboarding application — one rate below Auto needs Manager approval.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-04 09:00', text: 'Started the merchant onboarding application on behalf of the business.' },
@@ -518,10 +518,32 @@
   }
   const storedStatus = readStatusStore()[id];
   if (storedStatus && STATUS_META[storedStatus]) lead.status = storedStatus;
+  try {
+    const raStore = JSON.parse(localStorage.getItem('kashierLeadRateApproval') || '{}');
+    if (Object.prototype.hasOwnProperty.call(raStore, id)) lead.needsRateApproval = !!raStore[id];
+  } catch (e) { /* storage unavailable */ }
 
   // The onboarding page hands back a tracking link once the application is submitted.
+  // Demo leads that were seeded already past Application in Progress don't have a real
+  // stored application, so build an equivalent tracking link from the lead's own data —
+  // Track Application always has somewhere to go once a lead has actually been submitted.
   function readApplicationURL(leadId) {
-    try { return (JSON.parse(localStorage.getItem('kashierLeadApplications') || '{}'))[leadId] || ''; } catch (e) { return ''; }
+    try {
+      const stored = (JSON.parse(localStorage.getItem('kashierLeadApplications') || '{}'))[leadId];
+      if (stored) return stored;
+    } catch (e) { /* storage unavailable */ }
+    if (!['rate-approval', 'onboarding-review', 'bank-submission', 'activated'].includes(lead.status)) return '';
+    const qs = new URLSearchParams({
+      id: 'APP-' + leadId.replace('L-', '').padStart(8, '0'),
+      biz: lead.biz, email: lead.email, phone: lead.phone,
+      entity: lead.type, industry: lead.industry,
+      services: '', total: 0, done: 0,
+      needsApproval: lead.needsRateApproval ? 1 : 0,
+      status: lead.status === 'rate-approval' ? 'pending-rate-approval' : 'pending-onboarding-review',
+      actor: 'Mostafa Khaled', ts: lead.assigned + 'T09:00:00.000Z',
+      leadId,
+    });
+    return 'application-status.html?' + qs.toString();
   }
 
   function fmtDateTime(dt) {

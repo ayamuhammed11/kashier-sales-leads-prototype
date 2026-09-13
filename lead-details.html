@@ -185,18 +185,6 @@
   .step.lost .step-label { color: var(--destructive); }
   .step-date { font-size: 11px; color: var(--cadet-05); margin-top: 2px; }
 
-  /* Next-step / tracking callout */
-  .alert { background: var(--ocean-10); border: 1px solid var(--border-subtle); border-radius: 5px;
-    padding: 16px; }
-  .alert.alert-success { background: var(--success-bg); border-color: #AEFFB2; }
-  .alert.alert-lost { background: var(--destructive-bg); border-color: #FFBBC4; }
-  .alert h3 { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--primary); margin-bottom: 6px; }
-  .alert.alert-success h3 { color: var(--success-text); }
-  .alert.alert-lost h3 { color: var(--destructive); }
-  .alert p { font-size: 12.5px; color: var(--foreground); margin: 0 0 12px; line-height: 1.5; }
-  .alert.alert-success p { color: var(--success-text); }
-  .alert.alert-lost p { color: var(--destructive); }
-
   .assignee-row { display: flex; align-items: center; gap: 12px; }
   .assignee-avatar { width: 40px; height: 40px; border-radius: 8px; background: var(--primary); color: #fff;
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; font-family: 'Outfit', sans-serif; flex-shrink: 0; }
@@ -361,10 +349,6 @@
               <div class="stepper" id="stepper"></div>
               <div class="status-actions" id="statusActions"></div>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-body" id="nextStepCard"></div>
           </div>
 
           <div class="card">
@@ -574,41 +558,6 @@
   }
   renderStepper();
 
-  function renderNextStep() {
-    const card = $('nextStepCard');
-    if (lead.status === 'activated') {
-      card.innerHTML = `<div class="alert alert-success">
-        <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>This merchant is live</h3>
-        <p>${esc(lead.biz)}'s application was approved and the account is active. No further action is needed on this lead.</p>
-      </div>`;
-    } else if (lead.status === 'lost') {
-      card.innerHTML = `<div class="alert alert-lost">
-        <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Lead marked as lost</h3>
-        <p>This lead didn't convert. Check the activity log for the reason before reaching back out.</p>
-      </div>`;
-    } else if (lead.status === 'submitted') {
-      const trackURL = readApplicationURL(id);
-      card.innerHTML = `<div class="alert">
-        <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Application submitted</h3>
-        <p>The onboarding application for ${esc(lead.biz)} is with the approval and onboarding team. You can't edit it anymore, but you can track its status.</p>
-        ${trackURL ? `<a class="btn btn-primary btn-sm" href="${esc(trackURL)}">Track Application</a>` : ''}
-      </div>`;
-    } else if (lead.status === 'new') {
-      card.innerHTML = `<div class="alert">
-        <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Next step</h3>
-        <p>Reach out to ${esc(lead.contact)} to introduce Kashier. Once they're marked as Contacted, you can start their onboarding application.</p>
-      </div>`;
-    } else {
-      const nextLabel = lead.status === 'application' ? 'submit their documents and pricing selections' : 'move them into the onboarding application';
-      card.innerHTML = `<div class="alert">
-        <h3><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Next step</h3>
-        <p>Once ${esc(lead.contact)} is ready to activate, ${esc(nextLabel)} using the onboarding application.</p>
-        <button class="btn btn-primary btn-sm" onclick="$('proceedBtn').click()">Complete Onboarding Application</button>
-      </div>`;
-    }
-  }
-  renderNextStep();
-
   function nowStamp() {
     return new Date().toISOString().slice(0, 16).replace('T', ' ');
   }
@@ -639,7 +588,6 @@
     $('statusBadge').className = `badge ${meta.cls}`;
     $('statusBadge').innerHTML = `<span class="badge-dot"></span>${esc(meta.label)}`;
     renderStepper();
-    renderNextStep();
     renderTimeline();
     renderStatusActions();
     renderPageActions();

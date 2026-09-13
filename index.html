@@ -178,9 +178,11 @@
     text-transform: uppercase; letter-spacing: .3px; padding: 4px 10px; }
   .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .badge-new { background: var(--ocean-10); color: var(--primary); }
-  .badge-contacted { background: var(--accent-10); color: #006A66; }
   .badge-application { background: var(--warning-bg); color: var(--warning-text); }
   .badge-submitted { background: #F3F0FF; color: #5B21B6; }
+  .badge-rate-approval { background: var(--accent-10); color: #006A66; }
+  .badge-onboarding-review { background: #EEF2FF; color: #3730A3; }
+  .badge-bank-submission { background: #FDF2E9; color: #8A4B08; }
   .badge-activated { background: var(--success-bg); color: var(--success-text); }
   .badge-lost { background: var(--destructive-bg); color: var(--destructive); }
 
@@ -316,12 +318,12 @@
           <div class="kpi-desc">Leads that landed in the last 7 days</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Application Started</div>
+          <div class="kpi-label">In Onboarding</div>
           <div class="kpi-value" id="kpiApp">0</div>
           <div class="kpi-desc">Leads mid-way through onboarding</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Activated This Month</div>
+          <div class="kpi-label">Live This Month</div>
           <div class="kpi-value" id="kpiActivated">0</div>
           <div class="kpi-desc">Leads converted to live merchants</div>
         </div>
@@ -396,25 +398,27 @@
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
   const STATUS_META = {
-    new:         { label: 'New',                 cls: 'badge-new' },
-    contacted:   { label: 'Contacted',            cls: 'badge-contacted' },
-    application: { label: 'Application Started',  cls: 'badge-application' },
-    submitted:   { label: 'Submitted',            cls: 'badge-submitted' },
-    activated:   { label: 'Activated',            cls: 'badge-activated' },
-    lost:        { label: 'Lost',                 cls: 'badge-lost' },
+    new:                 { label: 'New',                     cls: 'badge-new' },
+    application:         { label: 'Application in Progress', cls: 'badge-application' },
+    submitted:           { label: 'Application Submitted',   cls: 'badge-submitted' },
+    'rate-approval':     { label: 'Waiting Rate Approval',   cls: 'badge-rate-approval' },
+    'onboarding-review': { label: 'Onboarding Review',       cls: 'badge-onboarding-review' },
+    'bank-submission':   { label: 'Bank Submission',         cls: 'badge-bank-submission' },
+    activated:           { label: 'Live',                    cls: 'badge-activated' },
+    lost:                { label: 'Lost',                    cls: 'badge-lost' },
   };
 
   const LEADS = [
-    { id: 'L-001', biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',    email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',      source: 'Referral',    status: 'application', assigned: '2026-08-28', lastActivity: '2026-09-06', mid: 'MID-10237-114' },
-    { id: 'L-002', biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',   email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy',    source: 'Cold Call',   status: 'contacted',   assigned: '2026-09-01', lastActivity: '2026-09-07', mid: 'MID-10589-227' },
-    { id: 'L-003', biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa',  email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',          source: 'Website',     status: 'new',          assigned: '2026-09-05', lastActivity: '2026-09-05', mid: 'MID-11042-350' },
-    { id: 'L-004', biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',      email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',               source: 'Event',       status: 'activated',   assigned: '2026-08-10', lastActivity: '2026-08-30', mid: 'MID-20458-771' },
-    { id: 'L-005', biz: 'Giza Learning Hub',       contact: 'Omar Khalil',     email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',                source: 'Partner',     status: 'new',          assigned: '2026-09-06', lastActivity: '2026-09-06', mid: 'MID-11298-463' },
-    { id: 'L-006', biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',      email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',         source: 'Referral',    status: 'contacted',   assigned: '2026-08-30', lastActivity: '2026-09-04', mid: 'MID-10874-556' },
-    { id: 'L-007', biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',     email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',        source: 'Website',     status: 'application', assigned: '2026-08-22', lastActivity: '2026-09-03', mid: 'MID-10651-689' },
-    { id: 'L-008', biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',   email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',         source: 'Cold Call',   status: 'lost',         assigned: '2026-08-05', lastActivity: '2026-08-19', mid: 'MID-10412-792' },
-    { id: 'L-009', biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',     email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',         source: 'Referral',    status: 'activated',   assigned: '2026-08-01', lastActivity: '2026-08-25', mid: 'MID-33127-905' },
-    { id: 'L-010', biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',    email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',              source: 'Event',       status: 'new',          assigned: '2026-09-07', lastActivity: '2026-09-07', mid: 'MID-11605-018' },
+    { id: 'L-001', biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',    email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',      source: 'Referral',    status: 'submitted',         assigned: '2026-08-28', lastActivity: '2026-09-06', mid: 'MID-10237-114' },
+    { id: 'L-002', biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',   email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy',    source: 'Cold Call',   status: 'application',       assigned: '2026-09-01', lastActivity: '2026-09-07', mid: 'MID-10589-227' },
+    { id: 'L-003', biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa',  email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',          source: 'Website',     status: 'new',                assigned: '2026-09-05', lastActivity: '2026-09-05', mid: 'MID-11042-350' },
+    { id: 'L-004', biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',      email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',               source: 'Event',       status: 'activated',         assigned: '2026-08-10', lastActivity: '2026-08-30', mid: 'MID-20458-771' },
+    { id: 'L-005', biz: 'Giza Learning Hub',       contact: 'Omar Khalil',     email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',                source: 'Partner',     status: 'new',                assigned: '2026-09-06', lastActivity: '2026-09-06', mid: 'MID-11298-463' },
+    { id: 'L-006', biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',      email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',         source: 'Referral',    status: 'onboarding-review', assigned: '2026-08-30', lastActivity: '2026-09-04', mid: 'MID-10874-556' },
+    { id: 'L-007', biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',     email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',        source: 'Website',     status: 'rate-approval',     assigned: '2026-08-22', lastActivity: '2026-09-03', mid: 'MID-10651-689' },
+    { id: 'L-008', biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',   email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',         source: 'Cold Call',   status: 'lost',               assigned: '2026-08-05', lastActivity: '2026-08-19', mid: 'MID-10412-792' },
+    { id: 'L-009', biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',     email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',         source: 'Referral',    status: 'activated',         assigned: '2026-08-01', lastActivity: '2026-08-25', mid: 'MID-33127-905' },
+    { id: 'L-010', biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',    email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',              source: 'Event',       status: 'bank-submission',   assigned: '2026-09-07', lastActivity: '2026-09-07', mid: 'MID-11605-018' },
   ];
 
   // Status changes made on the lead detail page are saved to localStorage (no CRM
@@ -444,7 +448,7 @@
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     $('kpiTotal').textContent = LEADS.length;
     $('kpiNew').textContent = LEADS.filter(l => new Date(l.assigned + 'T00:00:00') >= weekAgo).length;
-    $('kpiApp').textContent = LEADS.filter(l => l.status === 'application').length;
+    $('kpiApp').textContent = LEADS.filter(l => ['application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(l.status)).length;
     $('kpiActivated').textContent = LEADS.filter(l => l.status === 'activated' && new Date(l.lastActivity + 'T00:00:00') >= monthStart).length;
     $('navLeadCount').textContent = LEADS.length;
   }

@@ -116,9 +116,11 @@
     text-transform: uppercase; letter-spacing: .3px; padding: 4px 10px; }
   .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .badge-new { background: var(--ocean-10); color: var(--primary); }
-  .badge-contacted { background: var(--accent-10); color: #006A66; }
   .badge-application { background: var(--warning-bg); color: var(--warning-text); }
   .badge-submitted { background: #F3F0FF; color: #5B21B6; }
+  .badge-rate-approval { background: var(--accent-10); color: #006A66; }
+  .badge-onboarding-review { background: #EEF2FF; color: #3730A3; }
+  .badge-bank-submission { background: #FDF2E9; color: #8A4B08; }
   .badge-activated { background: var(--success-bg); color: var(--success-text); }
   .badge-lost { background: var(--destructive-bg); color: var(--destructive); }
 
@@ -415,24 +417,30 @@
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
   const STATUS_META = {
-    new:         { label: 'New',                 cls: 'badge-new' },
-    contacted:   { label: 'Contacted',            cls: 'badge-contacted' },
-    application: { label: 'Application Started',  cls: 'badge-application' },
-    submitted:   { label: 'Submitted',            cls: 'badge-submitted' },
-    activated:   { label: 'Activated',            cls: 'badge-activated' },
-    lost:        { label: 'Lost',                 cls: 'badge-lost' },
+    new:                 { label: 'New',                       cls: 'badge-new' },
+    application:         { label: 'Application in Progress',   cls: 'badge-application' },
+    submitted:           { label: 'Application Submitted',     cls: 'badge-submitted' },
+    'rate-approval':     { label: 'Waiting Rate Approval',     cls: 'badge-rate-approval' },
+    'onboarding-review': { label: 'Onboarding Review',          cls: 'badge-onboarding-review' },
+    'bank-submission':   { label: 'Bank Submission',            cls: 'badge-bank-submission' },
+    activated:           { label: 'Live',                       cls: 'badge-activated' },
+    lost:                { label: 'Lost',                       cls: 'badge-lost' },
   };
-  const PIPELINE = ['new', 'contacted', 'application', 'submitted', 'activated'];
+  /* Full pipeline order. Waiting Rate Approval only applies to merchants whose pricing
+     needs sign-off (lead.needsRateApproval) — the stepper skips that step for the rest. */
+  const PIPELINE = ['new', 'application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+  function pipelineFor(l) { return l.needsRateApproval ? PIPELINE : PIPELINE.filter(k => k !== 'rate-approval'); }
 
   const LEADS = {
-    'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    source: 'Referral', status: 'application', assigned: '2026-08-28', mid: 'MID-10237-114',
+    'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    source: 'Referral', status: 'submitted', needsRateApproval: true, assigned: '2026-08-28', mid: 'MID-10237-114',
       activity: [
-        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-06 14:20', text: 'Started the merchant onboarding application on behalf of the business.' },
+        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-06 14:20', text: 'Submitted the onboarding application — one rate below Auto needs Manager approval.' },
+        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-04 09:00', text: 'Started the merchant onboarding application on behalf of the business.' },
         { icon: 'call', actor: 'Mostafa Khaled', time: '2026-09-02 11:05', text: 'Called Youssef to confirm settlement bank and required documents. He will gather CR and tax card by Thursday.' },
         { icon: 'note', actor: 'Mostafa Khaled', time: '2026-08-29 09:40', text: 'Qualified — business is registered, processes ~450K EGP/month across 3 branches.' },
         { icon: 'flag', actor: 'System',         time: '2026-08-28 10:00', text: 'Lead assigned to Mostafa Khaled from the Referral pipeline.' },
       ] },
-    'L-002': { biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',  role: 'Operations Manager', email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy', type: 'Registered Business', volume: '900,000 EGP / month', city: 'Tanta, Egypt',      website: 'deltapharma.eg',    source: 'Cold Call', status: 'contacted', assigned: '2026-09-01', mid: 'MID-10589-227',
+    'L-002': { biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',  role: 'Operations Manager', email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy', type: 'Registered Business', volume: '900,000 EGP / month', city: 'Tanta, Egypt',      website: 'deltapharma.eg',    source: 'Cold Call', status: 'application', assigned: '2026-09-01', mid: 'MID-10589-227',
       activity: [
         { icon: 'call', actor: 'Mostafa Khaled', time: '2026-09-07 16:10', text: 'Spoke with Nourhan — interested in POS + online checkout for their 6 pharmacy branches. Sending pricing sheet.' },
         { icon: 'flag', actor: 'System',         time: '2026-09-01 09:15', text: 'Lead assigned to Mostafa Khaled from the Cold Call campaign.' },
@@ -441,7 +449,7 @@
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-05 08:30', text: 'Lead submitted a demo request on the Kashier website and was routed to Mostafa Khaled.' },
       ] },
-    'L-004': { biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',     role: 'General Manager',   email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',           type: 'Registered Business', volume: '1,200,000 EGP / month', city: 'Alexandria, Egypt', website: 'alexautoparts.com', source: 'Event',     status: 'activated', assigned: '2026-08-10', mid: 'MID-20458-771',
+    'L-004': { biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',     role: 'General Manager',   email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',           type: 'Registered Business', volume: '1,200,000 EGP / month', city: 'Alexandria, Egypt', website: 'alexautoparts.com', source: 'Event',     status: 'activated', needsRateApproval: true, assigned: '2026-08-10', mid: 'MID-20458-771',
       activity: [
         { icon: 'check', actor: 'System',         time: '2026-08-30 12:00', text: 'Merchant application approved — account activated in live mode.' },
         { icon: 'flag',  actor: 'Mostafa Khaled', time: '2026-08-22 10:00', text: 'Submitted the onboarding application after collecting all required documents.' },
@@ -452,13 +460,16 @@
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-06 09:00', text: 'Lead referred by a Kashier reseller partner and assigned to Mostafa Khaled.' },
       ] },
-    'L-006': { biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',     role: 'Revenue Manager',   email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',     type: 'Registered Business', volume: '620,000 EGP / month', city: 'Cairo, Egypt',      website: 'zamalekhotel.com',  source: 'Referral',  status: 'contacted', assigned: '2026-08-30', mid: 'MID-10874-556',
+    'L-006': { biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',     role: 'Revenue Manager',   email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',     type: 'Registered Business', volume: '620,000 EGP / month', city: 'Cairo, Egypt',      website: 'zamalekhotel.com',  source: 'Referral',  status: 'onboarding-review', needsRateApproval: false, assigned: '2026-08-30', mid: 'MID-10874-556',
       activity: [
+        { icon: 'flag', actor: 'System',         time: '2026-09-05 10:00', text: 'Application moved to Onboarding Review — no rate approval was needed.' },
         { icon: 'call', actor: 'Mostafa Khaled', time: '2026-09-04 13:45', text: 'Discussed booking-engine integration and installment plans with Dina. She is checking with finance before proceeding.' },
+        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-02 09:30', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag', actor: 'System',         time: '2026-08-30 11:20', text: 'Lead referred by an existing Kashier merchant and assigned to Mostafa Khaled.' },
       ] },
-    'L-007': { biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',    role: 'Co-Founder',        email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',    type: 'Registered Business', volume: '95,000 EGP / month',  city: 'Mansoura, Egypt',   website: 'mansouratech.io',   source: 'Website',   status: 'application', assigned: '2026-08-22', mid: 'MID-10651-689',
+    'L-007': { biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',    role: 'Co-Founder',        email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',    type: 'Registered Business', volume: '95,000 EGP / month',  city: 'Mansoura, Egypt',   website: 'mansouratech.io',   source: 'Website',   status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-22', mid: 'MID-10651-689',
       activity: [
+        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-05 11:00', text: 'Submitted the application — the discounted rate Karim negotiated needs Manager approval before it can move to Onboarding Review.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-03 10:00', text: 'Started the merchant onboarding application — awaiting CR and tax card upload from Karim.' },
         { icon: 'call',  actor: 'Mostafa Khaled', time: '2026-08-25 14:00', text: 'Walkthrough call covering online checkout integration for their subscription product.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-22 09:10', text: 'Lead submitted a demo request on the Kashier website.' },
@@ -469,14 +480,16 @@
         { icon: 'call',  actor: 'Mostafa Khaled', time: '2026-08-09 16:20', text: 'Introductory call — Mariam said pricing was competitive but timing was not right.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-05 08:00', text: 'Lead assigned to Mostafa Khaled from the Cold Call campaign.' },
       ] },
-    'L-009': { biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',    role: 'Founder',            email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',     type: 'Registered Business', volume: '380,000 EGP / month', city: 'Cairo, Egypt',      website: 'heliofashion.com',  source: 'Referral',  status: 'activated', assigned: '2026-08-01', mid: 'MID-33127-905',
+    'L-009': { biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',    role: 'Founder',            email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',     type: 'Registered Business', volume: '380,000 EGP / month', city: 'Cairo, Egypt',      website: 'heliofashion.com',  source: 'Referral',  status: 'activated', needsRateApproval: false, assigned: '2026-08-01', mid: 'MID-33127-905',
       activity: [
         { icon: 'check', actor: 'System', time: '2026-08-25 10:00', text: 'Merchant application approved — account activated in live mode.' },
         { icon: 'flag',  actor: 'Mostafa Khaled', time: '2026-08-15 11:00', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-01 09:00', text: 'Lead referred by an existing Kashier merchant.' },
       ] },
-    'L-010': { biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',   role: 'Managing Partner',  email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',          type: 'Registered Business', volume: '2,100,000 EGP / month', city: 'Aswan, Egypt',      website: 'aswanrealty.com',   source: 'Event',     status: 'new', assigned: '2026-09-07', mid: 'MID-11605-018',
+    'L-010': { biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',   role: 'Managing Partner',  email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',          type: 'Registered Business', volume: '2,100,000 EGP / month', city: 'Aswan, Egypt',      website: 'aswanrealty.com',   source: 'Event',     status: 'bank-submission', needsRateApproval: false, assigned: '2026-09-07', mid: 'MID-11605-018',
       activity: [
+        { icon: 'flag', actor: 'System',         time: '2026-09-12 09:00', text: 'Onboarding review passed — application submitted to the bank for final sign-off.' },
+        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-09 14:00', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag', actor: 'System', time: '2026-09-07 15:00', text: 'Lead assigned to Mostafa Khaled after meeting at the Aswan Real Estate Forum.' },
       ] },
   };
@@ -582,10 +595,10 @@
       html += `<div class="step done"><div class="step-dot">${ICONS.check}</div><div><div class="step-label">New</div></div></div>`;
       html += `<div class="step lost"><div class="step-dot"><svg class="hi-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></div><div><div class="step-label">Lost</div><div class="step-date">${fmtDate(lead.assigned)}</div></div></div>`;
     } else {
-      const currentIdx = PIPELINE.indexOf(lead.status);
-      PIPELINE.forEach((key, i) => {
+      const steps = pipelineFor(lead);
+      const currentIdx = steps.indexOf(lead.status);
+      steps.forEach((key, i) => {
         const cls = i < currentIdx ? 'done' : i === currentIdx ? 'current' : '';
-        const icon = i < currentIdx ? ICONS.check : (i + 1);
         html += `<div class="step ${cls}"><div class="step-dot">${i < currentIdx ? ICONS.check : `<span style="font-size:11px;font-weight:700">${i + 1}</span>`}</div><div><div class="step-label">${esc(STATUS_META[key].label)}</div></div></div>`;
       });
     }
@@ -599,13 +612,13 @@
 
   function renderPageActions() {
     const box = $('pageActions');
-    if (lead.status === 'submitted' || lead.status === 'activated') {
+    if (['submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'].includes(lead.status)) {
       const trackURL = readApplicationURL(id);
       box.innerHTML = trackURL ? `<a class="btn btn-primary" href="${esc(trackURL)}">
         Track Application
         <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
       </a>` : '';
-    } else if (lead.status === 'contacted' || lead.status === 'application') {
+    } else if (lead.status === 'new' || lead.status === 'application') {
       box.innerHTML = `<button class="btn btn-primary" id="proceedBtn">
         Complete Onboarding Application
         <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
@@ -632,16 +645,10 @@
   function renderStatusActions() {
     const box = $('statusActions');
     let html = '';
-    if (lead.status === 'new') {
-      html += `<button class="btn btn-primary btn-sm" id="markContactedBtn">Mark as Contacted</button>`;
-    }
-    if (['new', 'contacted', 'application', 'submitted'].includes(lead.status)) {
+    if (['new', 'application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(lead.status)) {
       html += `<button class="btn btn-ghost-danger btn-sm" id="markLostBtn">Mark as Lost</button>`;
     }
     box.innerHTML = html;
-    const contactedBtn = $('markContactedBtn');
-    if (contactedBtn) contactedBtn.addEventListener('click', () =>
-      setLeadStatus('contacted', `Called ${lead.contact} — lead marked as Contacted.`));
     const lostBtn = $('markLostBtn');
     if (lostBtn) lostBtn.addEventListener('click', openLostModal);
   }
@@ -664,7 +671,7 @@
 
   $('pageActions').addEventListener('click', e => {
     if (!e.target.closest('#proceedBtn')) return;
-    if (lead.status === 'contacted') {
+    if (lead.status === 'new') {
       setLeadStatus('application', 'Started the merchant onboarding application on behalf of the business.');
     }
     const qs = new URLSearchParams({

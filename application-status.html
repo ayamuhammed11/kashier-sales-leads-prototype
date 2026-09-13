@@ -319,8 +319,8 @@
 
   const STATUS_META = {
     'draft':                     { label: 'Draft',                     cls: '' },
-    'pending-rate-approval':     { label: 'Pending Rate Approval',      cls: 'warn' },
-    'pending-onboarding-review': { label: 'Pending Onboarding Review',  cls: 'info' },
+    'pending-rate-approval':     { label: 'Waiting Rate Approval',      cls: 'warn' },
+    'pending-onboarding-review': { label: 'Onboarding Review',          cls: 'info' },
   };
 
   const p = new URLSearchParams(location.search);
@@ -414,11 +414,11 @@
 
   function renderStepper() {
     const steps = [
-      { key: 'created', label: 'Application Created', done: true, date: fmtDateTime(app.ts) },
+      { key: 'created', label: 'Application Submitted', done: true, date: fmtDateTime(app.ts) },
     ];
     if (app.needsApproval > 0) {
       steps.push({
-        key: 'rate', label: 'Rate Approval',
+        key: 'rate', label: 'Waiting Rate Approval',
         done: app.status !== 'pending-rate-approval' && app.status !== 'draft',
         current: app.status === 'pending-rate-approval',
         hint: `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} awaiting approval`,
@@ -430,7 +430,8 @@
       current: app.status === 'pending-onboarding-review',
       hint: 'Documents and criteria verified by the Onboarding team',
     });
-    steps.push({ key: 'live', label: 'Merchant Live', done: false, current: false, hint: 'Account activated for real transactions' });
+    steps.push({ key: 'bank', label: 'Bank Submission', done: false, current: false, hint: 'Application submitted to the bank for final sign-off' });
+    steps.push({ key: 'live', label: 'Live', done: false, current: false, hint: 'Account activated for real transactions' });
 
     $('stepper').innerHTML = steps.map(s => {
       const cls = s.done ? 'done' : s.current ? 'current' : '';

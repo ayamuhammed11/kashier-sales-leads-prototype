@@ -822,6 +822,7 @@
           cfg.banks = cfg.banks[0] === bank ? [] : [bank];
           if (cfg.banks.length) ensureBankConfig(cfg, bank);
         }
+        cfg.done = false;
         renderServiceSetup();
         renderServiceTracker();
         refreshAggregateAndSummary();
@@ -831,6 +832,7 @@
       const bankKey = b.closest('.svc-module-group').dataset.bank;
       const bc = ensureBankConfig(cfg, bankKey);
       bc.module = bc.module === b.dataset.module ? '' : b.dataset.module;
+      cfg.done = false;
       renderServiceSetup();
       renderServiceTracker();
       refreshAggregateAndSummary();
@@ -879,7 +881,9 @@
       const bc = ensureBankConfig(cfg, chip.dataset.bank);
       const cur = bc.pricing.get(chip.dataset.key) || { tier: 'auto', note: '' };
       bc.pricing.set(chip.dataset.key, { tier: chip.dataset.tier, note: cur.note });
+      cfg.done = false;
       renderServiceSetup();
+      renderServiceTracker();
       refreshAggregateAndSummary();
       return;
     }
@@ -893,6 +897,7 @@
     const cur = bc.pricing.get(ta.dataset.key) || { tier: 'auto', note: '' };
     bc.pricing.set(ta.dataset.key, { tier: cur.tier, note: ta.value });
     ta.classList.toggle('invalid', !ta.value.trim());
+    if (cfg.done) { cfg.done = false; renderServiceTracker(); }
     renderSubmitSummary();
   });
   function refreshAggregateAndSummary() {

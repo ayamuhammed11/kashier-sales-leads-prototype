@@ -368,10 +368,16 @@
       `From lead <a href="lead-details.html?id=${encodeURIComponent(app.leadId)}">${esc(app.leadId)}</a>`;
   }
 
+  const docsDisplay = !app.total
+    ? 'No documents required'
+    : app.done >= app.total
+      ? `${app.total} document${app.total === 1 ? '' : 's'} uploaded`
+      : `${app.done} of ${app.total} attached`;
+
   $('summaryGrid').innerHTML = [
     ['Merchant Type', app.entity],
     ['Industry', app.industry],
-    ['Documents', `${app.done} of ${app.total} attached`],
+    ['Documents', docsDisplay],
     ['Pricing', app.needsApproval ? `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} pending approval` : 'All rates Auto'],
   ].map(([l, v]) => `<div class="info-field"><div class="lbl">${esc(l)}</div><div class="val${v ? '' : ' muted'}">${esc(v || 'Not set')}</div></div>`).join('');
 

@@ -711,6 +711,9 @@
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
   }
+  function firstServiceMissingDocs() {
+    return criteria.services.find(s => [...docsForService(s).keys()].some(name => !isDocDone(name)));
+  }
   function computeAggregatedDocs() {
     const merged = new Map();
     criteria.services.forEach(s => {
@@ -1066,6 +1069,17 @@
       return;
     }
     const { total, done } = currentDocStatus();
+    if (done < total) {
+      const missingService = firstServiceMissingDocs();
+      if (missingService) {
+        activeService = missingService;
+        renderServiceTracker();
+        renderServiceSetup();
+      }
+      toast(`Upload all required documents before submitting — ${done} of ${total} attached`);
+      $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
     const serviceConfigsPayload = criteria.services.map(s => {
       const cfg = serviceConfig[s];

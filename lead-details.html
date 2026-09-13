@@ -171,6 +171,25 @@
   .status-actions:empty { display: none; }
   .btn-ghost-danger { background: none; border: 1.5px solid var(--destructive); color: var(--destructive); }
   .btn-ghost-danger:hover { background: var(--destructive-bg); }
+  .btn-destructive { background: var(--destructive); color: #fff; }
+  .btn-destructive:hover { background: #830012; }
+
+  /* Confirm modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2,10,34,.45); display: none;
+    align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,20,60,.25); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px;
+    border-bottom: 1px solid var(--border-subtle); }
+  .modal-header h3 { margin: 0; font-size: 16px; color: var(--foreground); }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--border-subtle); }
+  .confirm-text { font-size: 13.5px; color: var(--foreground); line-height: 1.55; margin: 0; }
+  .confirm-text b { color: var(--foreground); }
+  .btn-icon { padding: 6px; border-radius: var(--radius); background: none; border: 1px solid transparent;
+    color: var(--cadet-05); display: inline-flex; cursor: pointer; }
+  .btn-icon:hover { background: var(--muted); color: var(--foreground); }
   .step { display: flex; gap: 12px; position: relative; padding-bottom: 22px; }
   .step:last-child { padding-bottom: 0; }
   .step:not(:last-child)::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: 0; width: 1.5px; background: var(--border-subtle); }
@@ -374,6 +393,22 @@
   </main>
 
   <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="lostBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Mark as Lost</h3>
+        <button class="btn-icon" id="lostClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text" id="lostText"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="lostCancel">Cancel</button>
+        <button class="btn btn-destructive btn-sm" id="lostConfirm">Mark as Lost</button>
+      </div>
+    </div>
+  </div>
 
 <script>
   const $ = id => document.getElementById(id);
@@ -608,11 +643,24 @@
     if (contactedBtn) contactedBtn.addEventListener('click', () =>
       setLeadStatus('contacted', `Called ${lead.contact} — lead marked as Contacted.`));
     const lostBtn = $('markLostBtn');
-    if (lostBtn) lostBtn.addEventListener('click', () =>
-      setLeadStatus('lost', 'Lead marked as Lost.'));
+    if (lostBtn) lostBtn.addEventListener('click', openLostModal);
   }
   renderStatusActions();
   renderPageActions();
+
+  function openLostModal() {
+    $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lead.biz)}</b> as lost? This moves them out of the active pipeline — you can still see them under My Leads, but no further onboarding action can be taken.`;
+    $('lostBackdrop').classList.add('open');
+  }
+  function closeLostModal() { $('lostBackdrop').classList.remove('open'); }
+  $('lostClose').addEventListener('click', closeLostModal);
+  $('lostCancel').addEventListener('click', closeLostModal);
+  $('lostBackdrop').addEventListener('click', e => { if (e.target === $('lostBackdrop')) closeLostModal(); });
+  $('lostConfirm').addEventListener('click', () => {
+    closeLostModal();
+    setLeadStatus('lost', 'Lead marked as Lost.');
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLostModal(); });
 
   $('pageActions').addEventListener('click', e => {
     if (!e.target.closest('#proceedBtn')) return;

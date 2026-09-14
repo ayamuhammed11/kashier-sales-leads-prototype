@@ -108,6 +108,85 @@
   .status-pill.warn .dot { background: var(--warning); }
   .status-pill.info { background: var(--ocean-10); color: var(--primary); }
   .status-pill.info .dot { background: var(--primary); }
+  .status-pill.success { background: var(--success-bg); color: var(--success-text); }
+  .status-pill.success .dot { background: var(--success); }
+  .status-pill.danger { background: var(--destructive-bg); color: var(--destructive); }
+  .status-pill.danger .dot { background: var(--destructive); }
+
+  /* Role switch — demo affordance for "who is looking at this application" */
+  .role-switch { display: flex; align-items: center; gap: 8px; }
+  .role-switch label { font-size: 12px; color: var(--cadet-04); }
+  .role-switch select { height: 32px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;
+    color: var(--foreground); font-family: inherit; font-size: 13px; padding: 0 8px; color-scheme: light; cursor: pointer; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 13px; font-weight: 600;
+    font-family: inherit; height: 34px; padding: 0 14px; border-radius: var(--radius); border: 1.5px solid transparent;
+    cursor: pointer; white-space: nowrap; }
+  .btn-sm { height: 30px; padding: 0 12px; font-size: 12.5px; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-outline { background: #fff; color: var(--primary); border-color: var(--primary); }
+  .btn-outline:hover { background: var(--ocean-10); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: var(--success-80); }
+  .btn-destructive-outline { background: #fff; color: var(--destructive); border-color: var(--destructive); }
+  .btn-destructive-outline:hover { background: var(--destructive-bg); }
+  .btn-destructive { background: var(--destructive); color: #fff; }
+  .btn-destructive:hover { background: #830012; }
+
+  /* Pricing approval requests */
+  .appr-row { padding: 14px 4px; border-bottom: 1px solid var(--border-subtle); }
+  .appr-row:last-child { border-bottom: none; }
+  .appr-top { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .appr-info { flex: 1; min-width: 170px; }
+  .appr-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13.5px; color: var(--foreground); }
+  .appr-meta { font-size: 12px; color: var(--cadet-05); margin-top: 3px; }
+  .appr-band { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    border-radius: 6px; padding: 3px 8px; margin-top: 7px; background: var(--warning-bg); color: var(--warning-text); }
+  .appr-band.head { background: var(--destructive-bg); color: var(--destructive); }
+  .appr-note { font-size: 12.5px; color: var(--cadet-base); line-height: 1.5; margin-top: 8px;
+    background: var(--muted); border-radius: 6px; padding: 9px 11px; }
+  .appr-note .lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    color: var(--cadet-05); display: block; margin-bottom: 3px; }
+  .appr-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .appr-outcome { font-size: 12px; color: var(--cadet-05); margin-top: 8px; }
+  .appr-outcome b { color: var(--foreground); }
+  .appr-reason { font-size: 12.5px; color: var(--destructive); line-height: 1.5; margin-top: 6px; }
+  .appr-locked { font-size: 12px; color: var(--cadet-05); margin-top: 10px; font-style: italic; }
+  .appr-empty { font-size: 13px; color: var(--cadet-05); padding: 6px 4px; }
+
+  .returned-note { display: flex; gap: 10px; background: var(--destructive-bg); border: 1px solid #FFBBC4;
+    border-radius: var(--radius); padding: 12px 14px; margin-bottom: 24px; }
+  .returned-note svg { width: 18px; height: 18px; color: var(--destructive); flex-shrink: 0; margin-top: 1px; }
+  .returned-note p { margin: 0; font-size: 12.5px; color: var(--destructive); line-height: 1.5; }
+
+  /* Confirm modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2,10,34,.45); display: none;
+    align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,20,60,.25); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px;
+    border-bottom: 1px solid var(--border-subtle); }
+  .modal-header h3 { margin: 0; font-size: 16px; color: var(--foreground); }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--border-subtle); }
+  .confirm-text { font-size: 13.5px; color: var(--foreground); line-height: 1.55; margin: 0 0 12px; }
+  .confirm-text b { color: var(--foreground); }
+  .modal-body textarea { width: 100%; min-height: 80px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    background: #fff; color: var(--foreground); font-family: inherit; font-size: 13.5px; padding: 10px 12px;
+    resize: vertical; color-scheme: light; }
+  .modal-body textarea:focus { outline: none; border-color: var(--primary); }
+  .modal-body textarea.invalid { border-color: var(--destructive); }
+  .btn-icon { padding: 6px; border-radius: var(--radius); background: none; border: 1px solid transparent;
+    color: var(--cadet-05); display: inline-flex; cursor: pointer; }
+  .btn-icon:hover { background: var(--muted); color: var(--foreground); }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--foreground);
+    color: #fff; font-size: 13px; font-weight: 600; padding: 12px 20px; border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,.2); opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 120; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* Layout grid */
   .layout-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
@@ -146,8 +225,10 @@
   .step.done .step-dot { background: var(--success); border-color: var(--success); color: #fff; }
   .step.current .step-dot { background: var(--primary); border-color: var(--primary); color: #fff; }
   .step.skipped .step-dot { background: #fff; border-color: var(--border); color: var(--cadet-06); }
+  .step.rejected .step-dot { background: var(--destructive); border-color: var(--destructive); color: #fff; }
   .step-label { font-size: 13px; font-weight: 600; color: var(--cadet-06); padding-top: 2px; }
   .step.done .step-label, .step.current .step-label { color: var(--foreground); }
+  .step.rejected .step-label { color: var(--destructive); }
   .step-date { font-size: 11px; color: var(--cadet-05); margin-top: 2px; }
   .step-hint { font-size: 11.5px; color: var(--cadet-05); margin-top: 2px; }
 
@@ -217,10 +298,18 @@
       </div>
       <div class="topbar-right">
         <button class="lang" id="langBtn">عربي</button>
+        <div class="role-switch">
+          <label for="roleSelect">Viewing as</label>
+          <select id="roleSelect">
+            <option value="sales">Salesperson</option>
+            <option value="manager">Pricing Manager</option>
+            <option value="head">Head of Sales</option>
+          </select>
+        </div>
         <div class="divider"></div>
         <div class="user">
-          <div class="avatar">MK</div>
-          <span class="name">Mostafa Khaled</span>
+          <div class="avatar" id="userAvatar">MK</div>
+          <span class="name" id="userName">Mostafa Khaled</span>
           <span class="gear"><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></span>
         </div>
       </div>
@@ -252,9 +341,27 @@
         </div>
       </div>
 
+      <div class="returned-note" id="returnedNote" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        <p id="returnedText"></p>
+      </div>
+
       <div class="layout-grid">
         <!-- LEFT COLUMN -->
         <div>
+          <div class="card" id="pricingCard" hidden>
+            <div class="card-head">
+              <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
+              <div>
+                <h2>Pricing Approvals</h2>
+                <p class="ch-sub" id="pricingCardSub">Rates the salesperson pushed below Auto. Each one needs sign-off before the application moves to Onboarding Review.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="pricingList"></div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-head">
               <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>
@@ -313,6 +420,25 @@
     </div>
   </main>
 
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="rejectBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Reject rate request</h3>
+        <button class="btn-icon" id="rejectClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text" id="rejectText"></p>
+        <textarea id="rejectReason" placeholder="Why is this rate being rejected? The salesperson sees this when the application comes back to them."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="rejectCancel">Cancel</button>
+        <button class="btn btn-destructive" id="rejectConfirm">Reject &amp; Return</button>
+      </div>
+    </div>
+  </div>
+
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -321,7 +447,19 @@
     'draft':                     { label: 'Draft',                     cls: '' },
     'pending-rate-approval':     { label: 'Waiting Rate Approval',      cls: 'warn' },
     'pending-onboarding-review': { label: 'Onboarding Review',          cls: 'info' },
+    'returned-to-sales':         { label: 'Returned to Sales',          cls: 'danger' },
   };
+
+  /* Who is looking at this application. Rates between the Manager and Standard rate are a
+     Pricing Manager's call; anything under the Manager rate needs the Head of Sales, who can
+     also sign off on Manager-band requests. The salesperson only ever watches. */
+  const ROLES = {
+    sales:   { label: 'Salesperson',     name: 'Aya Muhammed', initials: 'AM', approves: [] },
+    manager: { label: 'Pricing Manager', name: 'Nadia Salah',  initials: 'NS', approves: ['manager'] },
+    head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['manager', 'head'] },
+  };
+  const TIER_LABEL = { manager: 'Manager approval', head: 'Head approval' };
+  const TIER_OWNER = { manager: 'Pricing Manager', head: 'Head of Sales' };
 
   const p = new URLSearchParams(location.search);
   const app = {
@@ -334,6 +472,7 @@
     industry: p.get('industry') || '',
     posTerminals: p.get('posTerminals') || '',
     serviceConfigs: (() => { try { return JSON.parse(p.get('serviceConfigs') || '[]'); } catch (e) { return []; } })(),
+    pricingRequests: (() => { try { return JSON.parse(p.get('pricingRequests') || '[]'); } catch (e) { return []; } })(),
     services: (p.get('services') || '').split(',').filter(Boolean),
     total: Number(p.get('total') || 0),
     done: Number(p.get('done') || 0),
@@ -348,6 +487,37 @@
       d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }
 
+  /* Rate decisions and the status they produce are demo-local (no backend here), kept in
+     localStorage per application so they survive a reload and so My Leads / Lead Details
+     see the same outcome. */
+  function readStore(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; }
+  }
+  function writeStore(key, obj) {
+    try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) { /* storage unavailable */ }
+  }
+  function readDecisions() { return readStore('kashierRateDecisions')[app.id] || {}; }
+  function writeDecisions(decisions) {
+    const all = readStore('kashierRateDecisions');
+    all[app.id] = decisions;
+    writeStore('kashierRateDecisions', all);
+  }
+  const storedStatus = readStore('kashierAppStatus')[app.id];
+  if (storedStatus && STATUS_META[storedStatus]) app.status = storedStatus;
+
+  let role = 'sales';
+  try {
+    const saved = localStorage.getItem('kashierDemoRole');
+    if (saved && ROLES[saved]) role = saved;
+  } catch (e) { /* storage unavailable */ }
+
+  function decisionsFor() {
+    const d = readDecisions();
+    return app.pricingRequests.map(r => ({ req: r, decision: d[r.id] || null }));
+  }
+  function rejectedRequests() { return decisionsFor().filter(x => x.decision && x.decision.decision === 'rejected'); }
+  function pendingRequests() { return decisionsFor().filter(x => !x.decision); }
+
   document.title = `Kashier | ${app.biz} — Application Status`;
   $('crumbBiz').textContent = app.biz;
   $('bizName').textContent = app.biz;
@@ -358,9 +528,19 @@
   $('emailVal').textContent = app.email || '—';
   $('phoneVal').textContent = app.phone || '—';
 
-  const meta = STATUS_META[app.status] || STATUS_META.draft;
-  $('statusPill').className = `status-pill ${meta.cls}`;
-  $('statusPill').innerHTML = `<span class="dot"></span>${esc(meta.label)}`;
+  function renderStatus() {
+    const meta = STATUS_META[app.status] || STATUS_META.draft;
+    $('statusPill').className = `status-pill ${meta.cls}`;
+    $('statusPill').innerHTML = `<span class="dot"></span>${esc(meta.label)}`;
+
+    const rejected = rejectedRequests();
+    const note = $('returnedNote');
+    note.hidden = !rejected.length;
+    if (rejected.length) {
+      $('returnedText').innerHTML = `${rejected.length} rate request${rejected.length === 1 ? ' was' : 's were'} rejected, so this application went back to ` +
+        `${esc(app.actor)} to revise the pricing. It can't move on to Onboarding Review until the pricing is resubmitted.`;
+    }
+  }
 
   if (app.leadId) {
     const pill = $('leadPill');
@@ -375,13 +555,24 @@
       ? `${app.total} document${app.total === 1 ? '' : 's'} uploaded`
       : `${app.done} of ${app.total} attached`;
 
-  $('summaryGrid').innerHTML = [
-    ['Merchant Type', app.entity],
-    ['Industry', app.industry],
-    ...(app.posTerminals ? [['POS Terminals', app.posTerminals]] : []),
-    ['Documents', docsDisplay],
-    ['Pricing', app.needsApproval ? `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} pending approval` : 'All rates Auto'],
-  ].map(([l, v]) => `<div class="info-field"><div class="lbl">${esc(l)}</div><div class="val${v ? '' : ' muted'}">${esc(v || 'Not set')}</div></div>`).join('');
+  function pricingDisplay() {
+    if (!app.needsApproval) return 'All rates Auto';
+    const rejected = rejectedRequests().length;
+    const pending = pendingRequests().length;
+    if (rejected) return `${rejected} rate${rejected === 1 ? '' : 's'} rejected`;
+    if (pending) return `${pending} rate${pending === 1 ? '' : 's'} pending approval`;
+    return `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} approved`;
+  }
+
+  function renderSummary() {
+    $('summaryGrid').innerHTML = [
+      ['Merchant Type', app.entity],
+      ['Industry', app.industry],
+      ...(app.posTerminals ? [['POS Terminals', app.posTerminals]] : []),
+      ['Documents', docsDisplay],
+      ['Pricing', pricingDisplay()],
+    ].map(([l, v]) => `<div class="info-field"><div class="lbl">${esc(l)}</div><div class="val${v ? '' : ' muted'}">${esc(v || 'Not set')}</div></div>`).join('');
+  }
 
   $('serviceChips').innerHTML = app.services.length
     ? app.services.map(s => `<span class="svc-chip">${esc(s)}</span>`).join('')
@@ -417,11 +608,19 @@
       { key: 'created', label: 'Application Submitted', done: true, date: fmtDateTime(app.ts) },
     ];
     if (app.needsApproval > 0) {
+      const rejected = rejectedRequests().length;
+      const pending = pendingRequests().length;
       steps.push({
-        key: 'rate', label: 'Waiting Rate Approval',
-        done: app.status !== 'pending-rate-approval' && app.status !== 'draft',
-        current: app.status === 'pending-rate-approval',
-        hint: `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} awaiting approval`,
+        key: 'rate',
+        label: rejected ? 'Rate Approval Rejected' : 'Waiting Rate Approval',
+        done: !rejected && !pending,
+        rejected: !!rejected,
+        current: !rejected && pending > 0 && app.status === 'pending-rate-approval',
+        hint: rejected
+          ? `${rejected} rate${rejected === 1 ? '' : 's'} sent back to ${app.actor} to revise`
+          : pending
+            ? `${pending} rate${pending === 1 ? '' : 's'} awaiting approval`
+            : `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} approved`,
       });
     }
     steps.push({
@@ -434,10 +633,12 @@
     steps.push({ key: 'live', label: 'Live', done: false, current: false, hint: 'Account activated for real transactions' });
 
     $('stepper').innerHTML = steps.map(s => {
-      const cls = s.done ? 'done' : s.current ? 'current' : '';
-      const icon = s.done
-        ? '<svg class="hi-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>'
-        : '';
+      const cls = s.rejected ? 'rejected' : s.done ? 'done' : s.current ? 'current' : '';
+      const icon = s.rejected
+        ? '<svg class="hi-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>'
+        : s.done
+          ? '<svg class="hi-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>'
+          : '';
       return `<div class="step ${cls}">
         <div class="step-dot">${icon}</div>
         <div>
@@ -448,7 +649,174 @@
       </div>`;
     }).join('');
   }
-  renderStepper();
+  /* ══════════ Pricing approvals ══════════ */
+  function canAct(req) { return ROLES[role].approves.includes(req.tier); }
+
+  function apprRowHTML({ req, decision }) {
+    const bandCls = req.tier === 'head' ? ' head' : '';
+    const band = `${TIER_LABEL[req.tier]} · ${req.from}%–under ${req.to}%`;
+    const where = [req.service, req.bank].filter(Boolean).join(' · ');
+    let statusPill, body;
+    if (decision) {
+      const approved = decision.decision === 'approved';
+      statusPill = `<span class="status-pill ${approved ? 'success' : 'danger'}"><span class="dot"></span>${approved ? 'Approved' : 'Rejected'}</span>`;
+      body = `<div class="appr-outcome">${approved ? 'Approved' : 'Rejected'} by <b>${esc(decision.by)}</b> (${esc(decision.roleLabel)}) · ${esc(fmtDateTime(new Date(decision.ts)))}</div>` +
+        (decision.reason ? `<div class="appr-reason">Reason: ${esc(decision.reason)}</div>` : '');
+    } else {
+      statusPill = `<span class="status-pill warn"><span class="dot"></span>Pending</span>`;
+      body = canAct(req)
+        ? `<div class="appr-actions">
+             <button class="btn btn-success btn-sm" data-approve="${esc(req.id)}">Approve</button>
+             <button class="btn btn-destructive-outline btn-sm" data-reject="${esc(req.id)}">Reject</button>
+           </div>`
+        : `<div class="appr-locked">Waiting on the ${esc(TIER_OWNER[req.tier])} to review this request.</div>`;
+    }
+    return `<div class="appr-row">
+      <div class="appr-top">
+        <div class="appr-info">
+          <div class="appr-title">${esc(req.rate)}</div>
+          <div class="appr-meta">${esc(where)}</div>
+          <div class="appr-band${bandCls}">${esc(band)}</div>
+        </div>
+        ${statusPill}
+      </div>
+      ${req.note ? `<div class="appr-note"><span class="lbl">Salesperson's justification</span>${esc(req.note)}</div>` : ''}
+      ${body}
+    </div>`;
+  }
+
+  function renderApprovals() {
+    const card = $('pricingCard');
+    if (!app.pricingRequests.length) { card.hidden = true; return; }
+    card.hidden = false;
+    const rows = decisionsFor();
+    const pending = rows.filter(r => !r.decision).length;
+    const actionable = rows.filter(r => !r.decision && canAct(r.req)).length;
+    $('pricingCardSub').textContent = role === 'sales'
+      ? "Rates you pushed below Auto. Each one needs sign-off before the application moves to Onboarding Review."
+      : actionable
+        ? `${actionable} request${actionable === 1 ? '' : 's'} need${actionable === 1 ? 's' : ''} your sign-off as ${ROLES[role].label}.`
+        : pending
+          ? 'The remaining requests are above your approval level.'
+          : 'Every request on this application has been reviewed.';
+    $('pricingList').innerHTML = rows.map(apprRowHTML).join('');
+  }
+
+  /* A decision can move the whole application: any rejection sends it back to the
+     salesperson, and a clean sweep pushes it on to Onboarding Review. */
+  function applyOutcome() {
+    const rejected = rejectedRequests();
+    const pending = pendingRequests();
+    let next = 'pending-rate-approval';
+    if (rejected.length) next = 'returned-to-sales';
+    else if (!pending.length) next = 'pending-onboarding-review';
+    app.status = next;
+
+    const statuses = readStore('kashierAppStatus');
+    statuses[app.id] = next;
+    writeStore('kashierAppStatus', statuses);
+
+    if (app.leadId) {
+      const leadStatuses = readStore('kashierLeadStatusOverrides');
+      leadStatuses[app.leadId] = next === 'returned-to-sales' ? 'application'
+        : next === 'pending-onboarding-review' ? 'onboarding-review'
+        : 'rate-approval';
+      writeStore('kashierLeadStatusOverrides', leadStatuses);
+
+      // Leave a trail on the lead so the salesperson sees why it came back.
+      const notes = readStore('kashierLeadReturnNote');
+      if (rejected.length) {
+        notes[app.leadId] = {
+          ts: new Date().toISOString(),
+          text: rejected.map(({ req, decision }) =>
+            `${[req.service, req.bank].filter(Boolean).join(' · ')} — ${req.rate} rejected by ${decision.by}: ${decision.reason}`
+          ).join(' | '),
+        };
+      } else {
+        delete notes[app.leadId];
+      }
+      writeStore('kashierLeadReturnNote', notes);
+    }
+  }
+
+  function decide(reqId, decision, reason) {
+    const req = app.pricingRequests.find(r => r.id === reqId);
+    if (!req || !canAct(req)) return;
+    const all = readDecisions();
+    all[reqId] = {
+      decision, reason: reason || '',
+      by: ROLES[role].name, roleLabel: ROLES[role].label,
+      ts: new Date().toISOString(),
+    };
+    writeDecisions(all);
+    applyOutcome();
+    renderAll();
+    toast(decision === 'approved'
+      ? `${req.rate} approved for ${req.service}.`
+      : `${req.rate} rejected — application returned to ${app.actor}.`);
+  }
+
+  $('pricingList').addEventListener('click', e => {
+    const approveBtn = e.target.closest('[data-approve]');
+    if (approveBtn) { decide(approveBtn.dataset.approve, 'approved'); return; }
+    const rejectBtn = e.target.closest('[data-reject]');
+    if (rejectBtn) openRejectModal(rejectBtn.dataset.reject);
+  });
+
+  /* Reject needs a reason — that reason is what the salesperson gets back. */
+  let rejectTarget = '';
+  function openRejectModal(reqId) {
+    const req = app.pricingRequests.find(r => r.id === reqId);
+    if (!req || !canAct(req)) return;
+    rejectTarget = reqId;
+    $('rejectText').innerHTML = `Reject the <b>${esc(req.rate)}</b> request for <b>${esc([req.service, req.bank].filter(Boolean).join(' · '))}</b>? ` +
+      `This sends the whole application back to ${esc(app.actor)} to revise the pricing.`;
+    const ta = $('rejectReason');
+    ta.value = '';
+    ta.classList.remove('invalid');
+    $('rejectBackdrop').classList.add('open');
+    ta.focus();
+  }
+  function closeRejectModal() { $('rejectBackdrop').classList.remove('open'); rejectTarget = ''; }
+  $('rejectClose').addEventListener('click', closeRejectModal);
+  $('rejectCancel').addEventListener('click', closeRejectModal);
+  $('rejectBackdrop').addEventListener('click', e => { if (e.target === $('rejectBackdrop')) closeRejectModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRejectModal(); });
+  $('rejectConfirm').addEventListener('click', () => {
+    const ta = $('rejectReason');
+    const reason = ta.value.trim();
+    if (!reason) { ta.classList.add('invalid'); toast('Add a reason so the salesperson knows what to fix.'); return; }
+    const target = rejectTarget;
+    closeRejectModal();
+    decide(target, 'rejected', reason);
+  });
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function renderRole() {
+    $('roleSelect').value = role;
+    $('userName').textContent = ROLES[role].name;
+    $('userAvatar').textContent = ROLES[role].initials;
+  }
+  $('roleSelect').addEventListener('change', e => {
+    role = e.target.value;
+    try { localStorage.setItem('kashierDemoRole', role); } catch (err) { /* storage unavailable */ }
+    renderRole();
+    renderApprovals();
+  });
+
+  function renderAll() {
+    renderRole();
+    renderStatus();
+    renderSummary();
+    renderApprovals();
+    renderStepper();
+  }
+  renderAll();
 
   // Sidebar collapsible sections
   ['documents', 'balance'].forEach(key => {

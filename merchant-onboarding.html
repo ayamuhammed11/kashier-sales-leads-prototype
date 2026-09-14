@@ -635,6 +635,29 @@
     });
     return { total, needsApproval, unresolved };
   }
+  /* Every rate the salesperson pushed below Auto, as a reviewable request — the Rate
+     Approval team sees the band that was asked for and the justification behind it. */
+  function pricingRequests() {
+    const out = [];
+    criteria.services.forEach(s => {
+      const cfg = serviceConfig[s];
+      bankKeysFor(cfg, s).forEach(k => {
+        const bc = cfg.bankConfigs[k];
+        if (!bc || !bc.module) return;
+        ratesForService(s).forEach(t => {
+          const sel = bc.pricing.get(t.key);
+          if (!sel || sel.tier === 'auto') return;
+          out.push({
+            id: `${s}::${k}::${t.key}`,
+            service: s, bank: k, rate: t.label, tier: sel.tier, note: sel.note.trim(),
+            from: sel.tier === 'manager' ? t.manager : t.head,
+            to: sel.tier === 'manager' ? t.standard : t.manager,
+          });
+        });
+      });
+    });
+    return out;
+  }
 
   /* ══════════ Step 2 — chip groups ══════════ */
   function renderSingleChips(containerId, options, key) {
@@ -1152,6 +1175,7 @@
       entity: criteria.entity, industry: criteria.industry,
       services: criteria.services.join(','),
       serviceConfigs: JSON.stringify(serviceConfigsPayload),
+      pricingRequests: JSON.stringify(pricingRequests()),
       total, done, needsApproval, status,
       actor: 'Aya Muhammed', ts: new Date().toISOString(),
     });

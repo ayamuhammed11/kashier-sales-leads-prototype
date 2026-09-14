@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kashier | My Leads</title>
+<title>Kashier | Rate Approvals</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -172,6 +172,21 @@
   .source-pill { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; color: var(--pill-text);
     background: var(--pill-bg); border-radius: 4px; padding: 3px 9px; }
   .mid-text { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--foreground); }
+
+  /* Rate approvals queue */
+  .role-switch { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .role-switch label { font-size: 12px; color: var(--cadet-04); }
+  .role-switch select { height: 34px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;
+    color: var(--foreground); font-family: inherit; font-size: 13px; padding: 0 10px; color-scheme: light; cursor: pointer; }
+  .rate-table { min-width: 1180px; }
+  .cell-strong { font-weight: 600; color: var(--foreground); white-space: nowrap; }
+  .cell-sub { font-size: 12px; color: var(--cadet-05); margin-top: 2px; white-space: nowrap; }
+  .cell-note { font-size: 12px; color: var(--cadet-05); font-style: italic; margin-top: 3px; max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .band { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 600; border-radius: 6px;
+    padding: 4px 9px; background: var(--warning-bg); color: var(--warning-text); white-space: nowrap; }
+  .band.head { background: var(--destructive-bg); color: var(--destructive); }
+  .row-action { text-align: right; white-space: nowrap; }
   .mid-empty { font-size: 13px; color: var(--cadet-06); }
 
   .badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; font-size: 11px; font-weight: 700;
@@ -238,7 +253,7 @@
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h6m-6 3h6m-6 3h6M10.5 21v-3.75a1.5 1.5 0 0 1 3 0V21"/></svg>Business Industries</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/></svg>PCC Templates</a>
     <a class="nav-link" href="terminals.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25"/></svg>Terminals</a>
-    <a class="nav-link" href="rate-approvals.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>Rate Approvals</a>
+    <a class="nav-link active" href="rate-approvals.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>Rate Approvals</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-9L21 3m0 0-4.5-4.5M21 3v13.5" transform="translate(0 3)"/></svg>Reconciliation</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"/></svg>Transfers</a>
 
@@ -283,110 +298,77 @@
     </div>
 
     <div class="content">
-      <div class="breadcrumb">Sales <span class="sep">/</span> <span class="current">My Leads</span></div>
+      <div class="breadcrumb">Sales <span class="sep">/</span> <span class="current">Rate Approvals</span></div>
 
       <div class="page-head">
         <div>
-          <h1>My Leads</h1>
-          <p class="sub">Leads assigned to you. Review each business's details, then proceed straight into their onboarding application when they're ready to activate.</p>
+          <h1>Rate Approvals</h1>
+          <p class="sub">Rates salespeople pushed below Auto, waiting on sign-off. Manager-band requests are a Pricing Manager's call; anything under the Manager rate needs the Head of Sales.</p>
         </div>
-        <div class="crm-sync">
-          <div class="crm-sync-status">
-            <div class="crm-sync-icon">
-              <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
-            </div>
-            <div>
-              <div class="crm-sync-label">Synced from Salesforce CRM</div>
-              <div class="crm-sync-time" id="crmSyncTime">Last synced just now</div>
-            </div>
-          </div>
-          <button class="btn btn-outline btn-sm" id="crmSyncBtn" title="Pull the latest leads assigned to you from Salesforce">
-            <svg class="hi-sm" id="crmSyncIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-            Sync Now
-          </button>
+        <div class="role-switch">
+          <label for="roleSelect">Viewing as</label>
+          <select id="roleSelect">
+            <option value="sales">Salesperson</option>
+            <option value="manager">Pricing Manager</option>
+            <option value="head">Head of Sales</option>
+          </select>
         </div>
       </div>
 
       <div class="kpi-bar">
         <div class="kpi">
-          <div class="kpi-label">My Leads</div>
-          <div class="kpi-value" id="kpiTotal">0</div>
-          <div class="kpi-desc">Total leads currently assigned to you</div>
+          <div class="kpi-label">Needs Your Approval</div>
+          <div class="kpi-value" id="kpiMine">0</div>
+          <div class="kpi-desc">Requests you can sign off right now</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">New This Week</div>
-          <div class="kpi-value" id="kpiNew">0</div>
-          <div class="kpi-desc">Leads that landed in the last 7 days</div>
+          <div class="kpi-label">All Pending</div>
+          <div class="kpi-value" id="kpiPending">0</div>
+          <div class="kpi-desc">Waiting on a Manager or the Head</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">In Onboarding</div>
-          <div class="kpi-value" id="kpiApp">0</div>
-          <div class="kpi-desc">Leads mid-way through onboarding</div>
+          <div class="kpi-label">Approved</div>
+          <div class="kpi-value" id="kpiApproved">0</div>
+          <div class="kpi-desc">Signed off and moved on</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Live This Month</div>
-          <div class="kpi-value" id="kpiActivated">0</div>
-          <div class="kpi-desc">Leads converted to live merchants</div>
+          <div class="kpi-label">Rejected</div>
+          <div class="kpi-value" id="kpiRejected">0</div>
+          <div class="kpi-desc">Sent back to the salesperson</div>
         </div>
       </div>
 
       <div class="tabs" id="statusTabs"></div>
 
-      <div class="toolbar">
-        <div class="search-wrap">
-          <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-          <input class="search-input" id="searchInput" type="text" placeholder="Search business, contact, or email…">
-        </div>
-        <select class="select-input" id="industryFilter">
-          <option value="">All industries</option>
-        </select>
-        <div class="toolbar-spacer"></div>
-        <span class="result-count" id="resultCount"></span>
-      </div>
-
       <div class="table-card">
+        <div class="table-toolbar">
+          <div class="search-wrap">
+            <svg class="hi-sm search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+            <input class="search-input" id="searchInput" type="search" placeholder="Search merchant, service, or rate…">
+          </div>
+          <div class="result-count" id="resultCount"></div>
+        </div>
+
         <div class="table-scroll">
-          <table>
+          <table class="rate-table">
             <thead>
               <tr>
-                <th>Lead</th>
-                <th>MID</th>
-                <th>Contact</th>
-                <th>Source</th>
+                <th>Merchant</th>
+                <th>Service</th>
+                <th>Rate</th>
+                <th>Requested Band</th>
+                <th>Waiting On</th>
                 <th>Status</th>
-                <th>Assigned</th>
-                <th>Last Activity</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody id="leadsBody"></tbody>
+            <tbody id="requestRows"></tbody>
           </table>
         </div>
-        <div class="empty-state" id="emptyState">
-          <svg viewBox="0 0 200 160" fill="none">
-            <circle cx="100" cy="80" r="70" fill="#F5F6F6"/>
-            <rect x="55" y="55" width="90" height="62" rx="4" fill="#fff" stroke="#556767" stroke-width="2"/>
-            <circle cx="128" cy="72" r="18" fill="#fff" stroke="#839090" stroke-width="2"/>
-            <line x1="140" y1="84" x2="150" y2="94" stroke="#839090" stroke-width="2" stroke-linecap="round"/>
-            <path d="M68 70h30M68 80h20M68 90h26" stroke="#B3BBBB" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <div class="empty-title">No leads match this filter.</div>
-          <div class="empty-sub">Try a different status tab or clear your search to see all your assigned leads.</div>
-        </div>
 
-        <div class="pagination-bar" id="paginationBar">
-          <div class="pagination-info" id="pageInfo"></div>
-          <div style="display:flex; align-items:center; gap:20px;">
-            <div class="pagination" id="pagination"></div>
-            <div class="rpp">
-              Rows per page:
-              <select id="rppSelect">
-                <option value="5" selected>5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-              </select>
-            </div>
-          </div>
+        <div class="empty-state" id="emptyState">
+          <div class="empty-title">Nothing here</div>
+          <div class="empty-sub" id="emptySub">No rate requests match this view.</div>
         </div>
       </div>
     </div>
@@ -398,184 +380,219 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
-  const STATUS_META = {
-    new:                 { label: 'New',                     cls: 'badge-new' },
-    application:         { label: 'Application in Progress', cls: 'badge-application' },
-    submitted:           { label: 'Application Submitted',   cls: 'badge-submitted' },
-    'rate-approval':     { label: 'Waiting Rate Approval',   cls: 'badge-rate-approval' },
-    'onboarding-review': { label: 'Onboarding Review',       cls: 'badge-onboarding-review' },
-    'bank-submission':   { label: 'Bank Submission',         cls: 'badge-bank-submission' },
-    activated:           { label: 'Live',                    cls: 'badge-activated' },
-    lost:                { label: 'Lost',                    cls: 'badge-lost' },
+  const ROLES = {
+    sales:   { label: 'Salesperson',     name: 'Aya Muhammed', initials: 'AM', approves: [] },
+    manager: { label: 'Pricing Manager', name: 'Nadia Salah',  initials: 'NS', approves: ['manager'] },
+    head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['manager', 'head'] },
   };
+  const TIER_LABEL = { manager: 'Manager approval', head: 'Head approval' };
+  const TIER_OWNER = { manager: 'Pricing Manager', head: 'Head of Sales' };
 
-  const LEADS = [
-    { id: 'L-001', biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',    email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',      source: 'Referral',    status: 'rate-approval',     assigned: '2026-08-28', lastActivity: '2026-09-06', mid: 'MID-10237-114' },
-    { id: 'L-002', biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',   email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy',    source: 'Cold Call',   status: 'application',       assigned: '2026-09-01', lastActivity: '2026-09-07', mid: 'MID-10589-227' },
-    { id: 'L-003', biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa',  email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',          source: 'Website',     status: 'new',                assigned: '2026-09-05', lastActivity: '2026-09-05', mid: 'MID-11042-350' },
-    { id: 'L-004', biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',      email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',               source: 'Event',       status: 'activated',         assigned: '2026-08-10', lastActivity: '2026-08-30', mid: 'MID-20458-771' },
-    { id: 'L-005', biz: 'Giza Learning Hub',       contact: 'Omar Khalil',     email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',                source: 'Partner',     status: 'new',                assigned: '2026-09-06', lastActivity: '2026-09-06', mid: 'MID-11298-463' },
-    { id: 'L-006', biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',      email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',         source: 'Referral',    status: 'onboarding-review', assigned: '2026-08-30', lastActivity: '2026-09-04', mid: 'MID-10874-556' },
-    { id: 'L-007', biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',     email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',        source: 'Website',     status: 'rate-approval',     assigned: '2026-08-22', lastActivity: '2026-09-03', mid: 'MID-10651-689' },
-    { id: 'L-008', biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',   email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',         source: 'Cold Call',   status: 'lost',               assigned: '2026-08-05', lastActivity: '2026-08-19', mid: 'MID-10412-792' },
-    { id: 'L-009', biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',     email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',         source: 'Referral',    status: 'activated',         assigned: '2026-08-01', lastActivity: '2026-08-25', mid: 'MID-33127-905' },
-    { id: 'L-010', biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',    email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',              source: 'Event',       status: 'bank-submission',   assigned: '2026-09-07', lastActivity: '2026-09-07', mid: 'MID-11605-018' },
+  function readStore(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; }
+  }
+
+  let role = 'sales';
+  try {
+    const saved = localStorage.getItem('kashierDemoRole');
+    if (saved && ROLES[saved]) role = saved;
+  } catch (e) { /* storage unavailable */ }
+
+  /* Applications carrying rate requests. Real ones are the tracking links the onboarding
+     page stored on submit; the seeded pair stands in for applications that were already
+     sitting with the Rate Approval desk before this demo started. */
+  const SEEDED = [
+    {
+      id: 'APP-00000001', leadId: 'L-001', biz: 'Cairo Fresh Market', actor: 'Mostafa Khaled',
+      ts: '2026-09-06T14:20:00.000Z',
+      requests: [
+        { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
+          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5,
+          note: 'Processes 450K EGP/month across 3 branches — matching the rate their current provider quoted.' },
+      ],
+    },
+    {
+      id: 'APP-00000007', leadId: 'L-007', biz: 'Mansoura Tech Studio', actor: 'Mostafa Khaled',
+      ts: '2026-09-05T11:00:00.000Z',
+      requests: [
+        { id: 'Online Card::QNB::national-offus', service: 'Online Card', bank: 'QNB',
+          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5,
+          note: 'Subscription product on thin margins — Karim negotiated this rate before signing.' },
+        { id: 'Online Card::QNB::intl', service: 'Online Card', bank: 'QNB',
+          rate: 'International rate', tier: 'manager', from: 2, to: 2.5,
+          note: 'Half their volume is international clients paying in USD.' },
+      ],
+    },
   ];
 
-  // Status changes made on the lead detail page are saved to localStorage (no CRM
-  // write-back in this prototype) — apply them here so the list stays in sync.
-  (function applyStoredStatuses() {
-    let store = {};
-    try { store = JSON.parse(localStorage.getItem('kashierLeadStatusOverrides') || '{}'); } catch (e) { /* storage unavailable */ }
-    LEADS.forEach(l => { if (store[l.id] && STATUS_META[store[l.id]]) l.status = store[l.id]; });
-  })();
+  /* The seeded applications have no stored tracking link, so rebuild the one the lead page
+     would hand out — that is what Review opens, and where the decision is actually made. */
+  function seededURL(a) {
+    const services = [...new Set(a.requests.map(r => r.service))];
+    const qs = new URLSearchParams({
+      id: a.id, leadId: a.leadId, biz: a.biz, actor: a.actor, ts: a.ts,
+      entity: 'Registered Business', industry: '—',
+      services: services.join(','),
+      serviceConfigs: JSON.stringify(services.map(s => ({
+        service: s,
+        configs: [...new Set(a.requests.filter(r => r.service === s).map(r => r.bank))]
+          .map(b => ({ bank: b, module: 'PSP' })),
+      }))),
+      pricingRequests: JSON.stringify(a.requests),
+      total: 0, done: 0, needsApproval: a.requests.length, status: 'pending-rate-approval',
+    });
+    return 'application-status.html?' + qs.toString();
+  }
 
-  let activeStatus = 'all';
+  function loadApplications() {
+    const apps = [];
+    const stored = readStore('kashierLeadApplications');
+    const seenLeads = new Set();
+    Object.entries(stored).forEach(([leadId, url]) => {
+      const qs = new URLSearchParams(String(url).split('?')[1] || '');
+      let requests = [];
+      try { requests = JSON.parse(qs.get('pricingRequests') || '[]'); } catch (e) { requests = []; }
+      if (!requests.length) return;
+      seenLeads.add(leadId);
+      apps.push({
+        id: qs.get('id') || '—', leadId, url,
+        biz: qs.get('biz') || 'Untitled Application',
+        actor: qs.get('actor') || 'Unknown',
+        ts: qs.get('ts') || new Date().toISOString(),
+        requests,
+      });
+    });
+    SEEDED.forEach(a => {
+      if (seenLeads.has(a.leadId)) return;
+      apps.push(Object.assign({}, a, { url: seededURL(a) }));
+    });
+    return apps;
+  }
+
+  const APPS = loadApplications();
+
+  /* One row per request, carrying whatever decision was recorded on the application page. */
+  function allRequests() {
+    const decisions = readStore('kashierRateDecisions');
+    const rows = [];
+    APPS.forEach(app => {
+      const appDecisions = decisions[app.id] || {};
+      app.requests.forEach(req => rows.push({ app, req, decision: appDecisions[req.id] || null }));
+    });
+    return rows.sort((a, b) => new Date(a.app.ts) - new Date(b.app.ts));
+  }
+
+  function stateOf(row) {
+    if (!row.decision) return 'pending';
+    return row.decision.decision === 'approved' ? 'approved' : 'rejected';
+  }
+  function canAct(row) { return !row.decision && ROLES[role].approves.includes(row.req.tier); }
+
+  let activeTab = 'mine';
   let searchTerm = '';
-  let industryTerm = '';
-  let currentPage = 1;
-  let perPage = 5;
 
-  function initials(name) {
-    return name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+  function matchesTab(row) {
+    if (activeTab === 'mine') return canAct(row);
+    if (activeTab === 'all') return true;
+    return stateOf(row) === activeTab;
   }
-  function fmtDate(d) {
-    return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-
-  function renderKpis() {
-    const now = new Date('2026-09-08T00:00:00');
-    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    $('kpiTotal').textContent = LEADS.length;
-    $('kpiNew').textContent = LEADS.filter(l => new Date(l.assigned + 'T00:00:00') >= weekAgo).length;
-    $('kpiApp').textContent = LEADS.filter(l => ['application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(l.status)).length;
-    $('kpiActivated').textContent = LEADS.filter(l => l.status === 'activated' && new Date(l.lastActivity + 'T00:00:00') >= monthStart).length;
-    $('navLeadCount').textContent = LEADS.length;
+  function matchesSearch(row) {
+    if (!searchTerm) return true;
+    return [row.app.biz, row.req.service, row.req.bank, row.req.rate]
+      .join(' ').toLowerCase().includes(searchTerm);
   }
 
-  function renderTabs() {
-    const counts = { all: LEADS.length };
-    Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => l.status === k).length);
-    const tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function renderTabs(rows) {
+    const counts = {
+      mine: rows.filter(canAct).length,
+      pending: rows.filter(r => stateOf(r) === 'pending').length,
+      approved: rows.filter(r => stateOf(r) === 'approved').length,
+      rejected: rows.filter(r => stateOf(r) === 'rejected').length,
+      all: rows.length,
+    };
+    const tabs = [
+      ['mine', 'Needs My Approval'], ['pending', 'All Pending'],
+      ['approved', 'Approved'], ['rejected', 'Rejected'], ['all', 'All'],
+    ];
     $('statusTabs').innerHTML = tabs.map(([key, label]) => `
-      <button class="tab-btn ${key === activeStatus ? 'active' : ''}" data-status="${key}">
-        ${esc(label)} <span class="tab-count">${counts[key]}</span>
+      <button class="tab-btn ${key === activeTab ? 'active' : ''}" data-tab="${key}">
+        ${esc(label)}<span class="tab-count">${counts[key]}</span>
       </button>`).join('');
-    $('statusTabs').querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => { activeStatus = btn.dataset.status; currentPage = 1; renderTabs(); renderTable(); });
-    });
+    $('statusTabs').querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
+      activeTab = b.dataset.tab;
+      render();
+    }));
+    $('kpiMine').textContent = counts.mine;
+    $('kpiPending').textContent = counts.pending;
+    $('kpiApproved').textContent = counts.approved;
+    $('kpiRejected').textContent = counts.rejected;
   }
 
-  function renderIndustryFilter() {
-    const industries = [...new Set(LEADS.map(l => l.industry))].sort();
-    $('industryFilter').innerHTML = '<option value="">All industries</option>' +
-      industries.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+  function rowHTML(row) {
+    const app = row.app, req = row.req, decision = row.decision;
+    const state = stateOf(row);
+    const statusPill = state === 'pending'
+      ? '<span class="badge badge-application"><span class="badge-dot"></span>Pending</span>'
+      : state === 'approved'
+        ? '<span class="badge badge-activated"><span class="badge-dot"></span>Approved</span>'
+        : '<span class="badge badge-lost"><span class="badge-dot"></span>Rejected</span>';
+    const waiting = state === 'pending'
+      ? esc(TIER_OWNER[req.tier])
+      : `${esc(decision.by)}<div class="cell-sub">${esc(fmtDate(decision.ts))}</div>`;
+    const action = canAct(row)
+      ? `<a class="btn btn-primary btn-sm" href="${esc(app.url)}">Review</a>`
+      : `<a class="btn btn-outline btn-sm" href="${esc(app.url)}">Open</a>`;
+    return `<tr>
+      <td>
+        <div class="cell-strong">${esc(app.biz)}</div>
+        <div class="cell-sub">${esc(app.id)} &middot; by ${esc(app.actor)}</div>
+      </td>
+      <td>
+        <div>${esc(req.service)}</div>
+        ${req.bank ? `<div class="cell-sub">${esc(req.bank)}</div>` : ''}
+      </td>
+      <td>
+        <div>${esc(req.rate)}</div>
+        ${req.note ? `<div class="cell-note" title="${esc(req.note)}">${esc(req.note)}</div>` : ''}
+      </td>
+      <td><span class="band${req.tier === 'head' ? ' head' : ''}">${esc(TIER_LABEL[req.tier])} &middot; ${req.from}%–under ${req.to}%</span></td>
+      <td>${waiting}</td>
+      <td>${statusPill}</td>
+      <td class="row-action">${action}</td>
+    </tr>`;
   }
 
-  function filteredLeads() {
-    const term = searchTerm.trim().toLowerCase();
-    return LEADS.filter(l => {
-      if (activeStatus !== 'all' && l.status !== activeStatus) return false;
-      if (industryTerm && l.industry !== industryTerm) return false;
-      if (term && !(l.biz.toLowerCase().includes(term) || l.contact.toLowerCase().includes(term) || l.email.toLowerCase().includes(term))) return false;
-      return true;
-    });
-  }
-
-  function renderTable() {
-    const rows = filteredLeads();
-    $('resultCount').textContent = `${rows.length} of ${LEADS.length} leads`;
-    $('emptyState').classList.toggle('show', rows.length === 0);
-
-    const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
-    if (currentPage > totalPages) currentPage = totalPages;
-    const start = (currentPage - 1) * perPage;
-    const pageRows = rows.slice(start, start + perPage);
-
-    $('paginationBar').style.display = rows.length === 0 ? 'none' : 'flex';
-    $('pageInfo').textContent = rows.length === 0 ? '0 - 0 of 0' : `${start + 1} - ${Math.min(start + perPage, rows.length)} of ${rows.length}`;
-    renderPagination(totalPages);
-
-    $('leadsBody').innerHTML = pageRows.map(l => {
-      const meta = STATUS_META[l.status];
-      return `
-      <tr onclick="location.href='lead-details.html?id=${encodeURIComponent(l.id)}'">
-        <td>
-          <div class="lead-cell">
-            <div class="lead-avatar">${esc(initials(l.biz))}</div>
-            <div>
-              <div class="lead-name">${esc(l.biz)}</div>
-              <div class="lead-industry">${esc(l.industry)}</div>
-            </div>
-          </div>
-        </td>
-        <td>${l.mid ? `<span class="mid-text">${esc(l.mid)}</span>` : `<span class="mid-empty">—</span>`}</td>
-        <td>
-          <div class="contact-name">${esc(l.contact)}</div>
-          <div class="contact-sub">${esc(l.email)}</div>
-        </td>
-        <td><span class="source-pill">${esc(l.source)}</span></td>
-        <td><span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span></td>
-        <td>${fmtDate(l.assigned)}</td>
-        <td>${fmtDate(l.lastActivity)}</td>
-        <td>
-          <button class="view-btn" title="View lead" onclick="event.stopPropagation(); location.href='lead-details.html?id=${encodeURIComponent(l.id)}'">
-            <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-          </button>
-        </td>
-      </tr>`;
-    }).join('');
-  }
-
-  function renderPagination(totalPages) {
-    const el = $('pagination');
-    let html = `<button class="page-btn" id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>&lsaquo;</button>`;
-    for (let p = 1; p <= totalPages; p++) {
-      html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`;
+  function render() {
+    const rows = allRequests();
+    renderTabs(rows);
+    const visible = rows.filter(r => matchesTab(r) && matchesSearch(r));
+    $('requestRows').innerHTML = visible.map(rowHTML).join('');
+    $('resultCount').textContent = `${visible.length} of ${rows.length} request${rows.length === 1 ? '' : 's'}`;
+    $('emptyState').classList.toggle('show', !visible.length);
+    if (!visible.length) {
+      $('emptySub').textContent = activeTab === 'mine'
+        ? `Nothing is waiting on the ${ROLES[role].label} right now.`
+        : 'No rate requests match this view.';
     }
-    html += `<button class="page-btn" id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>&rsaquo;</button>`;
-    el.innerHTML = html;
-    el.querySelectorAll('[data-page]').forEach(btn => btn.addEventListener('click', () => { currentPage = Number(btn.dataset.page); renderTable(); }));
-    const prev = $('prevPage'), next = $('nextPage');
-    if (prev) prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
-    if (next) next.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderTable(); } });
+    $('roleSelect').value = role;
+    document.querySelector('.user .name').textContent = ROLES[role].name;
+    document.querySelector('.user .avatar').textContent = ROLES[role].initials;
   }
 
-  $('searchInput').addEventListener('input', e => { searchTerm = e.target.value; currentPage = 1; renderTable(); });
-  $('industryFilter').addEventListener('change', e => { industryTerm = e.target.value; currentPage = 1; renderTable(); });
-  $('rppSelect').addEventListener('change', e => { perPage = Number(e.target.value); currentPage = 1; renderTable(); });
-
-  renderKpis();
-  renderTabs();
-  renderIndustryFilter();
-  renderTable();
-
-  // CRM sync status
-  let toastTimer;
-  function toast(msg) {
-    const t = $('toast'); t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
-  }
-  let lastSync = Date.now() - 4 * 60 * 1000;
-  function renderSyncTime() {
-    const mins = Math.max(0, Math.round((Date.now() - lastSync) / 60000));
-    $('crmSyncTime').textContent = mins < 1 ? 'Last synced just now' : `Last synced ${mins} minute${mins === 1 ? '' : 's'} ago`;
-  }
-  renderSyncTime();
-  setInterval(renderSyncTime, 30000);
-  $('crmSyncBtn').addEventListener('click', () => {
-    const btn = $('crmSyncBtn'), icon = $('crmSyncIcon');
-    btn.disabled = true;
-    icon.classList.add('spinning');
-    setTimeout(() => {
-      lastSync = Date.now();
-      renderSyncTime();
-      icon.classList.remove('spinning');
-      btn.disabled = false;
-      toast(`Synced ${LEADS.length} leads from Salesforce CRM.`);
-    }, 900);
+  $('roleSelect').addEventListener('change', e => {
+    role = e.target.value;
+    try { localStorage.setItem('kashierDemoRole', role); } catch (err) { /* storage unavailable */ }
+    if (activeTab === 'mine' && role === 'sales') activeTab = 'pending';
+    render();
   });
+  $('searchInput').addEventListener('input', e => { searchTerm = e.target.value.trim().toLowerCase(); render(); });
+
+  if (role === 'sales') activeTab = 'pending';
+  render();
 
   // Sidebar collapsible sections
   ['documents', 'balance'].forEach(key => {
@@ -590,10 +607,14 @@
     });
   });
 
-  // Mobile sidebar toggle
   const hamburger = $('hamburger'), sidebar = $('sidebar'), overlay = $('overlay');
   hamburger.addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('open'); });
   overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('open'); });
+
+  $('langBtn').addEventListener('click', () => {
+    const btn = $('langBtn');
+    btn.textContent = btn.textContent === 'عربي' ? 'English' : 'عربي';
+  });
 </script>
 
 </body>

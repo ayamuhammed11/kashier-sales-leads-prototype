@@ -200,17 +200,21 @@
   .price-stat { background: #fff; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; }
   .price-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); }
   .price-stat-value { font-size: 14px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
-  /* Sales rate entry — the salesperson types the rate, the verdict below says whether it clears */
-  .rate-entry { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  /* Sales rate entry — the salesperson types the percentage and the fixed fee,
+     and the verdict below says whether the pair clears without sign-off */
+  .rate-entry { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .rate-field { display: flex; flex-direction: column; gap: 5px; }
   .rate-entry-label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); display: flex; align-items: center; gap: 4px; }
   .rate-entry-label .req { color: var(--destructive); }
   .rate-input-wrap { position: relative; display: inline-flex; align-items: center; }
-  .rate-input { width: 110px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  .rate-input, .fee-input { width: 110px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius);
     background: #fff; color: var(--foreground); font-family: inherit; font-size: 14px; font-weight: 600;
     padding: 0 28px 0 12px; color-scheme: light; }
-  .rate-input:focus { outline: none; border-color: var(--primary); }
-  .rate-input.empty { border-color: var(--warning); }
+  .fee-input { width: 124px; padding-right: 44px; }
+  .rate-input:focus, .fee-input:focus { outline: none; border-color: var(--primary); }
+  .rate-input.empty, .fee-input.empty { border-color: var(--warning); }
   .rate-input-suffix { position: absolute; right: 10px; font-size: 13px; font-weight: 600; color: var(--cadet-05); pointer-events: none; }
+  .rate-verdict { align-self: center; }
   .rate-verdict { font-size: 12.5px; font-weight: 600; border-radius: 6px; padding: 6px 10px; }
   .rate-verdict.empty { background: var(--muted); color: var(--cadet-05); font-weight: 400; font-style: italic; }
   .rate-verdict.auto { background: var(--success-bg); color: var(--success-text); }
@@ -302,7 +306,7 @@
     <div class="brand">kashier</div>
 
     <a class="nav-link" href="home.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>Home</a>
-    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Leads</a>
+    <a class="nav-link active" href="sales-leads.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Leads</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>BIN Management</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>Financial Institutions</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>Merchant</a>
@@ -354,7 +358,7 @@
     </div>
 
     <div class="content">
-      <div class="breadcrumb"><a href="index.html">My Leads</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
+      <div class="breadcrumb"><a href="sales-leads.html">My Leads</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
 
       <div class="page-head">
         <h1>Complete Onboarding Application</h1>
@@ -607,20 +611,45 @@
     return keys.every(k => cfg.bankConfigs[k] && cfg.bankConfigs[k].module);
   }
 
-  /* The salesperson types the rate the merchant needs; where it lands against the tier's
-     own thresholds decides whether anyone has to sign off on it. */
+  /* The salesperson types the rate and the fixed fee the merchant needs; where those land
+     against the tier's own published pricing decides whether anyone has to sign off.
+     A rate under the Manager rate is the Head's call; anything else priced under the
+     published figures is a Manager's. */
+  function num(v) {
+    const n = Number(v);
+    return (v === '' || v === null || v === undefined || !isFinite(n) || n < 0) ? null : n;
+  }
   function tierForRate(t, rate) {
-    const v = Number(rate);
-    if (!rate || !isFinite(v) || v <= 0) return '';
+    const v = num(rate);
+    if (v === null || v <= 0) return '';
     if (v >= t.standard) return 'auto';
     if (v >= t.manager) return 'manager';
     return 'head';
   }
-  function verdictText(t, tier) {
-    if (!tier) return 'Enter the rate this merchant needs';
-    if (tier === 'auto') return `Auto &middot; at or above the ${t.standard}% standard rate, no approval needed`;
-    if (tier === 'manager') return `Needs Manager approval &middot; under the ${t.standard}% standard rate`;
-    return `Needs Head approval &middot; under the ${t.manager}% Manager rate`;
+  function tierForFee(t, fee) {
+    const v = num(fee);
+    if (v === null) return '';
+    return v >= t.fixedFee ? 'auto' : 'manager';
+  }
+  /* The line as a whole takes the stricter of the two. */
+  function lineVerdict(t, sel) {
+    const rateTier = tierForRate(t, sel.rate);
+    const feeTier = tierForFee(t, sel.fee);
+    if (!rateTier || !feeTier) {
+      return { tier: '', text: 'Enter the rate and fixed fee this merchant needs' };
+    }
+    if (rateTier === 'head') {
+      return { tier: 'head', text: `Needs Head approval &middot; the rate is under the ${t.manager}% Manager rate` };
+    }
+    if (rateTier === 'manager' || feeTier === 'manager') {
+      const under = rateTier === 'manager' && feeTier === 'manager'
+        ? `the rate and fixed fee are under the published ${t.standard}% + ${t.fixedFee} EGP`
+        : rateTier === 'manager'
+          ? `the rate is under the ${t.standard}% standard rate`
+          : `the fixed fee is under the ${t.fixedFee} EGP standard fee`;
+      return { tier: 'manager', text: `Needs Manager approval &middot; ${under}` };
+    }
+    return { tier: 'auto', text: `Auto &middot; at or above the published ${t.standard}% + ${t.fixedFee} EGP, no approval needed` };
   }
   function noteBlockHTML(t, tier, note, bankKey, key) {
     const who = tier === 'manager' ? 'Manager' : 'Head';
@@ -630,10 +659,12 @@
     </div>`;
   }
   function priceTierHTML(t, pricingMap, bankKey) {
-    const sel = pricingMap.get(t.key) || { rate: '', tier: '', note: '' };
-    const tier = tierForRate(t, sel.rate);
-    const verdict = `<span class="rate-verdict ${tier || 'empty'}">${verdictText(t, tier)}</span>`;
+    const sel = pricingMap.get(t.key) || { rate: '', fee: '', tier: '', note: '' };
+    const { tier, text } = lineVerdict(t, sel);
+    const verdict = `<span class="rate-verdict ${tier || 'empty'}">${text}</span>`;
     const needsNote = tier === 'manager' || tier === 'head';
+    const rateFilled = tierForRate(t, sel.rate) !== '';
+    const feeFilled = tierForFee(t, sel.fee) !== '';
     return `<div class="price-tier">
       <div class="price-tier-label">${esc(t.label)}</div>
       <div class="price-tier-desc">${esc(t.desc)}</div>
@@ -644,12 +675,23 @@
         <div class="price-stat"><div class="price-stat-label">Head approval</div><div class="price-stat-value">${t.head}%</div></div>
       </div>
       <div class="rate-entry">
-        <label class="rate-entry-label" for="rate-${esc(bankKey)}-${esc(t.key)}">Your rate<span class="req">*</span></label>
-        <div class="rate-input-wrap">
-          <input class="rate-input${tier ? '' : ' empty'}" id="rate-${esc(bankKey)}-${esc(t.key)}" type="number"
-            inputmode="decimal" step="0.01" min="0" placeholder="${t.standard}"
-            data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" value="${esc(sel.rate)}">
-          <span class="rate-input-suffix">%</span>
+        <div class="rate-field">
+          <label class="rate-entry-label" for="rate-${esc(bankKey)}-${esc(t.key)}">Your rate<span class="req">*</span></label>
+          <div class="rate-input-wrap">
+            <input class="rate-input${rateFilled ? '' : ' empty'}" id="rate-${esc(bankKey)}-${esc(t.key)}" type="number"
+              inputmode="decimal" step="0.01" min="0" placeholder="${t.standard}"
+              data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" value="${esc(sel.rate)}">
+            <span class="rate-input-suffix">%</span>
+          </div>
+        </div>
+        <div class="rate-field">
+          <label class="rate-entry-label" for="fee-${esc(bankKey)}-${esc(t.key)}">Fixed fee<span class="req">*</span></label>
+          <div class="rate-input-wrap">
+            <input class="fee-input${feeFilled ? '' : ' empty'}" id="fee-${esc(bankKey)}-${esc(t.key)}" type="number"
+              inputmode="decimal" step="0.25" min="0" placeholder="${t.fixedFee}"
+              data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" value="${esc(sel.fee)}">
+            <span class="rate-input-suffix egp">EGP</span>
+          </div>
         </div>
         ${verdict}
       </div>
@@ -671,7 +713,7 @@
         ratesForService(s).forEach(t => {
           total++;
           const sel = bc.pricing.get(t.key);
-          const tier = sel ? tierForRate(t, sel.rate) : '';
+          const tier = sel ? lineVerdict(t, sel).tier : '';
           if (!tier) { missing++; return; }
           if (tier !== 'auto') {
             needsApproval++;
@@ -693,12 +735,13 @@
         if (!bc || !bc.module) return;
         ratesForService(s).forEach(t => {
           const sel = bc.pricing.get(t.key);
-          const tier = sel ? tierForRate(t, sel.rate) : '';
+          const tier = sel ? lineVerdict(t, sel).tier : '';
           if (!tier || tier === 'auto') return;
           out.push({
             id: `${s}::${k}::${t.key}`,
             service: s, bank: k, rate: t.label, tier, note: sel.note.trim(),
             requested: Number(sel.rate), standard: t.standard, managerRate: t.manager,
+            requestedFee: Number(sel.fee), standardFee: t.fixedFee,
             from: tier === 'manager' ? t.manager : t.head,
             to: tier === 'manager' ? t.standard : t.manager,
           });
@@ -987,14 +1030,14 @@
       const bc = cfg.bankConfigs[k];
       ratesForService(service).forEach(t => {
         const sel = bc.pricing.get(t.key);
-        const tier = sel ? tierForRate(t, sel.rate) : '';
+        const tier = sel ? lineVerdict(t, sel).tier : '';
         if (!tier) { missing++; return; }
-        if (tier !== 'auto' && !sel.note.trim()) unresolved = true;
+        if (tier !== 'auto' && !(sel.note || '').trim()) unresolved = true;
       });
     });
     if (missing) {
-      toast(`Enter your rate for every line in ${stripChannel(service)} — ${missing} still blank`);
-      const blank = $('serviceSetupBody').querySelector('.rate-input.empty');
+      toast(`Enter a rate and fixed fee for every line in ${stripChannel(service)} — ${missing} still incomplete`);
+      const blank = $('serviceSetupBody').querySelector('.rate-input.empty, .fee-input.empty');
       if (blank) { blank.focus(); blank.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       return;
     }
@@ -1022,21 +1065,29 @@
   /* Typing a rate re-decides whether it needs sign-off. The verdict and the justification
      box are swapped in place rather than re-rendering the panel, so the field keeps focus. */
   $('serviceSetupBody').addEventListener('input', e => {
-    const input = e.target.closest('.rate-input');
+    const input = e.target.closest('.rate-input, .fee-input');
     const cfg = serviceConfig[activeService];
     if (input) {
+      const isFee = input.classList.contains('fee-input');
       const bankKey = input.dataset.bank, key = input.dataset.key;
       const t = ratesForService(activeService).find(x => x.key === key);
       const bc = ensureBankConfig(cfg, bankKey);
-      const cur = bc.pricing.get(key) || { rate: '', tier: '', note: '' };
-      const tier = tierForRate(t, input.value);
-      bc.pricing.set(key, { rate: input.value, tier, note: cur.note });
+      const cur = bc.pricing.get(key) || { rate: '', fee: '', tier: '', note: '' };
+      const next = {
+        rate: isFee ? cur.rate : input.value,
+        fee: isFee ? input.value : cur.fee,
+        note: cur.note,
+      };
+      const { tier, text } = lineVerdict(t, next);
+      next.tier = tier;
+      bc.pricing.set(key, next);
 
       const block = input.closest('.price-tier');
       const verdictEl = block.querySelector('.rate-verdict');
       verdictEl.className = `rate-verdict ${tier || 'empty'}`;
-      verdictEl.innerHTML = verdictText(t, tier);
-      input.classList.toggle('empty', !tier);
+      verdictEl.innerHTML = text;
+      block.querySelector('.rate-input').classList.toggle('empty', tierForRate(t, next.rate) === '');
+      block.querySelector('.fee-input').classList.toggle('empty', tierForFee(t, next.fee) === '');
 
       const noteEl = block.querySelector('.price-note');
       const needsNote = tier === 'manager' || tier === 'head';
@@ -1054,8 +1105,8 @@
     const ta = e.target.closest('textarea[data-key]');
     if (!ta) return;
     const bc = ensureBankConfig(cfg, ta.dataset.bank);
-    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', tier: '', note: '' };
-    bc.pricing.set(ta.dataset.key, { rate: cur.rate, tier: cur.tier, note: ta.value });
+    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', fee: '', tier: '', note: '' };
+    bc.pricing.set(ta.dataset.key, { rate: cur.rate, fee: cur.fee, tier: cur.tier, note: ta.value });
     ta.classList.toggle('invalid', !ta.value.trim());
     if (cfg.done) { cfg.done = false; renderServiceTracker(); }
     renderSubmitSummary();

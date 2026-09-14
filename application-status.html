@@ -179,6 +179,7 @@
     resize: vertical; color-scheme: light; }
   .modal-body textarea:focus { outline: none; border-color: var(--primary); }
   .modal-body textarea.invalid { border-color: var(--destructive); }
+  .field-error { font-size: 12.5px; color: var(--destructive); margin-top: 6px; }
   .btn-icon { padding: 6px; border-radius: var(--radius); background: none; border: 1px solid transparent;
     color: var(--cadet-05); display: inline-flex; cursor: pointer; }
   .btn-icon:hover { background: var(--muted); color: var(--foreground); }
@@ -431,6 +432,7 @@
       <div class="modal-body">
         <p class="confirm-text" id="rejectText"></p>
         <textarea id="rejectReason" placeholder="Why is this rate being rejected? The salesperson sees this when the application comes back to them."></textarea>
+        <div class="field-error" id="rejectError" hidden>Add a reason — this is what the salesperson gets back, so they know what to change.</div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" id="rejectCancel">Cancel</button>
@@ -773,7 +775,7 @@
       `This sends the whole application back to ${esc(app.actor)} to revise the pricing.`;
     const ta = $('rejectReason');
     ta.value = '';
-    ta.classList.remove('invalid');
+    clearRejectError();
     $('rejectBackdrop').classList.add('open');
     ta.focus();
   }
@@ -782,10 +784,15 @@
   $('rejectCancel').addEventListener('click', closeRejectModal);
   $('rejectBackdrop').addEventListener('click', e => { if (e.target === $('rejectBackdrop')) closeRejectModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRejectModal(); });
+  function clearRejectError() {
+    $('rejectReason').classList.remove('invalid');
+    $('rejectError').hidden = true;
+  }
+  $('rejectReason').addEventListener('input', clearRejectError);
   $('rejectConfirm').addEventListener('click', () => {
     const ta = $('rejectReason');
     const reason = ta.value.trim();
-    if (!reason) { ta.classList.add('invalid'); toast('Add a reason so the salesperson knows what to fix.'); return; }
+    if (!reason) { ta.classList.add('invalid'); $('rejectError').hidden = false; ta.focus(); return; }
     const target = rejectTarget;
     closeRejectModal();
     decide(target, 'rejected', reason);

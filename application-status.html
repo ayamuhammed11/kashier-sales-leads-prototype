@@ -445,6 +445,7 @@
     </div>
   </div>
 
+<script src="rate-decisions.js"></script>
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -456,16 +457,9 @@
     'returned-to-sales':         { label: 'Returned to Sales',          cls: 'danger' },
   };
 
-  /* Who is looking at this application. Rates between the Manager and Standard rate are a
-     Pricing Manager's call; anything under the Manager rate needs the Head of Sales, who can
-     also sign off on Manager-band requests. The salesperson only ever watches. */
-  const ROLES = {
-    sales:   { label: 'Salesperson',     name: 'Aya Muhammed', initials: 'AM', approves: [] },
-    manager: { label: 'Pricing Manager', name: 'Nadia Salah',  initials: 'NS', approves: ['manager'] },
-    head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['manager', 'head'] },
-  };
-  const TIER_LABEL = { manager: 'Manager approval', head: 'Head approval' };
-  const TIER_OWNER = { manager: 'Pricing Manager', head: 'Head of Sales' };
+  /* Roles, permissions and what a decision does live in rate-decisions.js, shared with the
+     Rate Approvals queue so both surfaces agree. */
+  const { ROLES, TIER_LABEL, TIER_OWNER, readStore, writeStore } = window.KashierRates;
 
   const p = new URLSearchParams(location.search);
   const app = {
@@ -493,29 +487,13 @@
       d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }
 
-  /* Rate decisions and the status they produce are demo-local (no backend here), kept in
-     localStorage per application so they survive a reload and so My Leads / Lead Details
-     see the same outcome. */
-  function readStore(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; }
-  }
-  function writeStore(key, obj) {
-    try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) { /* storage unavailable */ }
-  }
-  function readDecisions() { return readStore('kashierRateDecisions')[app.id] || {}; }
-  function writeDecisions(decisions) {
-    const all = readStore('kashierRateDecisions');
-    all[app.id] = decisions;
-    writeStore('kashierRateDecisions', all);
-  }
+  /* Decisions are demo-local (no backend here), kept in localStorage per application so they
+     survive a reload and so My Leads / Lead Details see the same outcome. */
+  function readDecisions() { return window.KashierRates.decisionsFor(app.id); }
   const storedStatus = readStore('kashierAppStatus')[app.id];
   if (storedStatus && STATUS_META[storedStatus]) app.status = storedStatus;
 
-  let role = 'sales';
-  try {
-    const saved = localStorage.getItem('kashierDemoRole');
-    if (saved && ROLES[saved]) role = saved;
-  } catch (e) { /* storage unavailable */ }
+  let role = window.KashierRates.getRole();
 
   function decisionsFor() {
     const d = readDecisions();
@@ -708,58 +686,17 @@
     $('pricingList').innerHTML = rows.map(apprRowHTML).join('');
   }
 
-  /* A decision can move the whole application: any rejection sends it back to the
-     salesperson, and a clean sweep pushes it on to Onboarding Review. */
-  function applyOutcome() {
-    const rejected = rejectedRequests();
-    const pending = pendingRequests();
-    let next = 'pending-rate-approval';
-    if (rejected.length) next = 'returned-to-sales';
-    else if (!pending.length) next = 'pending-onboarding-review';
-    app.status = next;
-
-    const statuses = readStore('kashierAppStatus');
-    statuses[app.id] = next;
-    writeStore('kashierAppStatus', statuses);
-
-    if (app.leadId) {
-      const leadStatuses = readStore('kashierLeadStatusOverrides');
-      leadStatuses[app.leadId] = next === 'returned-to-sales' ? 'application'
-        : next === 'pending-onboarding-review' ? 'onboarding-review'
-        : 'rate-approval';
-      writeStore('kashierLeadStatusOverrides', leadStatuses);
-
-      // Leave a trail on the lead so the salesperson sees why it came back.
-      const notes = readStore('kashierLeadReturnNote');
-      if (rejected.length) {
-        notes[app.leadId] = {
-          ts: new Date().toISOString(),
-          text: rejected.map(({ req, decision }) =>
-            `${[req.service, req.bank].filter(Boolean).join(' · ')} — ${req.rate} rejected by ${decision.by}: ${decision.reason}`
-          ).join(' | '),
-        };
-      } else {
-        delete notes[app.leadId];
-      }
-      writeStore('kashierLeadReturnNote', notes);
-    }
-  }
-
   function decide(reqId, decision, reason) {
-    const req = app.pricingRequests.find(r => r.id === reqId);
-    if (!req || !canAct(req)) return;
-    const all = readDecisions();
-    all[reqId] = {
-      decision, reason: reason || '',
-      by: ROLES[role].name, roleLabel: ROLES[role].label,
-      ts: new Date().toISOString(),
-    };
-    writeDecisions(all);
-    applyOutcome();
+    const result = window.KashierRates.recordDecision({
+      app: { id: app.id, leadId: app.leadId, requests: app.pricingRequests },
+      reqId, decision, reason, role,
+    });
+    if (!result) return;
+    app.status = result.status;
     renderAll();
     toast(decision === 'approved'
-      ? `${req.rate} approved for ${req.service}.`
-      : `${req.rate} rejected — application returned to ${app.actor}.`);
+      ? `${result.request.rate} approved for ${result.request.service}.`
+      : `${result.request.rate} rejected — application returned to ${app.actor}.`);
   }
 
   $('pricingList').addEventListener('click', e => {
@@ -815,7 +752,7 @@
   }
   $('roleSelect').addEventListener('change', e => {
     role = e.target.value;
-    try { localStorage.setItem('kashierDemoRole', role); } catch (err) { /* storage unavailable */ }
+    window.KashierRates.setRole(role);
     renderRole();
     renderApprovals();
   });

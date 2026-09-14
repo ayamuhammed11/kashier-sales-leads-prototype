@@ -20,6 +20,7 @@
     --pill-bg: #F5F6F6; --pill-text: #697979; --radius: 4px;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { scroll-behavior: smooth; }
   body { margin: 0; font-family: 'Noto Sans', Arial, sans-serif; background: #fff; color: var(--foreground);
     display: flex; font-size: 14px; min-height: 100vh; }
@@ -187,6 +188,37 @@
     padding: 4px 9px; background: var(--warning-bg); color: var(--warning-text); white-space: nowrap; }
   .band.head { background: var(--destructive-bg); color: var(--destructive); }
   .row-action { text-align: right; white-space: nowrap; }
+  .row-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .link-open { font-size: 12.5px; color: var(--link); }
+  .link-open:hover { text-decoration: underline; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: var(--success-80); }
+  .btn-destructive-outline { background: #fff; color: var(--destructive); border-color: var(--destructive); }
+  .btn-destructive-outline:hover { background: var(--destructive-bg); }
+  .btn-destructive { background: var(--destructive); color: #fff; }
+  .btn-destructive:hover { background: #830012; }
+
+  /* Reject confirm modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2,10,34,.45); display: none;
+    align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,20,60,.25); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px;
+    border-bottom: 1px solid var(--border-subtle); }
+  .modal-header h3 { margin: 0; font-size: 16px; color: var(--foreground); }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--border-subtle); }
+  .confirm-text { font-size: 13.5px; color: var(--foreground); line-height: 1.55; margin: 0 0 12px; }
+  .modal-body textarea { width: 100%; min-height: 80px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    background: #fff; color: var(--foreground); font-family: inherit; font-size: 13.5px; padding: 10px 12px;
+    resize: vertical; color-scheme: light; }
+  .modal-body textarea:focus { outline: none; border-color: var(--primary); }
+  .modal-body textarea.invalid { border-color: var(--destructive); }
+  .field-error { font-size: 12.5px; color: var(--destructive); margin-top: 6px; }
+  .btn-icon { padding: 6px; border-radius: var(--radius); background: none; border: 1px solid transparent;
+    color: var(--cadet-05); display: inline-flex; cursor: pointer; }
+  .btn-icon:hover { background: var(--muted); color: var(--foreground); }
   .mid-empty { font-size: 13px; color: var(--cadet-06); }
 
   .badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; font-size: 11px; font-weight: 700;
@@ -376,27 +408,33 @@
 
   <div class="toast" id="toast"></div>
 
+  <div class="modal-overlay" id="rejectBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Reject rate request</h3>
+        <button class="btn-icon" id="rejectClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text" id="rejectText"></p>
+        <textarea id="rejectReason" placeholder="Why is this rate being rejected? The salesperson sees this when the application comes back to them."></textarea>
+        <div class="field-error" id="rejectError" hidden>Add a reason — this is what the salesperson gets back, so they know what to change.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="rejectCancel">Cancel</button>
+        <button class="btn btn-destructive" id="rejectConfirm">Reject &amp; Return</button>
+      </div>
+    </div>
+  </div>
+
+<script src="rate-decisions.js"></script>
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 
-  const ROLES = {
-    sales:   { label: 'Salesperson',     name: 'Aya Muhammed', initials: 'AM', approves: [] },
-    manager: { label: 'Pricing Manager', name: 'Nadia Salah',  initials: 'NS', approves: ['manager'] },
-    head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['manager', 'head'] },
-  };
-  const TIER_LABEL = { manager: 'Manager approval', head: 'Head approval' };
-  const TIER_OWNER = { manager: 'Pricing Manager', head: 'Head of Sales' };
-
-  function readStore(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { return {}; }
-  }
-
-  let role = 'sales';
-  try {
-    const saved = localStorage.getItem('kashierDemoRole');
-    if (saved && ROLES[saved]) role = saved;
-  } catch (e) { /* storage unavailable */ }
+  /* Roles, permissions and what a decision does live in rate-decisions.js, shared with the
+     application page so both surfaces agree. */
+  const { ROLES, TIER_LABEL, TIER_OWNER, readStore } = window.KashierRates;
+  let role = window.KashierRates.getRole();
 
   /* Applications carrying rate requests. Real ones are the tracking links the onboarding
      page stored on submit; the seeded pair stands in for applications that were already
@@ -486,7 +524,7 @@
     if (!row.decision) return 'pending';
     return row.decision.decision === 'approved' ? 'approved' : 'rejected';
   }
-  function canAct(row) { return !row.decision && ROLES[role].approves.includes(row.req.tier); }
+  function canAct(row) { return !row.decision && window.KashierRates.canRoleAct(role, row.req.tier); }
 
   let activeTab = 'mine';
   let searchTerm = '';
@@ -544,7 +582,11 @@
       ? esc(TIER_OWNER[req.tier])
       : `${esc(decision.by)}<div class="cell-sub">${esc(fmtDate(decision.ts))}</div>`;
     const action = canAct(row)
-      ? `<a class="btn btn-primary btn-sm" href="${esc(app.url)}">Review</a>`
+      ? `<div class="row-actions">
+           <button class="btn btn-success btn-sm" data-approve="${esc(app.id)}|${esc(req.id)}">Approve</button>
+           <button class="btn btn-destructive-outline btn-sm" data-reject="${esc(app.id)}|${esc(req.id)}">Reject</button>
+           <a class="link-open" href="${esc(app.url)}" title="Open the full application">Open</a>
+         </div>`
       : `<a class="btn btn-outline btn-sm" href="${esc(app.url)}">Open</a>`;
     return `<tr>
       <td>
@@ -583,9 +625,73 @@
     document.querySelector('.user .avatar').textContent = ROLES[role].initials;
   }
 
+  /* Approve and reject straight from the queue — the same rules the application page uses. */
+  function findRow(token) {
+    const parts = String(token).split('|');
+    const app = APPS.filter(a => a.id === parts[0])[0];
+    if (!app) return null;
+    const req = app.requests.filter(r => r.id === parts[1])[0];
+    return req ? { app, req } : null;
+  }
+  function decide(token, decision, reason) {
+    const target = findRow(token);
+    if (!target) return;
+    const result = window.KashierRates.recordDecision({
+      app: target.app, reqId: target.req.id, decision, reason, role,
+    });
+    if (!result) return;
+    render();
+    toast(decision === 'approved'
+      ? `${target.req.rate} approved for ${target.app.biz}.`
+      : `${target.req.rate} rejected — ${target.app.biz} went back to ${target.app.actor}.`);
+  }
+
+  $('requestRows').addEventListener('click', e => {
+    const approveBtn = e.target.closest('[data-approve]');
+    if (approveBtn) { decide(approveBtn.dataset.approve, 'approved'); return; }
+    const rejectBtn = e.target.closest('[data-reject]');
+    if (rejectBtn) openRejectModal(rejectBtn.dataset.reject);
+  });
+
+  let rejectTarget = '';
+  function openRejectModal(token) {
+    const target = findRow(token);
+    if (!target) return;
+    rejectTarget = token;
+    $('rejectText').innerHTML = `Reject the <b>${esc(target.req.rate)}</b> request for <b>${esc(target.app.biz)}</b>? ` +
+      `This sends the whole application back to ${esc(target.app.actor)} to revise the pricing.`;
+    $('rejectReason').value = '';
+    clearRejectError();
+    $('rejectBackdrop').classList.add('open');
+    $('rejectReason').focus();
+  }
+  function closeRejectModal() { $('rejectBackdrop').classList.remove('open'); rejectTarget = ''; }
+  function clearRejectError() {
+    $('rejectReason').classList.remove('invalid');
+    $('rejectError').hidden = true;
+  }
+  $('rejectReason').addEventListener('input', clearRejectError);
+  $('rejectClose').addEventListener('click', closeRejectModal);
+  $('rejectCancel').addEventListener('click', closeRejectModal);
+  $('rejectBackdrop').addEventListener('click', e => { if (e.target === $('rejectBackdrop')) closeRejectModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRejectModal(); });
+  $('rejectConfirm').addEventListener('click', () => {
+    const reason = $('rejectReason').value.trim();
+    if (!reason) { $('rejectReason').classList.add('invalid'); $('rejectError').hidden = false; $('rejectReason').focus(); return; }
+    const token = rejectTarget;
+    closeRejectModal();
+    decide(token, 'rejected', reason);
+  });
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
   $('roleSelect').addEventListener('change', e => {
     role = e.target.value;
-    try { localStorage.setItem('kashierDemoRole', role); } catch (err) { /* storage unavailable */ }
+    window.KashierRates.setRole(role);
     if (activeTab === 'mine' && role === 'sales') activeTab = 'pending';
     render();
   });

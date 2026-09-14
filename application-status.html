@@ -638,7 +638,9 @@
 
   function apprRowHTML({ req, decision }) {
     const bandCls = req.tier === 'head' ? ' head' : '';
-    const band = `${TIER_LABEL[req.tier]} · ${req.from}%–under ${req.to}%`;
+    const band = req.requested
+      ? `Asking ${req.requested}% · ${TIER_LABEL[req.tier]} (standard ${req.standard}%)`
+      : `${TIER_LABEL[req.tier]} · ${req.from}%–under ${req.to}%`;
     const where = [req.service, req.bank].filter(Boolean).join(' · ');
     let statusPill, body;
     if (decision) {

@@ -445,7 +445,7 @@
       ts: '2026-09-06T14:20:00.000Z',
       requests: [
         { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5,
+          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5,
           note: 'Processes 450K EGP/month across 3 branches — matching the rate their current provider quoted.' },
       ],
     },
@@ -454,10 +454,10 @@
       ts: '2026-09-05T11:00:00.000Z',
       requests: [
         { id: 'Online Card::QNB::national-offus', service: 'Online Card', bank: 'QNB',
-          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5,
+          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2,
           note: 'Subscription product on thin margins — Karim negotiated this rate before signing.' },
         { id: 'Online Card::QNB::intl', service: 'Online Card', bank: 'QNB',
-          rate: 'International rate', tier: 'manager', from: 2, to: 2.5,
+          rate: 'International rate', tier: 'manager', from: 2, to: 2.5, requested: 2.2, standard: 2.5,
           note: 'Half their volume is international clients paying in USD.' },
       ],
     },
@@ -601,7 +601,9 @@
         <div>${esc(req.rate)}</div>
         ${req.note ? `<div class="cell-note" title="${esc(req.note)}">${esc(req.note)}</div>` : ''}
       </td>
-      <td><span class="band${req.tier === 'head' ? ' head' : ''}">${esc(TIER_LABEL[req.tier])} &middot; ${req.from}%–under ${req.to}%</span></td>
+      <td><span class="band${req.tier === 'head' ? ' head' : ''}">${req.requested
+        ? `Asking ${req.requested}% &middot; standard ${req.standard}%`
+        : esc(TIER_LABEL[req.tier]) + ' &middot; ' + req.from + '%–under ' + req.to + '%'}</span></td>
       <td>${waiting}</td>
       <td>${statusPill}</td>
       <td class="row-action">${action}</td>

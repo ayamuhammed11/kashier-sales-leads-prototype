@@ -193,7 +193,24 @@
   .role-switch label { font-size: 12px; color: var(--cadet-04); }
   .role-switch select { height: 34px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;
     color: var(--foreground); font-family: inherit; font-size: 13px; padding: 0 10px; color-scheme: light; cursor: pointer; }
-  .rate-table { min-width: 1180px; }
+  /* Approval-level switcher — one queue per band, so nobody scans past rates that
+     are not theirs to decide. */
+  .rate-views { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+  .rate-view { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px;
+    border: 1.5px solid var(--border); border-radius: 999px; background: #fff; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 600; color: var(--cadet-base);
+    transition: border-color .12s ease, background .12s ease, color .12s ease; }
+  .rate-view:hover { border-color: var(--cadet-05); color: var(--foreground); }
+  .rate-view.on { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
+  .rate-view-count { font-size: 11.5px; font-weight: 700; background: var(--muted); color: var(--cadet-02);
+    border-radius: 999px; padding: 1px 8px; }
+  .rate-view.on .rate-view-count { background: #fff; color: var(--primary); }
+  /* Four columns, so the rate queue needs far less width than the leads table. */
+  .rate-table { min-width: 720px; }
+  .rate-table .row-action { width: 1%; }
+  .ask { display: inline-flex; flex-direction: column; gap: 2px; }
+  .ask b { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: var(--foreground); }
+  .ask-vs { font-size: 12px; color: var(--cadet-05); }
   /* The merchant cell is borrowed from the leads table, where names may wrap — here
      the row is already wide, so keep each merchant on one line. */
   .rate-table .lead-name, .rate-table .lead-industry { white-space: nowrap; }
@@ -435,6 +452,9 @@
 
       <div class="tabs" id="statusTabs"></div>
 
+      <!-- Manager-band and Head-band requests are separate queues, never one mixed list. -->
+      <div class="rate-views" id="rateViews" hidden></div>
+
       <div class="toolbar">
         <div class="search-wrap">
           <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
@@ -585,9 +605,10 @@
     const counts = { all: LEADS.length };
     Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => l.status === k).length);
     const tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
-    // Rate Approvals is an approver's tab — a salesperson never sees it.
+    // Rate Approvals is an approver's tab — a salesperson never sees it, and the count is
+    // what is waiting on this person's own approval level, not everyone's.
     if (role !== 'sales') {
-      counts.rates = allRequests().filter(r => stateOf(r) === 'pending').length;
+      counts.rates = myPending();
       tabs.push(['rates', 'Rate Approvals']);
     }
     $('statusTabs').innerHTML = tabs.map(([key, label]) => `
@@ -617,15 +638,19 @@
 
   const LEAD_HEAD = `<tr><th>Lead</th><th>MID</th><th>Contact</th><th>Source</th><th>Status</th>
     <th>Assigned</th><th>Last Activity</th><th></th></tr>`;
-  const RATE_HEAD = `<tr><th>Merchant</th><th>Service</th><th>Rate</th><th>Requested vs Published</th>
-    <th>Waiting On</th><th>Status</th><th></th></tr>`;
+  const RATE_HEAD = `<tr><th>Merchant</th><th>Rate Requested</th><th>Asking</th><th></th></tr>`;
+  const RATE_HEAD_DECIDED = `<tr><th>Merchant</th><th>Rate Requested</th><th>Outcome</th><th></th></tr>`;
 
   function renderTable() {
     // The Rate Approvals tab swaps the table over to one row per rate request.
     const rateMode = activeStatus === 'rates';
+    if (rateMode && !rateView) rateView = defaultRateView();
     const rows = rateMode ? rateRows() : filteredLeads();
-    $('tableHead').innerHTML = rateMode ? RATE_HEAD : LEAD_HEAD;
+    const decidedView = rateMode && rateView === 'decided';
+    $('tableHead').innerHTML = rateMode ? (decidedView ? RATE_HEAD_DECIDED : RATE_HEAD) : LEAD_HEAD;
     $('mainTable').classList.toggle('rate-table', rateMode);
+    $('rateViews').hidden = !rateMode;
+    if (rateMode) renderRateViews();
     $('industryFilter').hidden = rateMode;
     $('searchInput').placeholder = rateMode
       ? 'Search merchant, service, or rate…'
@@ -634,9 +659,11 @@
       ? `${rows.length} rate request${rows.length === 1 ? '' : 's'}`
       : `${rows.length} of ${LEADS.length} leads`;
     $('emptyState').classList.toggle('show', rows.length === 0);
-    $('emptyTitle').textContent = rateMode ? 'No rate requests match this view.' : 'No leads match this filter.';
+    $('emptyTitle').textContent = rateMode ? 'Nothing to review here.' : 'No leads match this filter.';
     $('emptySub').textContent = rateMode
-      ? `Nothing is waiting on the ${ROLES[role].label} right now.`
+      ? (decidedView
+        ? 'Requests you have approved or rejected will show up here.'
+        : `No ${rateView === 'head' ? 'Head' : 'Manager'}-approval rates are waiting on you right now.`)
       : 'Try a different status tab or clear your search to see all your assigned leads.';
 
     const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
@@ -696,6 +723,14 @@
     if (prev) prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
     if (next) next.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderTable(); } });
   }
+
+  $('rateViews').addEventListener('click', e => {
+    const btn = e.target.closest('[data-view]');
+    if (!btn) return;
+    rateView = btn.dataset.view;
+    currentPage = 1;
+    renderTable();
+  });
 
   $('searchInput').addEventListener('input', e => { searchTerm = e.target.value; currentPage = 1; renderTable(); });
   $('industryFilter').addEventListener('change', e => { industryTerm = e.target.value; currentPage = 1; renderTable(); });
@@ -851,55 +886,88 @@
   }
   function canAct(row) { return !row.decision && window.KashierRates.canRoleAct(role, row.req.tier); }
 
-  function rateRows() {
+  /* Each approver works their own band and nothing else: a Pricing Manager never sees the
+     rates that are the Head's call, and the Head keeps the two bands on separate views
+     rather than one mixed list. */
+  let rateView = '';
+  function rateViews() {
+    if (role === 'head') {
+      return [
+        ['head', 'Head approval'],
+        ['manager', 'Manager approval'],
+        ['decided', 'Decided'],
+      ];
+    }
+    return [['manager', 'Needs my approval'], ['decided', 'Decided']];
+  }
+  function defaultRateView() { return rateViews()[0][0]; }
+  function myBands() { return ROLES[role].approves; }
+
+  function rateRows(view) {
+    const v = view || rateView || defaultRateView();
     const term = searchTerm.trim().toLowerCase();
-    return allRequests().filter(r => !term ||
-      [r.app.biz, r.req.service, r.req.bank, r.req.rate].join(' ').toLowerCase().includes(term));
+    return allRequests().filter(r => {
+      const mine = myBands().indexOf(r.req.tier) !== -1;
+      if (!mine) return false;
+      if (v === 'decided') { if (!r.decision) return false; }
+      else if (r.decision || r.req.tier !== v) return false;
+      return !term || [r.app.biz, r.req.service, r.req.bank, r.req.rate]
+        .join(' ').toLowerCase().includes(term);
+    });
+  }
+  /* What the tab badge counts: the requests actually sitting with this person. */
+  function myPending() { return allRequests().filter(canAct).length; }
+
+  function renderRateViews() {
+    const box = $('rateViews');
+    box.innerHTML = rateViews().map(([key, label]) => {
+      const n = rateRows(key).length;
+      return `<button class="rate-view${key === rateView ? ' on' : ''}" data-view="${key}">
+        ${esc(label)}<span class="rate-view-count">${n}</span>
+      </button>`;
+    }).join('');
   }
 
+  function askText(req) {
+    return req.requested
+      ? `${req.requested}%${req.requestedFee != null ? ` + ${req.requestedFee} EGP` : ''}`
+      : TIER_LABEL[req.tier];
+  }
+  function standardText(req) {
+    return req.standard != null
+      ? `standard ${req.standard}%${req.standardFee != null ? ` + ${req.standardFee} EGP` : ''}`
+      : `${req.from}%–under ${req.to}%`;
+  }
+
+  /* One request per row, kept to four columns: who, what, the ask, and the way in.
+     Everything else — the justification, the application, the decision buttons — is in
+     the review drawer, one click away. */
   function rateRowHTML(row) {
     const app = row.app, req = row.req, decision = row.decision;
-    const state = stateOf(row);
-    const statusPill = state === 'pending'
-      ? '<span class="badge badge-application"><span class="badge-dot"></span>Pending</span>'
-      : state === 'approved'
-        ? '<span class="badge badge-activated"><span class="badge-dot"></span>Approved</span>'
-        : '<span class="badge badge-lost"><span class="badge-dot"></span>Rejected</span>';
-    const waiting = state === 'pending'
-      ? esc(TIER_OWNER[req.tier])
-      : `${esc(decision.by)}<div class="cell-sub">${esc(fmtDateISO(decision.ts))}</div>`;
     const token = `${esc(app.id)}|${esc(req.id)}`;
-    const action = canAct(row)
-      ? `<div class="row-actions">
-           <button class="btn btn-primary btn-sm" data-review="${token}">Review</button>
-           <button class="btn btn-success btn-sm" data-approve="${token}">Approve</button>
-           <button class="btn btn-destructive-outline btn-sm" data-reject="${token}">Reject</button>
-         </div>`
-      : `<button class="btn btn-outline btn-sm" data-review="${token}">Review</button>`;
+    const outcome = decision
+      ? (decision.decision === 'approved'
+        ? `<span class="badge badge-activated"><span class="badge-dot"></span>Approved</span>`
+        : `<span class="badge badge-lost"><span class="badge-dot"></span>Rejected</span>`)
+      : `<span class="ask"><b>${esc(askText(req))}</b><span class="ask-vs">${esc(standardText(req))}</span></span>`;
     return `<tr>
       <td>
         <div class="lead-cell">
           <div class="lead-avatar">${esc(initials(app.biz))}</div>
           <div>
             <div class="lead-name">${esc(app.biz)}</div>
-            <div class="lead-industry">${esc(app.id)} &middot; by ${esc(app.actor)}</div>
+            <div class="lead-industry">${esc(app.id)} &middot; ${esc(fmtDateISO(app.ts))}</div>
           </div>
         </div>
       </td>
       <td>
-        <div>${esc(req.service)}</div>
-        ${req.bank ? `<div class="cell-sub">${esc(req.bank)}</div>` : ''}
-      </td>
-      <td>
         <div>${esc(req.rate)}</div>
-        ${req.note ? `<div class="cell-note" title="${esc(req.note)}">${esc(req.note)}</div>` : ''}
+        <div class="cell-sub">${esc([req.service, req.bank].filter(Boolean).join(' · '))}</div>
       </td>
-      <td><span class="band${req.tier === 'head' ? ' head' : ''}">${req.requested
-        ? `Asking ${req.requested}%${req.requestedFee != null ? ` + ${req.requestedFee} EGP` : ''} &middot; standard ${req.standard}%${req.standardFee != null ? ` + ${req.standardFee} EGP` : ''}`
-        : esc(TIER_LABEL[req.tier]) + ' &middot; ' + req.from + '%–under ' + req.to + '%'}</span></td>
-      <td>${waiting}</td>
-      <td>${statusPill}</td>
-      <td class="row-action">${action}</td>
+      <td>${outcome}</td>
+      <td class="row-action">
+        <button class="btn ${canAct(row) ? 'btn-primary' : 'btn-outline'} btn-sm" data-review="${token}">Review</button>
+      </td>
     </tr>`;
   }
 
@@ -927,13 +995,11 @@
       : `${target.req.rate} rejected — ${target.app.biz} went back to ${target.app.actor}.`);
   }
 
+  // Review is the only action on a row — approve and reject live in the drawer, next to
+  // the justification and the application they are being judged against.
   $('leadsBody').addEventListener('click', e => {
     const reviewBtn = e.target.closest('[data-review]');
-    if (reviewBtn) { openDrawer(reviewBtn.dataset.review); return; }
-    const approveBtn = e.target.closest('[data-approve]');
-    if (approveBtn) { decide(approveBtn.dataset.approve, 'approved'); return; }
-    const rejectBtn = e.target.closest('[data-reject]');
-    if (rejectBtn) openRejectModal(rejectBtn.dataset.reject);
+    if (reviewBtn) openDrawer(reviewBtn.dataset.review);
   });
 
   /* ══════════ Review drawer ══════════ */
@@ -1110,6 +1176,7 @@
     window.KashierRates.setRole(role);
     // The Rate Approvals tab belongs to approvers only — a salesperson falls back to All.
     if (activeStatus === 'rates' && role === 'sales') activeStatus = 'all';
+    rateView = '';   // each role has its own set of band views
     currentPage = 1;
     renderRole(); renderTabs(); renderTable();
     if (drawerToken) renderDrawer();

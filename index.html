@@ -205,6 +205,7 @@
   .rate-view-count { font-size: 11.5px; font-weight: 700; background: var(--muted); color: var(--cadet-02);
     border-radius: 999px; padding: 1px 8px; }
   .rate-view.on .rate-view-count { background: #fff; color: var(--primary); }
+  .wait-sub { margin-top: 5px; }
   /* Four columns, so the rate queue needs far less width than the leads table. */
   .rate-table { min-width: 720px; }
   .rate-table .row-action { width: 1%; }
@@ -456,6 +457,8 @@
 
       <!-- Manager-band and Head-band requests are separate queues, never one mixed list. -->
       <div class="rate-views" id="rateViews" hidden></div>
+      <!-- On the Waiting Rate Approval tab: whose sign-off each application is stuck on. -->
+      <div class="rate-views" id="waitViews" hidden></div>
 
       <div class="toolbar">
         <div class="search-wrap">
@@ -622,6 +625,7 @@
       btn.addEventListener('click', () => {
         activeStatus = btn.dataset.status;
         if (activeStatus === 'rates') rateView = '';
+        waitFilter = 'all';
         currentPage = 1;
         renderRole(); renderTabs(); renderTable();
       });
@@ -634,10 +638,43 @@
       industries.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
   }
 
+  /* Whose sign-off a lead's application is still waiting on — 'manager', 'head', or both
+     when it carries undecided requests in each band. */
+  let waitFilter = 'all';
+  function waitingOn(lead) {
+    const tiers = [];
+    allRequests().forEach(r => {
+      if (r.app.leadId !== lead.id || r.decision) return;
+      if (tiers.indexOf(r.req.tier) === -1) tiers.push(r.req.tier);
+    });
+    return tiers;
+  }
+  function waitingLabel(lead) {
+    const t = waitingOn(lead);
+    if (t.length === 2) return 'Waiting on Manager & Head';
+    if (t[0] === 'head') return 'Waiting on Head';
+    if (t[0] === 'manager') return 'Waiting on Manager';
+    return '';
+  }
+  function renderWaitViews() {
+    const base = LEADS.filter(l => l.status === 'rate-approval');
+    const views = [
+      ['all', 'All', base.length],
+      ['manager', 'Waiting on Manager', base.filter(l => waitingOn(l).indexOf('manager') !== -1).length],
+      ['head', 'Waiting on Head', base.filter(l => waitingOn(l).indexOf('head') !== -1).length],
+    ];
+    $('waitViews').innerHTML = views.map(([key, label, n]) =>
+      `<button class="rate-view${key === waitFilter ? ' on' : ''}" data-wait="${key}">
+        ${esc(label)}<span class="rate-view-count">${n}</span>
+      </button>`).join('');
+  }
+
   function filteredLeads() {
     const term = searchTerm.trim().toLowerCase();
     return LEADS.filter(l => {
       if (activeStatus !== 'all' && l.status !== activeStatus) return false;
+      if (activeStatus === 'rate-approval' && waitFilter !== 'all' &&
+          waitingOn(l).indexOf(waitFilter) === -1) return false;
       if (industryTerm && l.industry !== industryTerm) return false;
       if (term && !(l.biz.toLowerCase().includes(term) || l.contact.toLowerCase().includes(term) || l.email.toLowerCase().includes(term))) return false;
       return true;
@@ -659,6 +696,9 @@
     $('mainTable').classList.toggle('rate-table', rateMode);
     $('rateViews').hidden = !rateMode;
     if (rateMode) renderRateViews();
+    const waitMode = activeStatus === 'rate-approval';
+    $('waitViews').hidden = !waitMode;
+    if (waitMode) renderWaitViews();
     $('industryFilter').hidden = rateMode;
     $('searchInput').placeholder = rateMode
       ? 'Search merchant, service, or rate…'
@@ -707,7 +747,10 @@
           <div class="contact-sub">${esc(l.email)}</div>
         </td>
         <td><span class="source-pill">${esc(l.source)}</span></td>
-        <td><span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span></td>
+        <td>
+          <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
+          ${l.status === 'rate-approval' && waitingLabel(l) ? `<div class="cell-sub wait-sub">${esc(waitingLabel(l))}</div>` : ''}
+        </td>
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>
         <td>
@@ -731,6 +774,14 @@
     if (prev) prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
     if (next) next.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderTable(); } });
   }
+
+  $('waitViews').addEventListener('click', e => {
+    const btn = e.target.closest('[data-wait]');
+    if (!btn) return;
+    waitFilter = btn.dataset.wait;
+    currentPage = 1;
+    renderTable();
+  });
 
   $('rateViews').addEventListener('click', e => {
     const btn = e.target.closest('[data-view]');

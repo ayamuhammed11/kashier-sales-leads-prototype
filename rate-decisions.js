@@ -13,6 +13,8 @@ window.KashierRates = (function () {
     sales:   { label: 'Salesperson',     name: 'Aya Muhammed', initials: 'AM', approves: [] },
     manager: { label: 'Pricing Manager', name: 'Nadia Salah',  initials: 'NS', approves: ['manager'] },
     head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['manager', 'head'] },
+    // Works submitted applications in the Merchant module; approves no rates.
+    onboarding: { label: 'Onboarding Team', name: 'Rana Adel', initials: 'RA', approves: [] },
   };
   const TIER_LABEL = { manager: 'Manager approval', head: 'Head approval' };
   const TIER_OWNER = { manager: 'Pricing Manager', head: 'Head of Sales' };
@@ -144,6 +146,14 @@ window.KashierRates = (function () {
         ],
         posTerminals: '', docsDone: '6', docsTotal: '6',
       },
+      documents: [
+        { name: 'Commercial Register', file: 'commercial-register.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'owner-id-front-back.pdf' },
+        { name: 'Bank Account Letter', file: 'bank-misr-letter.pdf' },
+        { name: 'Signed Merchant Agreement', file: 'merchant-agreement-signed.pdf' },
+        { name: 'Shop Front Photo', file: 'shop-front.jpg' },
+      ],
       requests: [
         { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
           rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5,
@@ -169,6 +179,15 @@ window.KashierRates = (function () {
         ],
         posTerminals: '', docsDone: '7', docsTotal: '7',
       },
+      documents: [
+        { name: 'Commercial Register', file: 'cr-mansoura-tech.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'karim-nabil-id.pdf' },
+        { name: 'Bank Account Letter', file: 'qnb-account-letter.pdf' },
+        { name: 'Signed Merchant Agreement', file: 'agreement-signed.pdf' },
+        { name: 'Website Terms & Refund Policy', file: 'terms-and-refunds.pdf' },
+        { name: 'Wallet Service Addendum', file: 'wallet-addendum.pdf' },
+      ],
       requests: [
         { id: 'Online Card::QNB::national-offus', service: 'Online Card', bank: 'QNB',
           rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2,
@@ -181,7 +200,84 @@ window.KashierRates = (function () {
           note: 'Half their volume is international clients paying in USD.' },
       ],
     },
+    // Applications already past rate approval, one at each onboarding stage.
+    {
+      id: 'APP-00000006', leadId: 'L-006', biz: 'Zamalek Boutique Hotel', actor: 'Mostafa Khaled',
+      ts: '2026-09-04T10:15:00.000Z', seedAccount: { status: 'submitted' },
+      summary: {
+        email: 'dina@zamalekhotel.com', phone: '+20 128 678 9012',
+        entity: 'Registered Business', industry: 'Travel & Tourism',
+        services: ['Online Card', 'POS Card'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
+          { service: 'POS Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
+        ],
+        posTerminals: '2', docsDone: '6', docsTotal: '6',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'zamalek-hotel-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Tourism Licence', file: 'ministry-tourism-licence.pdf' },
+        { name: 'Owner National ID', file: 'dina-fathy-id.pdf' },
+        { name: 'Bank Account Letter', file: 'nbe-account-letter.pdf' },
+        { name: 'Signed Merchant Agreement', file: 'agreement-signed.pdf' },
+      ],
+      requests: [],
+    },
+    {
+      id: 'APP-00000010', leadId: 'L-010', biz: 'Aswan Realty Partners', actor: 'Mostafa Khaled',
+      ts: '2026-09-02T13:40:00.000Z',
+      seedAccount: { status: 'pending-configurations', by: 'Rana Adel', ts: '2026-09-07T09:30:00.000Z' },
+      summary: {
+        email: 'farida@aswanrealty.com', phone: '+20 111 012 3456',
+        entity: 'Registered Business', industry: 'Real Estate',
+        services: ['Online Card', 'Online Bank Installments'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PF' }] },
+          { service: 'Online Bank Installments', configs: [{ bank: 'Bank Misr', module: 'PF' }, { bank: 'National Bank of Egypt', module: 'PF' }] },
+        ],
+        posTerminals: '', docsDone: '5', docsTotal: '5',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'aswan-realty-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'farida-gamal-id.pdf' },
+        { name: 'Bank Account Letter', file: 'banque-misr-letter.pdf' },
+        { name: 'Signed Merchant Agreement', file: 'agreement-signed.pdf' },
+      ],
+      requests: [],
+    },
+    {
+      id: 'APP-00000004', leadId: 'L-004', biz: 'Alexandria Auto Parts', actor: 'Mostafa Khaled',
+      ts: '2026-08-18T08:50:00.000Z',
+      seedAccount: { status: 'live', by: 'Rana Adel', ts: '2026-08-30T15:05:00.000Z', approvedTs: '2026-08-22T11:20:00.000Z' },
+      summary: {
+        email: 'salma@alexautoparts.com', phone: '+20 155 456 7890',
+        entity: 'Registered Business', industry: 'Automotive',
+        services: ['Online Card', 'POS Card'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'QNB', module: 'PSP' }] },
+          { service: 'POS Card', configs: [{ bank: 'QNB', module: 'PSP' }] },
+        ],
+        posTerminals: '3', docsDone: '5', docsTotal: '5',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'alex-auto-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'salma-reda-id.pdf' },
+        { name: 'Bank Account Letter', file: 'qnb-letter.pdf' },
+        { name: 'Signed Merchant Agreement', file: 'agreement-signed.pdf' },
+      ],
+      requests: [],
+    },
   ];
+
+  /* Kashier MIDs are issued with the lead in CRM; applications carry the lead's MID. */
+  const LEAD_MIDS = {
+    'L-001': 'MID-10237-114', 'L-002': 'MID-10589-227', 'L-003': 'MID-11042-350', 'L-004': 'MID-20458-771',
+    'L-005': 'MID-11298-463', 'L-006': 'MID-10874-556', 'L-007': 'MID-10651-689', 'L-008': 'MID-10412-792',
+    'L-009': 'MID-33127-905', 'L-010': 'MID-11605-018',
+  };
 
   /* The seeded applications have no stored tracking link, so rebuild the one the lead page
      would hand out. */
@@ -193,9 +289,12 @@ window.KashierRates = (function () {
       services: s.services.join(','),
       serviceConfigs: JSON.stringify(s.serviceConfigs),
       pricingRequests: JSON.stringify(a.requests),
+      documents: JSON.stringify(a.documents || []),
       total: s.docsTotal, done: s.docsDone,
-      needsApproval: a.requests.length, status: 'pending-rate-approval',
+      needsApproval: a.requests.length,
+      status: a.requests.length ? 'pending-rate-approval' : 'pending-onboarding-review',
     });
+    if (s.posTerminals) qs.set('posTerminals', s.posTerminals);
     return 'application-status.html?' + qs.toString();
   }
 
@@ -206,8 +305,12 @@ window.KashierRates = (function () {
     try { requests = JSON.parse(qs.get('pricingRequests') || '[]'); } catch (e) { requests = []; }
     let serviceConfigs = [];
     try { serviceConfigs = JSON.parse(qs.get('serviceConfigs') || '[]'); } catch (e) { serviceConfigs = []; }
+    let documents = [];
+    try { documents = JSON.parse(qs.get('documents') || '[]'); } catch (e) { documents = []; }
     return {
       id: qs.get('id') || '—', leadId: leadId || qs.get('leadId') || '', url: url,
+      documents: documents,
+      mid: qs.get('mid') || '',
       biz: qs.get('biz') || 'Untitled Application',
       actor: qs.get('actor') || 'Unknown',
       ts: qs.get('ts') || new Date().toISOString(),
@@ -234,8 +337,8 @@ window.KashierRates = (function () {
       // A stored application replaces any seeded one for the lead, even when it carries no
       // rate requests (a resubmission priced entirely at published rates, say).
       seenLeads.add(leadId);
-      const app = parseApplication(leadId, url);
-      if (app.requests.length) apps.push(app);
+      // Kept even with no rate requests: it is still a merchant account for the Onboarding team.
+      apps.push(parseApplication(leadId, url));
     });
     SEEDED.forEach(a => {
       if (seenLeads.has(a.leadId)) return;
@@ -413,6 +516,123 @@ window.KashierRates = (function () {
     return { id: newId, url: url, status: status, pending: pending };
   }
 
+  /* ── Merchant accounts (Onboarding team) ─────────────────────────────────────────
+     A submitted application is a merchant account in the Merchant module. Once any rate
+     approvals are through, the Onboarding team works it in two stages:
+       Application submitted  →  ✓ approve internally, send to the bank (or ✗ reject)
+       Pending Configurations →  Go Live, once the bank/vendor approval and credentials arrive
+     Each step moves the lead and the salesperson's tracking page along with it. */
+  const ACCOUNT_STATUS = {
+    'rate-approval':          { label: 'Waiting rate approval',   tone: 'warn' },
+    'returned':               { label: 'Returned to sales',       tone: 'danger' },
+    'submitted':              { label: 'Application submitted',   tone: 'warn' },
+    'pending-configurations': { label: 'Pending Configurations',  tone: 'warn' },
+    'rejected':               { label: 'Application rejected',    tone: 'danger' },
+    'live':                   { label: 'Live',                    tone: 'success' },
+  };
+
+  function midFor(app) { return app.mid || LEAD_MIDS[app.leadId] || ''; }
+
+  /* The stored onboarding step, or where rate approval leaves the account before one exists. */
+  function accountRecord(app) {
+    const stored = readStore('kashierAccountStatus')[app.id];
+    if (stored) return stored;
+    if (app.seedAccount) return app.seedAccount;
+    const decisions = decisionsFor(app.id);
+    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return { status: 'returned' };
+    if (app.requests.some(r => !decisions[r.id])) return { status: 'rate-approval' };
+    return { status: 'submitted' };
+  }
+  function accountStatusFor(app) { return accountRecord(app).status; }
+
+  function merchantAccounts() {
+    return loadApplications()
+      .filter(a => !a.superseded)
+      .map(a => {
+        const rec = accountRecord(a);
+        return { app: a, mid: midFor(a), status: rec.status, meta: ACCOUNT_STATUS[rec.status], record: rec };
+      })
+      .sort((x, y) => new Date(y.app.ts) - new Date(x.app.ts));
+  }
+  function findAccount(appId) {
+    return merchantAccounts().filter(a => a.app.id === appId)[0] || null;
+  }
+
+  function setAccount(app, record, appStatus, leadStatus) {
+    const all = readStore('kashierAccountStatus');
+    all[app.id] = record;
+    writeStore('kashierAccountStatus', all);
+    const statuses = readStore('kashierAppStatus');
+    statuses[app.id] = appStatus;
+    writeStore('kashierAppStatus', statuses);
+    if (app.leadId) {
+      const leads = readStore('kashierLeadStatusOverrides');
+      leads[app.leadId] = leadStatus;
+      writeStore('kashierLeadStatusOverrides', leads);
+    }
+  }
+
+  /* Stage 1 ✓ — approved internally, on its way to the bank. */
+  function approveAccount(opts) {
+    const app = opts.app, prev = accountRecord(app);
+    if (opts.role !== 'onboarding' || prev.status !== 'submitted') return null;
+    const ts = new Date().toISOString();
+    setAccount(app, { status: 'pending-configurations', by: ROLES.onboarding.name, ts: ts, approvedTs: ts },
+      'pending-bank-submission', 'bank-submission');
+    return 'pending-configurations';
+  }
+  /* Stage 1 ✗ — the application goes back to the salesperson with the reason. */
+  function rejectAccount(opts) {
+    const app = opts.app, prev = accountRecord(app);
+    if (opts.role !== 'onboarding' || prev.status !== 'submitted' || !String(opts.reason || '').trim()) return null;
+    const ts = new Date().toISOString();
+    setAccount(app, { status: 'rejected', by: ROLES.onboarding.name, ts: ts, reason: opts.reason.trim() },
+      'rejected-by-onboarding', 'application');
+    if (app.leadId) {
+      const notes = readStore('kashierLeadReturnNote');
+      notes[app.leadId] = { ts: ts, kind: 'onboarding',
+        text: 'Application rejected by the Onboarding team (' + ROLES.onboarding.name + '): ' + opts.reason.trim() };
+      writeStore('kashierLeadReturnNote', notes);
+    }
+    return 'rejected';
+  }
+  /* Stage 2 — bank/vendor approval and credentials are in; the account goes live. */
+  function goLiveAccount(opts) {
+    const app = opts.app, prev = accountRecord(app);
+    if (opts.role !== 'onboarding' || prev.status !== 'pending-configurations') return null;
+    setAccount(app, { status: 'live', by: ROLES.onboarding.name, ts: new Date().toISOString(), approvedTs: prev.approvedTs || prev.ts },
+      'live', 'activated');
+    return 'live';
+  }
+
+  /* What happened to the account, oldest first — the Logs tab. */
+  function accountLog(app) {
+    const events = [{ ts: app.ts, who: app.actor, text: 'Application submitted by Sales' }];
+    const decisions = decisionsFor(app.id);
+    const seen = {};
+    app.requests.forEach(r => {
+      const d = decisions[r.id];
+      if (!d) return;
+      const key = d.ts + d.by + d.decision;
+      if (seen[key]) { seen[key].rates.push(r.rate); return; }
+      seen[key] = { ts: d.ts, who: d.by, decision: d.decision, reason: d.reason, rates: [r.rate] };
+      events.push(seen[key]);
+    });
+    Object.keys(seen).forEach(k => {
+      const e = seen[k];
+      e.text = (e.decision === 'approved' ? 'Approved ' : 'Rejected ') + e.rates.join(', ') + (e.reason ? ' — ' + e.reason : '');
+    });
+    const rec = accountRecord(app);
+    if (rec.approvedTs) events.push({ ts: rec.approvedTs, who: rec.by, text: 'Approved internally and sent to the bank' });
+    if (rec.status === 'rejected') events.push({ ts: rec.ts, who: rec.by, text: 'Application rejected — ' + rec.reason });
+    if (rec.status === 'live') events.push({ ts: rec.ts, who: rec.by, text: 'Bank/vendor approval received — account is live' });
+    return events.sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  }
+
+  function accountURL(appId) {
+    return 'merchant-account.html?app=' + encodeURIComponent(appId);
+  }
+
   function revisionURL(appId) {
     return 'rate-revision.html?app=' + encodeURIComponent(appId);
   }
@@ -431,5 +651,8 @@ window.KashierRates = (function () {
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
     revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, revisionURL: revisionURL,
+    ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
+    merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
+    approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,
   };
 })();

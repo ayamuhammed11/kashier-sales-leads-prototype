@@ -278,6 +278,14 @@
   .submit-row:last-child { border-bottom: none; }
   .submit-row .lbl { font-size: 13px; color: var(--cadet-04); }
   .submit-row .val { font-size: 13px; font-weight: 700; color: var(--foreground); }
+  /* What still stands between the salesperson and a created application */
+  .submit-checklist { background: var(--muted); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
+  .checklist-title { font-size: 12.5px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
+  .check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--foreground); padding: 3px 0; }
+  .check-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--cadet-06); }
+  .check-item.done { color: var(--cadet-05); }
+  .check-item.done svg { color: var(--success); }
+  .btn-primary:disabled, .btn-primary:disabled:hover { background: var(--primary); }
 
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--primary);
@@ -447,6 +455,7 @@
         </div>
         <div class="card-body">
           <div class="submit-summary" id="submitSummary"></div>
+          <div class="submit-checklist" id="submitChecklist" hidden></div>
           <div class="whn-actions" style="border-top:none; margin-top:0; padding-top:0;">
             <button class="btn btn-primary" id="submitAppBtn">Create Merchant Application</button>
           </div>
@@ -1166,6 +1175,35 @@
     const { needsApproval, unresolved, missing } = aggregatePricingStats();
     return { needsApproval, unresolved, missing };
   }
+  /* Everything the application needs before it can be created, in the order the form asks
+     for it. The Create button stays disabled until every item is done. */
+  function readinessChecks() {
+    const hasContact = ['mBiz', 'mEmail', 'mPhone'].every(id => $(id).value.trim());
+    const services = criteria.services;
+    const configured = services.filter(s => serviceConfig[s] && serviceConfig[s].done).length;
+    const { unresolved } = approvalStatus();
+    const { total, done } = currentDocStatus();
+    const checks = [
+      { label: 'Merchant details — business name, email and phone', done: hasContact },
+      { label: 'Merchant type and industry', done: !!(criteria.entity && criteria.industry) },
+      { label: 'At least one service selected', done: services.length > 0 },
+    ];
+    if (criteria.posEnabled) {
+      checks.push({ label: 'Number of POS terminals', done: Number(criteria.posTerminals) > 0 });
+    }
+    checks.push({
+      label: services.length
+        ? `Every service set up and saved — ${configured} of ${services.length}`
+        : 'Every service set up and saved',
+      done: services.length > 0 && configured === services.length && !unresolved,
+    });
+    checks.push({
+      label: total ? `All required documents uploaded — ${done} of ${total}` : 'All required documents uploaded',
+      done: services.length > 0 && done === total,
+    });
+    return checks;
+  }
+
   function renderSubmitSummary() {
     const biz = $('mBiz').value.trim();
     const { total, done } = currentDocStatus();
@@ -1178,8 +1216,24 @@
         ? missing + ' rate' + (missing === 1 ? '' : 's') + ' not entered yet'
         : needsApproval ? needsApproval + ' rate' + (needsApproval === 1 ? '' : 's') + ' need approval' : 'All rates Auto'}</span></div>
       <div class="submit-row"><span class="lbl">Status</span><span class="status-pill ${meta.cls}"><span class="dot"></span>${meta.label}</span></div>`;
+
+    const checks = readinessChecks();
+    const remaining = checks.filter(c => !c.done);
+    $('submitAppBtn').disabled = remaining.length > 0;
+    $('submitAppBtn').title = remaining.length ? 'Complete the items listed above to create the application' : '';
+    $('submitChecklist').hidden = !remaining.length;
+    $('submitChecklist').innerHTML = remaining.length ? `
+      <div class="checklist-title">Complete ${remaining.length === 1 ? 'this' : `these ${remaining.length}`} to create the application</div>
+      ${checks.map(c => `<div class="check-item${c.done ? ' done' : ''}">
+        ${c.done
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.25"/></svg>'}
+        <span>${esc(c.label)}</span>
+      </div>`).join('')}` : '';
   }
-  $('mBiz').addEventListener('input', renderSubmitSummary);
+  ['mBiz', 'mEmail', 'mPhone'].forEach(id => $(id).addEventListener('input', renderSubmitSummary));
+  // Paint once on load so the button starts disabled, not only after the first edit.
+  renderSubmitSummary();
 
   // Prefill from a Sales lead handoff (My Leads → Complete Onboarding Application)
   // The lead already carries the merchant's minimum info from the CRM, so the

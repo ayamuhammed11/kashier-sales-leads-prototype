@@ -412,6 +412,7 @@
     </div>
   </div>
 
+<script src="rate-decisions.js"></script>
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -528,12 +529,33 @@
   try {
     returnedNote = (JSON.parse(localStorage.getItem('kashierLeadReturnNote') || '{}'))[id] || null;
   } catch (e) { /* storage unavailable */ }
+  // A resubmission answers the last rejection; show both on the timeline, newest first.
+  let resubmitted = null;
+  try {
+    resubmitted = (JSON.parse(localStorage.getItem('kashierLeadResubmitted') || '{}'))[id] || null;
+  } catch (e) { /* storage unavailable */ }
+  const approvalEvents = [];
   if (returnedNote) {
-    lead.activity = [{
+    approvalEvents.push({
       icon: 'flag', actor: 'Rate Approval', time: returnedNote.ts.slice(0, 16).replace('T', ' '),
       text: `Application returned — ${returnedNote.text}`,
-    }].concat(lead.activity);
+    });
   }
+  if (resubmitted) {
+    const to = [resubmitted.head ? `${resubmitted.head} to the Head of Sales` : '',
+                resubmitted.manager ? `${resubmitted.manager} to the Pricing Manager` : ''].filter(Boolean).join(' and ');
+    approvalEvents.push({
+      icon: 'check', actor: resubmitted.by || 'Salesperson', time: resubmitted.ts.slice(0, 16).replace('T', ' '),
+      text: to
+        ? `Revised rates resubmitted as ${resubmitted.appId} — ${to} for approval.`
+        : `Revised rates resubmitted as ${resubmitted.appId} at published pricing — sent to Onboarding Review.`,
+    });
+  }
+  approvalEvents.sort((a, b) => b.time.localeCompare(a.time));
+  lead.activity = approvalEvents.concat(lead.activity);
+
+  // The application a revision would start from, if its rates came back rejected.
+  const rejectedApp = window.KashierRates.rejectedApplicationFor(id);
 
   // The onboarding page hands back a tracking link once the application is submitted.
   // Demo leads that were seeded already past Application in Progress don't have a real
@@ -653,9 +675,14 @@
         Track Application
         <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
       </a>` : '';
+    } else if (lead.status === 'application' && rejectedApp) {
+      // Rates came back rejected: revise just those and resubmit, rather than starting the
+      // whole onboarding application over.
+      box.innerHTML = `<a class="btn btn-primary" href="${esc(window.KashierRates.revisionURL(rejectedApp.id))}">
+        Revise &amp; Resubmit Rates
+        <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      </a>`;
     } else if (lead.status === 'new' || lead.status === 'application') {
-      // A returned application says what was rejected in the note at the top of the page,
-      // so the only action left here is to go back in and fix the pricing.
       box.innerHTML = `<button class="btn btn-primary" id="proceedBtn">
         Complete Onboarding Application
         <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
@@ -691,6 +718,9 @@
   }
   renderStatusActions();
   renderPageActions();
+  if (params.get('resubmitted')) {
+    setTimeout(() => toast(`Rates resubmitted as ${params.get('resubmitted')}.`), 150);
+  }
 
   function openLostModal() {
     $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lead.biz)}</b> as lost? This moves them out of the active pipeline — you can still see them under My Leads, but no further onboarding action can be taken.`;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kashier | Rate Request</title>
+<title>Kashier | Revise Rates</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -233,50 +233,73 @@
   }
   @media (max-width: 620px) { .user .name { display: none; } }
 
-  /* ---------- Rate approval request page ---------- */
+  /* ---------- Rate revision page ---------- */
   .page-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .actions-note { font-size: 12.5px; color: var(--cadet-base); background: var(--muted); border-radius: var(--radius);
-    padding: 9px 12px; max-width: 340px; line-height: 1.45; }
-  .level-pill { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; border-radius: 999px;
-    padding: 3px 10px; background: var(--warning-bg); color: var(--warning-text); }
-  .level-pill.head { background: var(--destructive-bg); color: var(--destructive); }
+  .reject-reason { display: flex; gap: 10px; background: var(--destructive-bg); border: 1px solid #FFBBC4;
+    border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+  .reject-reason:last-of-type { margin-bottom: 24px; }
+  .reject-reason svg { width: 18px; height: 18px; color: var(--destructive); flex-shrink: 0; margin-top: 1px; }
+  .reject-reason-title { font-size: 13px; font-weight: 700; color: var(--destructive); }
+  .reject-reason-text { font-size: 13px; color: var(--foreground); line-height: 1.5; margin-top: 3px; }
+  .reject-reason-meta { font-size: 12px; color: var(--cadet-05); margin-top: 4px; }
 
   .svc-group + .svc-group { margin-top: 22px; }
   .svc-group-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding-bottom: 8px;
     border-bottom: 1px solid var(--border-subtle); }
   .svc-group-name { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); }
   .svc-group-meta { font-size: 12px; color: var(--cadet-05); }
-  .rate-line { padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
-  .rate-line:last-child { border-bottom: none; padding-bottom: 0; }
-  .rate-line-top { display: grid; grid-template-columns: minmax(150px, 1.3fr) 1fr 1fr; gap: 14px; align-items: start; }
-  .rate-line-name { font-size: 13.5px; font-weight: 600; color: var(--foreground); }
-  .rate-line-gap { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .fig-mini .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); }
-  .fig-mini .val { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
-  .fig-mini.asking .val { color: var(--primary); }
-  .gap-chip { font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 3px 9px;
-    background: var(--warning-bg); color: var(--warning-text); }
-  .gap-chip.head { background: var(--destructive-bg); color: var(--destructive); }
-  .gap-chip.ok { background: var(--success-bg); color: var(--success-text); }
-  .line-note { font-size: 13px; color: var(--cadet-base); line-height: 1.55; margin-top: 10px;
-    border-left: 3px solid var(--warning); background: var(--warning-bg); border-radius: 0 6px 6px 0; padding: 9px 12px; }
-  .line-note.empty { border-left-color: var(--border); background: var(--muted); color: var(--cadet-05); font-style: italic; }
 
-  .decision { display: flex; gap: 12px; align-items: flex-start; }
-  .decision-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .decision-icon.approved { background: var(--success-bg); color: var(--success); }
-  .decision-icon.rejected { background: var(--destructive-bg); color: var(--destructive); }
-  .decision-icon svg { width: 18px; height: 18px; }
-  .decision-title { font-size: 14px; font-weight: 700; color: var(--foreground); }
-  .decision-meta { font-size: 12.5px; color: var(--cadet-05); margin-top: 2px; }
-  .decision-reason { font-size: 13px; color: var(--destructive); line-height: 1.5; margin-top: 8px; }
-  .detail-list { display: flex; flex-direction: column; gap: 14px; }
-  .status-pill.danger { background: var(--destructive-bg); color: var(--destructive); }
-  .status-pill.danger .dot { background: var(--destructive); }
-  .app-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+  .rev-line { padding: 16px 0; border-bottom: 1px solid var(--border-subtle); }
+  .rev-line:last-child { border-bottom: none; padding-bottom: 0; }
+  .rev-line-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .rev-line-name { font-size: 14px; font-weight: 600; color: var(--foreground); }
+  .line-chip { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; text-transform: uppercase; letter-spacing: .03em; }
+  .line-chip.rejected { background: var(--destructive-bg); color: var(--destructive); }
+  .line-chip.unreviewed { background: var(--muted); color: var(--cadet-02); }
+  .rev-ref { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--cadet-base); margin-top: 6px; }
+  .rev-ref b { color: var(--foreground); font-weight: 600; }
+  .rev-ref s { color: var(--cadet-05); }
+
+  .rev-inputs { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+  .rev-field { display: flex; flex-direction: column; gap: 5px; }
+  .rev-field label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); }
+  .rev-field label .req { color: var(--destructive); }
+  .input-wrap { position: relative; display: inline-flex; align-items: center; }
+  .rev-input { width: 118px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff;
+    color: var(--foreground); font-family: inherit; font-size: 14px; font-weight: 600; padding: 0 44px 0 12px; color-scheme: light; }
+  .rev-input.rate { padding-right: 28px; width: 104px; }
+  .rev-input:focus { outline: none; border-color: var(--primary); }
+  .rev-input.invalid { border-color: var(--destructive); }
+  .input-suffix { position: absolute; right: 10px; font-size: 13px; font-weight: 600; color: var(--cadet-05); pointer-events: none; }
+  .verdict { font-size: 12.5px; font-weight: 600; border-radius: 6px; padding: 7px 10px; align-self: center; }
+  .verdict.empty { background: var(--muted); color: var(--cadet-05); font-weight: 400; font-style: italic; }
+  .verdict.auto { background: var(--success-bg); color: var(--success-text); }
+  .verdict.manager { background: var(--warning-bg); color: var(--warning-text); }
+  .verdict.head { background: var(--destructive-bg); color: var(--destructive); }
+  .rev-note { margin-top: 12px; }
+  .rev-note label { display: block; font-size: 12.5px; font-weight: 700; color: var(--cadet-base); margin-bottom: 5px; }
+  .rev-note textarea { width: 100%; min-height: 64px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff;
+    color: var(--foreground); font-family: inherit; font-size: 13.5px; padding: 9px 12px; resize: vertical; color-scheme: light; }
+  .rev-note textarea:focus { outline: none; border-color: var(--primary); }
+  .rev-note textarea.invalid { border-color: var(--destructive); }
+  .rev-note-hint { font-size: 11.5px; color: var(--cadet-05); margin-top: 4px; }
+  .line-error { font-size: 12.5px; color: var(--destructive); margin-top: 8px; }
+
+  .kept-line { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border-subtle); }
+  .kept-line:first-child { border-top: none; padding-top: 0; }
+  .kept-name { font-size: 13px; font-weight: 600; color: var(--foreground); }
+  .kept-sub { font-size: 11.5px; color: var(--cadet-05); margin-top: 2px; }
+  .kept-price { font-family: 'Outfit', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--success-text); white-space: nowrap; }
+
+  .outcome-list { display: flex; flex-direction: column; gap: 8px; }
+  .outcome-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--cadet-base); }
+  .outcome-row b { font-family: 'Outfit', sans-serif; font-size: 16px; color: var(--foreground); }
+  .outcome-summary { font-size: 12.5px; color: var(--cadet-base); line-height: 1.5; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border-subtle); }
+  .submit-btn { width: 100%; margin-top: 14px; }
+  .role-note { font-size: 12px; color: var(--cadet-05); margin-top: 8px; text-align: center; }
   .not-found { text-align: center; padding: 48px 20px; color: var(--cadet-base); }
   .not-found h2 { font-size: 18px; color: var(--foreground); margin-bottom: 6px; }
-  @media (max-width: 700px) { .rate-line-top { grid-template-columns: 1fr 1fr; } .rate-line-top > :first-child { grid-column: 1 / -1; } }
 </style>
 </head>
 <body>
@@ -347,319 +370,329 @@
     <div class="content">
       <div class="breadcrumb">
         <a href="index.html">My Leads</a> <span class="sep">/</span>
-        <a href="index.html?view=rates">Rate Approvals</a> <span class="sep">/</span>
-        <span class="current" id="crumbRate">Rate Request</span>
+        <a href="#" id="crumbLead">Lead</a> <span class="sep">/</span>
+        <span class="current">Revise Rates</span>
       </div>
 
-      <div id="requestView" hidden>
+      <div id="revisionView" hidden>
         <div class="page-head">
           <div class="page-head-left">
-            <a class="back-btn" href="index.html?view=rates" title="Back to Rate Approvals">
+            <a class="back-btn" id="backBtn" href="index.html" title="Back to the lead">
               <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
             </a>
             <div>
               <div class="title-row">
-                <h1 id="reqTitle">Rate Request</h1>
-                <span id="reqStatus"></span>
+                <h1>Revise Rejected Rates</h1>
               </div>
-              <div class="sub" id="reqSub"></div>
+              <div class="sub" id="revSub"></div>
             </div>
           </div>
-          <div class="page-actions" id="reqActions"></div>
         </div>
 
+        <div id="rejectReasons"></div>
+
         <div class="layout-grid">
-          <!-- LEFT: every rate in this request, grouped by service -->
           <div>
             <div class="card">
               <div class="card-head">
-                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
                 <div>
-                  <h2>Requested Rates</h2>
-                  <p class="ch-sub" id="ratesSub">Every rate on this application that needs this approval level, with the salesperson's justification for each.</p>
+                  <h2>Rates to Revise</h2>
+                  <p class="ch-sub">Enter the rate and fixed fee you are resubmitting. Each rate is checked again — anything still below published pricing goes back for approval with your justification.</p>
                 </div>
               </div>
-              <div class="card-body" id="rateGroups"></div>
+              <div class="card-body" id="reviseGroups"></div>
             </div>
 
-            <div class="card" id="decisionCard" hidden>
+            <div class="card" id="keptCard" hidden>
               <div class="card-head">
                 <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                <div><h2>Decision</h2></div>
+                <div>
+                  <h2>Already Approved</h2>
+                  <p class="ch-sub">These keep their approval and are not sent for review again.</p>
+                </div>
               </div>
-              <div class="card-body" id="decisionBody"></div>
+              <div class="card-body" id="keptList"></div>
             </div>
           </div>
 
-          <!-- RIGHT: request details, with the application kept one link away -->
           <div>
             <div class="card">
               <div class="card-head">
-                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-                <div><h2>Request Details</h2></div>
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                <div><h2>Resubmission</h2></div>
               </div>
               <div class="card-body">
-                <div class="detail-list" id="detailList"></div>
+                <div class="outcome-list" id="outcomeList"></div>
+                <div class="outcome-summary" id="outcomeSummary"></div>
+                <button class="btn btn-primary submit-btn" id="resubmitBtn">Resubmit Application</button>
+                <div class="role-note" id="roleNote" hidden>Only the salesperson can resubmit. Switch "Viewing as" to Salesperson.</div>
               </div>
             </div>
-
-            <a class="btn btn-outline app-link" id="appLink" href="#">
-              View Application
-              <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-            </a>
+            <a class="btn btn-outline" id="cancelBtn" href="index.html" style="width:100%">Cancel</a>
           </div>
         </div>
       </div>
 
       <div class="card not-found" id="notFound" hidden>
-        <h2>Rate request not found</h2>
-        <p>This link doesn't match a rate approval request. It may have been resubmitted under a new application.</p>
-        <a class="btn btn-primary" href="index.html?view=rates">Back to Rate Approvals</a>
+        <h2>Nothing to revise</h2>
+        <p id="notFoundText">This application has no rejected rates waiting on you.</p>
+        <a class="btn btn-primary" id="notFoundBtn" href="index.html">Back to My Leads</a>
       </div>
     </div>
   </main>
 
   <div class="toast" id="toast"></div>
 
-  <div class="modal-overlay" id="rejectBackdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Reject rate request</h3>
-        <button class="btn-icon" id="rejectClose" aria-label="Close">&#10005;</button>
-      </div>
-      <div class="modal-body">
-        <p class="confirm-text" id="rejectText"></p>
-        <textarea id="rejectReason" placeholder="Why are these rates being rejected? The salesperson sees this when the application comes back to them."></textarea>
-        <div class="field-error" id="rejectError" hidden>Add a reason — this is what the salesperson gets back, so they know what to change.</div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" id="rejectCancel">Cancel</button>
-        <button class="btn btn-destructive" id="rejectConfirm">Reject &amp; Return</button>
-      </div>
-    </div>
-  </div>
-
 <script src="rate-decisions.js"></script>
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-  const { ROLES, TIER_LABEL, TIER_OWNER } = window.KashierRates;
-  let role = window.KashierRates.getRole();
+  const K = window.KashierRates;
+  const { ROLES, TIER_OWNER } = K;
+  let role = K.getRole();
 
-  /* A request is one application at one approval level: ?app=APP-…&level=manager|head */
-  const params = new URLSearchParams(location.search);
-  const APP_ID = params.get('app') || '';
-  const LEVEL = params.get('level') === 'head' ? 'head' : (params.get('level') === 'manager' ? 'manager' : '');
+  const APP_ID = new URLSearchParams(location.search).get('app') || '';
+  const app = K.loadApplications().filter(a => a.id === APP_ID)[0] || null;
+  const decisions = app ? K.decisionsFor(app.id) : {};
+  // A superseded version has already been resubmitted — it can't be revised a second time.
+  const rejected = app && !app.superseded &&
+    app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
+  const plan = rejected ? K.revisionPlan(app) : null;
+
+  // What the salesperson is typing, per line — prefilled with what was asked last time.
+  const drafts = {};
+  if (plan) plan.revise.forEach(({ line }) => {
+    drafts[line.id] = {
+      rate: line.requested != null ? String(line.requested) : '',
+      fee: line.requestedFee != null ? String(line.requestedFee) : '',
+      note: line.note || '',
+    };
+  });
 
   function fmtDate(iso) {
     return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
-  function fmtDateTime(iso) {
-    return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-  function trim(n) { return Number(n).toFixed(2).replace(/\.?0+$/, ''); }
   function pricing(pct, fee) {
     return [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
   }
-  function current() { return LEVEL ? window.KashierRates.findApprovalRequest(APP_ID, LEVEL) : null; }
-
-  /* The next request waiting on this person, so an approver can work through the queue
-     without going back to the list after every decision. */
-  function nextPending() {
-    return window.KashierRates.approvalRequests().filter(r =>
-      r.state === 'pending' && window.KashierRates.canRoleAct(role, r.tier) &&
-      !(r.app.id === APP_ID && r.tier === LEVEL))[0] || null;
-  }
-
-  function statusPillHTML(state) {
-    if (state === 'approved') return '<span class="status-pill success"><span class="dot"></span>Approved</span>';
-    if (state === 'rejected') return '<span class="status-pill danger"><span class="dot"></span>Rejected</span>';
-    if (state === 'closed') return '<span class="status-pill"><span class="dot"></span>Closed</span>';
-    return '<span class="status-pill warn"><span class="dot"></span>Pending</span>';
-  }
-  function settlementFor(app, service, bank) {
+  function leadURL() { return app && app.leadId ? 'lead-details.html?id=' + encodeURIComponent(app.leadId) : 'index.html'; }
+  function settlementFor(service, bank) {
     const configs = (app.summary && app.summary.serviceConfigs) || [];
     const svc = configs.filter(c => c.service === service)[0];
-    if (!svc) return '';
-    const cfg = (svc.configs || []).filter(c => (c.bank || '') === (bank || ''))[0];
+    const cfg = svc && (svc.configs || []).filter(c => (c.bank || '') === (bank || ''))[0];
     return cfg ? cfg.module : '';
   }
 
-  function lineHTML(line, tier) {
-    const cls = tier === 'head' ? ' head' : '';
-    const chips = [];
-    if (line.requested != null && line.standard != null && line.requested < line.standard) {
-      chips.push(`<span class="gap-chip${cls}">${trim(line.standard - line.requested)} pp below standard rate</span>`);
-    }
-    if (line.requestedFee != null && line.standardFee != null && line.requestedFee < line.standardFee) {
-      chips.push(`<span class="gap-chip${cls}">${trim(line.standardFee - line.requestedFee)} EGP below standard fee</span>`);
-    }
-    return `<div class="rate-line">
-      <div class="rate-line-top">
-        <div>
-          <div class="rate-line-name">${esc(line.rate)}</div>
-          ${chips.length ? `<div class="rate-line-gap">${chips.join('')}</div>` : ''}
-        </div>
-        <div class="fig-mini asking"><div class="lbl">Asking</div><div class="val">${esc(pricing(line.requested, line.requestedFee))}</div></div>
-        <div class="fig-mini"><div class="lbl">Published</div><div class="val">${esc(pricing(line.standard, line.standardFee))}</div></div>
+  function verdictFor(line) {
+    const d = drafts[line.id];
+    const tier = K.tierForPricing(line, d.rate, d.fee);
+    const text = !tier ? 'Enter the rate and fixed fee'
+      : tier === 'auto' ? 'At published pricing — no approval needed'
+      : `Needs ${TIER_OWNER[tier]} approval`;
+    return { tier, text };
+  }
+  /* Unchanged means the approver would be looking at exactly what they already rejected. */
+  function unchanged(line) {
+    const d = drafts[line.id];
+    return Number(d.rate) === Number(line.requested) && Number(d.fee) === Number(line.requestedFee)
+      && d.note.trim() === String(line.note || '').trim();
+  }
+
+  function lineHTML({ line, decision }) {
+    const d = drafts[line.id];
+    const { tier, text } = verdictFor(line);
+    const needsNote = tier === 'manager' || tier === 'head';
+    const chip = decision
+      ? '<span class="line-chip rejected">Rejected</span>'
+      : '<span class="line-chip unreviewed">Not reviewed</span>';
+    return `<div class="rev-line" data-line="${esc(line.id)}">
+      <div class="rev-line-head">
+        <span class="rev-line-name">${esc(line.rate)}</span>${chip}
       </div>
-      <div class="line-note${line.note ? '' : ' empty'}">${line.note ? esc(line.note) : 'No justification was recorded for this rate.'}</div>
+      <div class="rev-ref">
+        <span>Published <b>${esc(pricing(line.standard, line.standardFee))}</b></span>
+        <span>Previously asked <s>${esc(pricing(line.requested, line.requestedFee))}</s></span>
+      </div>
+      <div class="rev-inputs">
+        <div class="rev-field">
+          <label for="rate-${esc(line.id)}">New rate<span class="req">*</span></label>
+          <div class="input-wrap">
+            <input class="rev-input rate" id="rate-${esc(line.id)}" data-field="rate" type="number" step="0.01" min="0" inputmode="decimal" value="${esc(d.rate)}">
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+        <div class="rev-field">
+          <label for="fee-${esc(line.id)}">Fixed fee<span class="req">*</span></label>
+          <div class="input-wrap">
+            <input class="rev-input" id="fee-${esc(line.id)}" data-field="fee" type="number" step="0.25" min="0" inputmode="decimal" value="${esc(d.fee)}">
+            <span class="input-suffix">EGP</span>
+          </div>
+        </div>
+        <span class="verdict ${tier || 'empty'}">${esc(text)}</span>
+      </div>
+      <div class="rev-note"${needsNote ? '' : ' hidden'}>
+        <label for="note-${esc(line.id)}">Justification<span class="req" style="color:var(--destructive)">*</span></label>
+        <textarea id="note-${esc(line.id)}" data-field="note" placeholder="Why does this merchant need this rate? Address the reviewer's reason.">${esc(d.note)}</textarea>
+        <div class="rev-note-hint">The approver reads this next to the rate you are resubmitting.</div>
+      </div>
+      <div class="line-error" hidden></div>
     </div>`;
   }
 
-  function render() {
-    const request = current();
-    $('requestView').hidden = !request;
-    $('notFound').hidden = !!request;
-    if (!request) return;
-
-    const { app, tier, lines, services, state, decision } = request;
-    const canAct = state === 'pending' && window.KashierRates.canRoleAct(role, tier);
-    const n = lines.length;
-    document.title = `Kashier | ${TIER_LABEL[tier]} — ${app.biz}`;
-
-    // Header: the request is the merchant at one approval level
-    $('crumbRate').textContent = `${app.biz} · ${TIER_LABEL[tier]}`;
-    $('reqTitle').textContent = app.biz;
-    $('reqStatus').innerHTML = statusPillHTML(state);
-    $('reqSub').innerHTML = [
-      `<span class="level-pill${tier === 'head' ? ' head' : ''}">${esc(TIER_LABEL[tier])}</span>`,
-      `${n} rate${n === 1 ? '' : 's'} across ${services.length} service${services.length === 1 ? '' : 's'}`,
-      esc(app.id),
-    ].join('<span class="dot">&middot;</span>');
-
-    // One decision covers the whole request
-    if (canAct) {
-      $('reqActions').innerHTML = `
-        <button class="btn btn-destructive-outline" id="rejectBtn">Reject</button>
-        <button class="btn btn-success" id="approveBtn">
-          <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-          Approve${n > 1 ? ` All ${n}` : ''}
-        </button>`;
-    } else if (app.superseded) {
-      // An earlier version kept for the record; the live request is on the resubmission.
-      $('reqActions').innerHTML = `<div class="actions-note">Revised and resubmitted as ${esc(app.supersededBy)}.</div>`;
-    } else if (role === 'sales' && (state === 'rejected' || state === 'closed')) {
-      // The salesperson's way back in after a rejection.
-      $('reqActions').innerHTML = `<a class="btn btn-primary" href="${window.KashierRates.revisionURL(app.id)}">Revise &amp; Resubmit Rates</a>`;
-    } else if (state === 'closed') {
-      // Reached from an old link: another request on the application was rejected, so this
-      // one left the queue without a decision.
-      $('reqActions').innerHTML = `<div class="actions-note">No decision needed — the application went back to
-        ${esc(app.actor)} after another rate request on it was rejected. It returns to the queue if resubmitted.</div>`;
-    } else if (state !== 'pending') {
-      const next = nextPending();
-      $('reqActions').innerHTML = next
-        ? `<a class="btn btn-primary" href="${window.KashierRates.requestURL(next.app.id, next.tier)}">Next Request &rarr;</a>`
-        : `<a class="btn btn-outline" href="index.html?view=rates">Back to Rate Approvals</a>`;
-    } else {
-      $('reqActions').innerHTML = role === 'sales'
-        ? `<div class="actions-note">Waiting on the ${esc(TIER_OWNER[tier])} to review these rates.</div>`
-        : `<div class="actions-note">This request needs ${esc(TIER_OWNER[tier])} approval — it is above your approval level as ${esc(ROLES[role].label)}.</div>`;
-    }
-
-    // Rates, grouped by service (and institution within a service)
-    $('ratesSub').textContent = `Every rate on this application that needs ${TIER_OWNER[tier]} approval, with the salesperson's justification for each.`;
-    const groups = [];
-    lines.forEach(l => {
-      const key = l.service + '|' + (l.bank || '');
-      let g = groups.filter(x => x.key === key)[0];
-      if (!g) { g = { key, service: l.service, bank: l.bank, lines: [] }; groups.push(g); }
-      g.lines.push(l);
+  function renderOutcome() {
+    const counts = { head: 0, manager: 0, auto: 0, blank: 0 };
+    plan.revise.forEach(({ line }) => {
+      const t = verdictFor(line).tier;
+      counts[t || 'blank']++;
     });
-    $('rateGroups').innerHTML = groups.map(g => {
-      const settlement = settlementFor(app, g.service, g.bank);
+    const row = (label, n) => `<div class="outcome-row"><span>${esc(label)}</span><b>${n}</b></div>`;
+    $('outcomeList').innerHTML = [
+      row('Head of Sales approval', counts.head),
+      row('Pricing Manager approval', counts.manager),
+      row('At published pricing', counts.auto),
+      plan.approved.length ? row('Already approved', plan.approved.length) : '',
+    ].join('');
+    $('outcomeSummary').textContent = counts.blank
+      ? `${counts.blank} rate${counts.blank === 1 ? '' : 's'} still need a rate and fixed fee.`
+      : (counts.head || counts.manager)
+        ? `Resubmitting sends ${[counts.head ? `${counts.head} to the Head of Sales` : '', counts.manager ? `${counts.manager} to the Pricing Manager` : ''].filter(Boolean).join(' and ')} as a new request.`
+        : 'Every rate is at published pricing — the application goes straight to Onboarding Review.';
+  }
+
+  function render() {
+    const ok = !!plan;
+    $('revisionView').hidden = !ok;
+    $('notFound').hidden = ok;
+    $('crumbLead').textContent = app ? app.biz : 'Lead';
+    $('crumbLead').href = leadURL();
+    if (!ok) {
+      $('notFoundBtn').href = leadURL();
+      $('notFoundText').textContent = !app
+        ? 'This link does not match an application.'
+        : app.superseded
+          ? `These rates were already revised and resubmitted as ${app.supersededBy}.`
+          : `${app.biz}'s application has no rejected rates to revise.`;
+      return;
+    }
+    document.title = `Kashier | Revise Rates — ${app.biz}`;
+    $('backBtn').href = leadURL();
+    $('cancelBtn').href = leadURL();
+    $('revSub').innerHTML = [esc(app.biz), esc(app.id), `Submitted ${esc(fmtDate(app.ts))}`].join('<span class="dot">&middot;</span>');
+
+    // Why it came back — one callout per reviewer decision
+    const reasons = {};
+    plan.revise.forEach(({ line, decision }) => {
+      if (!decision) return;
+      const key = decision.by + '|' + decision.reason;
+      (reasons[key] = reasons[key] || { decision, rates: [] }).rates.push(line.rate);
+    });
+    $('rejectReasons').innerHTML = Object.keys(reasons).map(k => {
+      const { decision, rates } = reasons[k];
+      return `<div class="reject-reason">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        <div>
+          <div class="reject-reason-title">${esc(rates.join(', '))} rejected</div>
+          <div class="reject-reason-text">${esc(decision.reason)}</div>
+          <div class="reject-reason-meta">${esc(decision.by)} (${esc(decision.roleLabel)}) &middot; ${esc(fmtDate(decision.ts))}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Rates to revise, grouped by service
+    const groups = [];
+    plan.revise.forEach(item => {
+      const key = item.line.service + '|' + (item.line.bank || '');
+      let g = groups.filter(x => x.key === key)[0];
+      if (!g) { g = { key, service: item.line.service, bank: item.line.bank, items: [] }; groups.push(g); }
+      g.items.push(item);
+    });
+    $('reviseGroups').innerHTML = groups.map(g => {
+      const settlement = settlementFor(g.service, g.bank);
       const meta = [g.bank, settlement ? `Settlement: ${settlement}` : ''].filter(Boolean).join(' · ');
       return `<div class="svc-group">
         <div class="svc-group-head">
           <span class="svc-group-name">${esc(g.service)}</span>
           ${meta ? `<span class="svc-group-meta">${esc(meta)}</span>` : ''}
         </div>
-        ${g.lines.map(l => lineHTML(l, tier)).join('')}
+        ${g.items.map(lineHTML).join('')}
       </div>`;
     }).join('');
 
-    // Decision
-    $('decisionCard').hidden = state === 'pending' || state === 'closed';
-    if ((state === 'approved' || state === 'rejected') && decision) {
-      const approved = state === 'approved';
-      $('decisionBody').innerHTML = `
-        <div class="decision">
-          <div class="decision-icon ${approved ? 'approved' : 'rejected'}">
-            ${approved
-              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>'
-              : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>'}
-          </div>
-          <div>
-            <div class="decision-title">${approved ? `All ${n} rate${n === 1 ? '' : 's'} approved` : `Rejected and returned to ${esc(app.actor)}`}</div>
-            <div class="decision-meta">${esc(decision.by)} (${esc(decision.roleLabel)}) &middot; ${esc(fmtDateTime(decision.ts))}</div>
-            ${decision.reason ? `<div class="decision-reason">Reason: ${esc(decision.reason)}</div>` : ''}
-          </div>
-        </div>`;
+    // Approved lines, carried forward untouched
+    $('keptCard').hidden = !plan.approved.length;
+    $('keptList').innerHTML = plan.approved.map(({ line, decision }) => `
+      <div class="kept-line">
+        <div>
+          <div class="kept-name">${esc(line.rate)}</div>
+          <div class="kept-sub">${esc([line.service, line.bank].filter(Boolean).join(' · '))} &middot; approved by ${esc(decision.by)}</div>
+        </div>
+        <div class="kept-price">${esc(pricing(line.requested, line.requestedFee))}</div>
+      </div>`).join('');
+
+    renderOutcome();
+    renderRoleGate();
+  }
+
+  function renderRoleGate() {
+    const sales = role === 'sales';
+    $('resubmitBtn').disabled = !sales;
+    $('roleNote').hidden = sales;
+  }
+
+  /* Typing updates the verdict and justification box in place, so the field keeps focus. */
+  $('reviseGroups').addEventListener('input', e => {
+    const field = e.target.dataset && e.target.dataset.field;
+    const block = e.target.closest('.rev-line');
+    if (!field || !block) return;
+    const item = plan.revise.filter(x => x.line.id === block.dataset.line)[0];
+    drafts[item.line.id][field] = e.target.value;
+    e.target.classList.remove('invalid');
+    block.querySelector('.line-error').hidden = true;
+    if (field !== 'note') {
+      const { tier, text } = verdictFor(item.line);
+      const v = block.querySelector('.verdict');
+      v.className = 'verdict ' + (tier || 'empty');
+      v.textContent = text;
+      block.querySelector('.rev-note').hidden = !(tier === 'manager' || tier === 'head');
     }
-
-    // Request details
-    const field = (label, value) =>
-      `<div class="info-field"><div class="lbl">${esc(label)}</div><div class="val${value ? '' : ' muted'}">${esc(value || '—')}</div></div>`;
-    $('detailList').innerHTML = [
-      field('Merchant', app.biz),
-      field('Approval Level', TIER_OWNER[tier]),
-      field('Services', services.join(', ')),
-      field('Rates in This Request', String(n)),
-      field('Requested By', app.actor),
-      field('Submitted', fmtDate(app.ts)),
-      field('Application', app.id),
-    ].join('');
-
-    $('appLink').href = app.url;
-  }
-
-  function decide(decision, reason) {
-    const request = current();
-    if (!request) return;
-    const result = window.KashierRates.recordRequestDecision({
-      app: request.app, tier: request.tier, decision, reason, role,
-    });
-    if (!result) return;
-    render();
-    const n = result.lines.length;
-    toast(decision === 'approved'
-      ? `${n} rate${n === 1 ? '' : 's'} approved for ${request.app.biz}.`
-      : `Rejected — ${request.app.biz} went back to ${request.app.actor}.`);
-  }
-
-  $('reqActions').addEventListener('click', e => {
-    if (e.target.closest('#approveBtn')) decide('approved');
-    else if (e.target.closest('#rejectBtn')) openRejectModal();
+    renderOutcome();
   });
 
-  /* Reject needs a reason — that reason is what the salesperson gets back. */
-  function openRejectModal() {
-    const request = current();
-    if (!request) return;
-    const n = request.lines.length;
-    $('rejectText').innerHTML = `Reject the <b>${esc(TIER_LABEL[request.tier])}</b> request for <b>${esc(request.app.biz)}</b>` +
-      ` (${n} rate${n === 1 ? '' : 's'})? This sends the whole application back to ${esc(request.app.actor)} to revise the pricing.`;
-    $('rejectReason').value = '';
-    clearRejectError();
-    $('rejectBackdrop').classList.add('open');
-    $('rejectReason').focus();
-  }
-  function closeRejectModal() { $('rejectBackdrop').classList.remove('open'); }
-  function clearRejectError() {
-    $('rejectReason').classList.remove('invalid');
-    $('rejectError').hidden = true;
-  }
-  $('rejectReason').addEventListener('input', clearRejectError);
-  $('rejectClose').addEventListener('click', closeRejectModal);
-  $('rejectCancel').addEventListener('click', closeRejectModal);
-  $('rejectBackdrop').addEventListener('click', e => { if (e.target === $('rejectBackdrop')) closeRejectModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRejectModal(); });
-  $('rejectConfirm').addEventListener('click', () => {
-    const reason = $('rejectReason').value.trim();
-    if (!reason) { $('rejectReason').classList.add('invalid'); $('rejectError').hidden = false; $('rejectReason').focus(); return; }
-    closeRejectModal();
-    decide('rejected', reason);
+  $('resubmitBtn').addEventListener('click', () => {
+    if (role !== 'sales') return;
+    let firstBad = null;
+    plan.revise.forEach(({ line, decision }) => {
+      const block = document.querySelector(`.rev-line[data-line="${CSS.escape(line.id)}"]`);
+      const err = block.querySelector('.line-error');
+      const d = drafts[line.id];
+      const { tier } = verdictFor(line);
+      let msg = '';
+      if (!tier) {
+        msg = 'Enter the rate and fixed fee you are resubmitting.';
+        if (K.tierForPricing(line, d.rate, '0') === '') block.querySelector('[data-field="rate"]').classList.add('invalid');
+        if (d.fee === '' || Number(d.fee) < 0) block.querySelector('[data-field="fee"]').classList.add('invalid');
+      } else if ((tier === 'manager' || tier === 'head') && !d.note.trim()) {
+        msg = 'Add a justification — this rate still needs approval.';
+        block.querySelector('[data-field="note"]').classList.add('invalid');
+      } else if (decision && tier !== 'auto' && unchanged(line)) {
+        msg = 'This is exactly what was rejected. Change the rate, the fixed fee or the justification.';
+      }
+      err.textContent = msg;
+      err.hidden = !msg;
+      if (msg && !firstBad) firstBad = block;
+    });
+    if (firstBad) {
+      firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast('Fix the highlighted rates before resubmitting.');
+      return;
+    }
+    const result = K.resubmitApplication({
+      app,
+      revised: plan.revise.map(({ line }) => ({ line, rate: drafts[line.id].rate, fee: drafts[line.id].fee, note: drafts[line.id].note })),
+    });
+    if (!result) { toast('This application was already resubmitted.'); return; }
+    location.href = leadURL() + (app.leadId ? '&resubmitted=' + encodeURIComponent(result.id) : '');
   });
 
   let toastTimer;
@@ -675,9 +708,9 @@
   }
   $('roleSelect').addEventListener('change', e => {
     role = e.target.value;
-    window.KashierRates.setRole(role);
+    K.setRole(role);
     renderRole();
-    render();
+    if (plan) renderRoleGate();
   });
 
   renderRole();

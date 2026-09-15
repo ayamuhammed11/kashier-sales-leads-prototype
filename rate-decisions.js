@@ -199,37 +199,55 @@ window.KashierRates = (function () {
     return 'application-status.html?' + qs.toString();
   }
 
+  /* Rebuild an application from its tracking link. */
+  function parseApplication(leadId, url) {
+    const qs = new URLSearchParams(String(url).split('?')[1] || '');
+    let requests = [];
+    try { requests = JSON.parse(qs.get('pricingRequests') || '[]'); } catch (e) { requests = []; }
+    let serviceConfigs = [];
+    try { serviceConfigs = JSON.parse(qs.get('serviceConfigs') || '[]'); } catch (e) { serviceConfigs = []; }
+    return {
+      id: qs.get('id') || '—', leadId: leadId || qs.get('leadId') || '', url: url,
+      biz: qs.get('biz') || 'Untitled Application',
+      actor: qs.get('actor') || 'Unknown',
+      ts: qs.get('ts') || new Date().toISOString(),
+      revisionOf: qs.get('revisionOf') || '',
+      requests: requests,
+      summary: {
+        email: qs.get('email') || '', phone: qs.get('phone') || '',
+        entity: qs.get('entity') || '', industry: qs.get('industry') || '',
+        services: (qs.get('services') || '').split(',').filter(Boolean),
+        serviceConfigs: serviceConfigs,
+        posTerminals: qs.get('posTerminals') || '',
+        docsDone: qs.get('done') || '0', docsTotal: qs.get('total') || '0',
+      },
+    };
+  }
+
+  /* Current applications, plus — flagged superseded — the earlier versions that were
+     rejected and replaced by a resubmission, kept so their decisions stay on record. */
   function loadApplications() {
     const apps = [];
     const stored = readStore('kashierLeadApplications');
     const seenLeads = new Set();
     Object.entries(stored).forEach(([leadId, url]) => {
-      const qs = new URLSearchParams(String(url).split('?')[1] || '');
-      let requests = [];
-      try { requests = JSON.parse(qs.get('pricingRequests') || '[]'); } catch (e) { requests = []; }
-      if (!requests.length) return;
+      // A stored application replaces any seeded one for the lead, even when it carries no
+      // rate requests (a resubmission priced entirely at published rates, say).
       seenLeads.add(leadId);
-      let serviceConfigs = [];
-      try { serviceConfigs = JSON.parse(qs.get('serviceConfigs') || '[]'); } catch (e) { serviceConfigs = []; }
-      apps.push({
-        id: qs.get('id') || '—', leadId, url,
-        biz: qs.get('biz') || 'Untitled Application',
-        actor: qs.get('actor') || 'Unknown',
-        ts: qs.get('ts') || new Date().toISOString(),
-        requests,
-        summary: {
-          email: qs.get('email') || '', phone: qs.get('phone') || '',
-          entity: qs.get('entity') || '', industry: qs.get('industry') || '',
-          services: (qs.get('services') || '').split(',').filter(Boolean),
-          serviceConfigs,
-          posTerminals: qs.get('posTerminals') || '',
-          docsDone: qs.get('done') || '0', docsTotal: qs.get('total') || '0',
-        },
-      });
+      const app = parseApplication(leadId, url);
+      if (app.requests.length) apps.push(app);
     });
     SEEDED.forEach(a => {
       if (seenLeads.has(a.leadId)) return;
       apps.push(Object.assign({}, a, { url: seededURL(a) }));
+    });
+    const superseded = readStore('kashierSupersededApplications');
+    Object.keys(superseded).forEach(appId => {
+      const entry = superseded[appId];
+      const app = parseApplication(entry.leadId, entry.url);
+      app.superseded = true;
+      app.supersededBy = entry.by;
+      apps.push(app);
     });
     return apps;
   }
@@ -261,8 +279,11 @@ window.KashierRates = (function () {
     const out = [];
     loadApplications().forEach(app => ['head', 'manager'].forEach(tier => {
       const r = buildRequest(app, tier, all);
-      // Closed requests leave the queue entirely — pending and decided views alike.
-      if (r && r.state !== 'closed') out.push(r);
+      // Closed requests leave the queue entirely — pending and decided views alike. A
+      // superseded application only contributes what was actually decided on it.
+      if (!r || r.state === 'closed') return;
+      if (app.superseded && r.state === 'pending') return;
+      out.push(r);
     }));
     return out.sort((a, b) => new Date(a.app.ts) - new Date(b.app.ts));
   }
@@ -270,6 +291,132 @@ window.KashierRates = (function () {
     const app = loadApplications().filter(a => a.id === appId)[0];
     return app ? buildRequest(app, tier, readStore('kashierRateDecisions')) : null;
   }
+  /* ── Resubmission ──────────────────────────────────────────────────────────────
+     After a rejection the salesperson revises the rates that came back and resubmits.
+     Rates an approver already approved keep that approval and are not sent again. */
+
+  /* The Manager rate for a line: stored by the onboarding page, or read off the band the
+     line was requested in (a Manager-band line starts at it, a Head-band line ends at it). */
+  function managerRateFor(line) {
+    if (line.managerRate != null) return Number(line.managerRate);
+    return Number(line.tier === 'manager' ? line.from : line.to);
+  }
+  /* Which approval a rate + fixed fee needs — the same rule the onboarding page applies:
+     under the Manager rate is the Head's call, anything else under published is a Manager's. */
+  function tierForPricing(line, rate, fee) {
+    const r = Number(rate), f = Number(fee);
+    if (rate === '' || fee === '' || !isFinite(r) || !isFinite(f) || r <= 0 || f < 0) return '';
+    if (r < managerRateFor(line)) return 'head';
+    const feeStandard = line.standardFee != null ? Number(line.standardFee) : 0;
+    if (r < Number(line.standard) || f < feeStandard) return 'manager';
+    return 'auto';
+  }
+
+  function rejectionOf(app) {
+    const decisions = decisionsFor(app.id);
+    return app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
+  }
+  /* The application a lead's revision starts from, if it came back rejected. */
+  function rejectedApplicationFor(leadId) {
+    return loadApplications().filter(a => a.leadId === leadId && !a.superseded && rejectionOf(a))[0] || null;
+  }
+  /* Split a rejected application's lines into what the salesperson must revise and what
+     stays approved. Lines never reviewed (their request closed on the rejection) are revised
+     too — they still need a decision. */
+  function revisionPlan(app) {
+    const decisions = decisionsFor(app.id);
+    const revise = [], approved = [];
+    app.requests.forEach(line => {
+      const d = decisions[line.id];
+      if (d && d.decision === 'approved') approved.push({ line: line, decision: d });
+      else revise.push({ line: line, decision: d || null });
+    });
+    return { revise: revise, approved: approved };
+  }
+
+  /* Create the resubmitted application: a new id carrying the revised rates that still need
+     approval, linked back to the one it replaces. The lead moves to Waiting Rate Approval, or
+     straight to Onboarding Review when every revised rate is at published pricing. */
+  function resubmitApplication(opts) {
+    const app = opts.app;
+    // Check the stored record, not the caller's copy — it may predate a resubmission made
+    // in another tab or a moment ago.
+    if (readStore('kashierSupersededApplications')[app.id] || !rejectionOf(app)) return null;
+    const revised = opts.revised; // [{ line, rate, fee, note }]
+    const qs = new URLSearchParams(String(app.url).split('?')[1] || '');
+    const newId = 'APP-' + String(Date.now()).slice(-8);
+    const ts = new Date().toISOString();
+
+    const pending = [];
+    revised.forEach(item => {
+      const tier = tierForPricing(item.line, item.rate, item.fee);
+      if (!tier || tier === 'auto') return;
+      const managerRate = managerRateFor(item.line);
+      pending.push(Object.assign({}, item.line, {
+        tier: tier,
+        requested: Number(item.rate),
+        requestedFee: Number(item.fee),
+        note: String(item.note || '').trim(),
+        managerRate: managerRate,
+        from: tier === 'manager' ? managerRate : (item.line.tier === 'head' ? item.line.from : 0),
+        to: tier === 'manager' ? item.line.standard : managerRate,
+      }));
+    });
+
+    const status = pending.length ? 'pending-rate-approval' : 'pending-onboarding-review';
+    qs.set('id', newId);
+    qs.set('ts', ts);
+    qs.set('pricingRequests', JSON.stringify(pending));
+    qs.set('needsApproval', String(pending.length));
+    qs.set('status', status);
+    qs.set('revisionOf', app.id);
+    qs.set('revision', String(Number(qs.get('revision') || 1) + 1));
+    if (app.leadId) qs.set('leadId', app.leadId);
+    const url = 'application-status.html?' + qs.toString();
+
+    const statuses = readStore('kashierAppStatus');
+    statuses[newId] = status;
+    writeStore('kashierAppStatus', statuses);
+
+    // Keep the rejected version on record so its decisions stay visible to approvers.
+    const superseded = readStore('kashierSupersededApplications');
+    superseded[app.id] = { leadId: app.leadId, url: app.url, by: newId, ts: ts };
+    writeStore('kashierSupersededApplications', superseded);
+
+    if (app.leadId) {
+      const apps = readStore('kashierLeadApplications');
+      apps[app.leadId] = url;
+      writeStore('kashierLeadApplications', apps);
+
+      const leadStatuses = readStore('kashierLeadStatusOverrides');
+      leadStatuses[app.leadId] = LEAD_STATUS[status];
+      writeStore('kashierLeadStatusOverrides', leadStatuses);
+
+      const ra = readStore('kashierLeadRateApproval');
+      ra[app.leadId] = pending.length > 0;
+      writeStore('kashierLeadRateApproval', ra);
+
+      // The rejection has been answered, so its note gives way to a resubmission entry.
+      const notes = readStore('kashierLeadReturnNote');
+      delete notes[app.leadId];
+      writeStore('kashierLeadReturnNote', notes);
+
+      const resub = readStore('kashierLeadResubmitted');
+      resub[app.leadId] = {
+        ts: ts, appId: newId, previousId: app.id, pending: pending.length,
+        head: pending.filter(p => p.tier === 'head').length,
+        manager: pending.filter(p => p.tier === 'manager').length,
+        by: ROLES.sales.name,
+      };
+      writeStore('kashierLeadResubmitted', resub);
+    }
+    return { id: newId, url: url, status: status, pending: pending };
+  }
+
+  function revisionURL(appId) {
+    return 'rate-revision.html?app=' + encodeURIComponent(appId);
+  }
+
   function requestURL(appId, tier) {
     return 'rate-request.html?app=' + encodeURIComponent(appId) + '&level=' + encodeURIComponent(tier);
   }
@@ -282,5 +429,7 @@ window.KashierRates = (function () {
     statusFor: statusFor, recordDecision: recordDecision, recordRequestDecision: recordRequestDecision,
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
+    tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, revisionURL: revisionURL,
   };
 })();

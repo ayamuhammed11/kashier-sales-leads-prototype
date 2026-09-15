@@ -206,6 +206,7 @@
     border-radius: 999px; padding: 1px 8px; }
   .rate-view.on .rate-view-count { background: #fff; color: var(--primary); }
   .wait-sub { margin-top: 5px; }
+  .returned-sub { color: var(--destructive); font-weight: 600; }
   /* Four columns, so the rate queue needs far less width than the leads table. */
   .rate-table { min-width: 720px; }
   .rate-table .row-action { width: 1%; }
@@ -551,6 +552,9 @@
     });
     return tiers;
   }
+  /* Leads whose application came back with rejected rates, waiting on a resubmission. */
+  const returnedLeads = window.KashierRates.readStore('kashierLeadReturnNote');
+
   function waitingLabel(lead) {
     const t = waitingOn(lead);
     if (t.length === 2) return 'Waiting on Manager & Head';
@@ -652,6 +656,7 @@
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
           ${l.status === 'rate-approval' && waitingLabel(l) ? `<div class="cell-sub wait-sub">${esc(waitingLabel(l))}</div>` : ''}
+          ${l.status === 'application' && returnedLeads[l.id] ? `<div class="cell-sub wait-sub returned-sub">Rates rejected — revise &amp; resubmit</div>` : ''}
         </td>
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>
@@ -735,7 +740,9 @@
 
   /* Applications and their rate requests come from rate-decisions.js, shared with the
      rate request page so both read the same data. */
-  const APPS = window.KashierRates.loadApplications();
+  // Superseded (resubmitted) versions only matter to the approval history, not to who a
+  // lead is waiting on today.
+  const APPS = window.KashierRates.loadApplications().filter(a => !a.superseded);
 
 
   function fmtDateISO(iso) {

@@ -233,73 +233,6 @@
   .btn-destructive { background: var(--destructive); color: #fff; }
   .btn-destructive:hover { background: #830012; }
 
-  /* Review drawer — the whole request in one place: what was asked for, why, and the
-     application it belongs to, with the decision at the bottom. */
-  .drawer-backdrop { position: fixed; inset: 0; background: rgba(2,10,34,.45); display: none; z-index: 90; }
-  .drawer-backdrop.open { display: block; }
-  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 560px; max-width: 100%; background: #fff;
-    box-shadow: -12px 0 40px rgba(0,20,60,.18); z-index: 95; display: none; flex-direction: column; }
-  .drawer.open { display: flex; }
-  .drawer-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 24px;
-    border-bottom: 1px solid var(--border-subtle); }
-  .drawer-head-info { flex: 1; min-width: 0; }
-  .drawer-head h2 { font-size: 19px; color: var(--primary); }
-  .drawer-head .sub { font-size: 12.5px; color: var(--cadet-05); margin-top: 4px; }
-  .drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px 26px; }
-  .drawer-foot { border-top: 1px solid var(--border-subtle); padding: 16px 24px; background: #FCFCFD; }
-  .drawer-foot .foot-actions { display: flex; gap: 10px; }
-  .drawer-foot .foot-note { font-size: 12.5px; color: var(--cadet-05); font-style: italic; }
-  .dw-section { margin-bottom: 22px; }
-  .dw-section:last-child { margin-bottom: 0; }
-  .dw-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-    color: var(--cadet-05); margin-bottom: 10px; }
-  .dw-ask { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
-  .dw-ask-rate { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--foreground); }
-  .dw-ask-where { font-size: 12.5px; color: var(--cadet-05); margin-top: 3px; }
-  .dw-figures { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-  .dw-fig { flex: 1 1 130px; background: var(--muted); border-radius: 6px; padding: 9px 11px; }
-  .dw-fig.asking { background: var(--ocean-10); }
-  .dw-fig-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); }
-  .dw-fig-value { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
-  .dw-fig.asking .dw-fig-value { color: var(--primary); }
-  .dw-gap { font-size: 12.5px; color: var(--cadet-base); margin-top: 10px; }
-  .dw-just { font-size: 13.5px; color: var(--foreground); line-height: 1.6; background: var(--warning-bg);
-    border-left: 3px solid var(--warning); border-radius: 0 6px 6px 0; padding: 12px 14px; }
-  .dw-just.empty { background: var(--muted); border-left-color: var(--border); color: var(--cadet-05); font-style: italic; }
-  .dw-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
-  .dw-field .lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); }
-  .dw-field .val { font-size: 13.5px; color: var(--foreground); margin-top: 3px; word-break: break-word; }
-  .dw-svc { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
-  .dw-svc:last-child { margin-bottom: 0; }
-  .dw-svc-name { font-weight: 600; font-size: 13px; color: var(--foreground); }
-  .dw-svc-cfg { font-size: 12px; color: var(--cadet-05); margin-top: 3px; }
-  .dw-outcome { font-size: 13px; color: var(--cadet-base); }
-  .dw-outcome b { color: var(--foreground); }
-  .dw-outcome .reason { color: var(--destructive); margin-top: 6px; }
-  @media (max-width: 640px) { .dw-grid { grid-template-columns: 1fr; } }
-
-  /* Reject confirm modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(2,10,34,.45); display: none;
-    align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 460px;
-    box-shadow: 0 20px 60px rgba(0,20,60,.25); }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px;
-    border-bottom: 1px solid var(--border-subtle); }
-  .modal-header h3 { margin: 0; font-size: 16px; color: var(--foreground); }
-  .modal-body { padding: 20px 22px; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--border-subtle); }
-  .confirm-text { font-size: 13.5px; color: var(--foreground); line-height: 1.55; margin: 0 0 12px; }
-  .modal-body textarea { width: 100%; min-height: 80px; border: 1.5px solid var(--border); border-radius: var(--radius);
-    background: #fff; color: var(--foreground); font-family: inherit; font-size: 13.5px; padding: 10px 12px;
-    resize: vertical; color-scheme: light; }
-  .modal-body textarea:focus { outline: none; border-color: var(--primary); }
-  .modal-body textarea.invalid { border-color: var(--destructive); }
-  .field-error { font-size: 12.5px; color: var(--destructive); margin-top: 6px; }
-  .btn-icon { padding: 6px; border-radius: var(--radius); background: none; border: 1px solid transparent;
-    color: var(--cadet-05); display: inline-flex; cursor: pointer; }
-  .btn-icon:hover { background: var(--muted); color: var(--foreground); }
-
   .view-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff;
     display: inline-flex; align-items: center; justify-content: center; color: var(--cadet-base); }
   tbody tr:hover .view-btn { border-color: var(--primary); color: var(--primary); }
@@ -511,38 +444,6 @@
   </main>
 
   <div class="toast" id="toast"></div>
-
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="reviewDrawer" aria-labelledby="drawerBiz">
-    <div class="drawer-head">
-      <div class="drawer-head-info">
-        <h2 id="drawerBiz">—</h2>
-        <div class="sub" id="drawerSub"></div>
-      </div>
-      <span id="drawerStatus"></span>
-      <button class="btn-icon" id="drawerClose" aria-label="Close">&#10005;</button>
-    </div>
-    <div class="drawer-body" id="drawerBody"></div>
-    <div class="drawer-foot" id="drawerFoot"></div>
-  </aside>
-
-  <div class="modal-overlay" id="rejectBackdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Reject rate request</h3>
-        <button class="btn-icon" id="rejectClose" aria-label="Close">&#10005;</button>
-      </div>
-      <div class="modal-body">
-        <p class="confirm-text" id="rejectText"></p>
-        <textarea id="rejectReason" placeholder="Why is this rate being rejected? The salesperson sees this when the application comes back to them."></textarea>
-        <div class="field-error" id="rejectError" hidden>Add a reason — this is what the salesperson gets back, so they know what to change.</div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" id="rejectCancel">Cancel</button>
-        <button class="btn btn-destructive" id="rejectConfirm">Reject &amp; Return</button>
-      </div>
-    </div>
-  </div>
 
 <script src="rate-decisions.js"></script>
 <script>
@@ -831,98 +732,9 @@
   const { ROLES, TIER_LABEL, TIER_OWNER, readStore } = window.KashierRates;
   let role = window.KashierRates.getRole();
 
-  /* Applications carrying rate requests. Real ones are the tracking links the onboarding
-     page stored on submit; the seeded pair stands in for applications that were already
-     sitting with the Rate Approval desk before this demo started. */
-  const SEEDED = [
-    {
-      id: 'APP-00000001', leadId: 'L-001', biz: 'Cairo Fresh Market', actor: 'Mostafa Khaled',
-      ts: '2026-09-06T14:20:00.000Z',
-      summary: {
-        email: 'ops@cairofresh.eg', phone: '+20 100 123 4567',
-        entity: 'Registered Business', industry: 'Retail & E-commerce',
-        services: ['Online Card'], serviceConfigs: [{ service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] }],
-        posTerminals: '', docsDone: '6', docsTotal: '6',
-      },
-      requests: [
-        { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1, standardFee: 2,
-          note: 'Processes 450K EGP/month across 3 branches — matching the rate their current provider quoted.' },
-      ],
-    },
-    {
-      id: 'APP-00000007', leadId: 'L-007', biz: 'Mansoura Tech Studio', actor: 'Mostafa Khaled',
-      ts: '2026-09-05T11:00:00.000Z',
-      summary: {
-        email: 'karim@mansouratech.eg', phone: '+20 122 998 7766',
-        entity: 'Registered Business', industry: 'Software & SaaS',
-        services: ['Online Card'], serviceConfigs: [{ service: 'Online Card', configs: [{ bank: 'QNB', module: 'PF' }] }],
-        posTerminals: '', docsDone: '7', docsTotal: '7',
-      },
-      requests: [
-        { id: 'Online Card::QNB::national-offus', service: 'Online Card', bank: 'QNB',
-          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2, requestedFee: 2, standardFee: 2,
-          note: 'Subscription product on thin margins — Karim negotiated this rate before signing.' },
-        { id: 'Online Card::QNB::intl', service: 'Online Card', bank: 'QNB',
-          rate: 'International rate', tier: 'manager', from: 2, to: 2.5, requested: 2.2, standard: 2.5, requestedFee: 1.5, standardFee: 2,
-          note: 'Half their volume is international clients paying in USD.' },
-      ],
-    },
-  ];
-
-  /* The seeded applications have no stored tracking link, so rebuild the one the lead page
-     would hand out — that is what Review opens, and where the decision is actually made. */
-  function seededURL(a) {
-    const s = a.summary;
-    const qs = new URLSearchParams({
-      id: a.id, leadId: a.leadId, biz: a.biz, actor: a.actor, ts: a.ts,
-      email: s.email, phone: s.phone, entity: s.entity, industry: s.industry,
-      services: s.services.join(','),
-      serviceConfigs: JSON.stringify(s.serviceConfigs),
-      pricingRequests: JSON.stringify(a.requests),
-      total: s.docsTotal, done: s.docsDone,
-      needsApproval: a.requests.length, status: 'pending-rate-approval',
-    });
-    return 'application-status.html?' + qs.toString();
-  }
-
-  function loadApplications() {
-    const apps = [];
-    const stored = readStore('kashierLeadApplications');
-    const seenLeads = new Set();
-    Object.entries(stored).forEach(([leadId, url]) => {
-      const qs = new URLSearchParams(String(url).split('?')[1] || '');
-      let requests = [];
-      try { requests = JSON.parse(qs.get('pricingRequests') || '[]'); } catch (e) { requests = []; }
-      if (!requests.length) return;
-      seenLeads.add(leadId);
-      let serviceConfigs = [];
-      try { serviceConfigs = JSON.parse(qs.get('serviceConfigs') || '[]'); } catch (e) { serviceConfigs = []; }
-      apps.push({
-        id: qs.get('id') || '—', leadId, url,
-        biz: qs.get('biz') || 'Untitled Application',
-        actor: qs.get('actor') || 'Unknown',
-        ts: qs.get('ts') || new Date().toISOString(),
-        requests,
-        // Everything the drawer shows about the application behind the request.
-        summary: {
-          email: qs.get('email') || '', phone: qs.get('phone') || '',
-          entity: qs.get('entity') || '', industry: qs.get('industry') || '',
-          services: (qs.get('services') || '').split(',').filter(Boolean),
-          serviceConfigs,
-          posTerminals: qs.get('posTerminals') || '',
-          docsDone: qs.get('done') || '0', docsTotal: qs.get('total') || '0',
-        },
-      });
-    });
-    SEEDED.forEach(a => {
-      if (seenLeads.has(a.leadId)) return;
-      apps.push(Object.assign({}, a, { url: seededURL(a) }));
-    });
-    return apps;
-  }
-
-  const APPS = loadApplications();
+  /* Applications and their rate requests come from rate-decisions.js, shared with the
+     rate request page so both read the same data. */
+  const APPS = window.KashierRates.loadApplications();
 
 
   function fmtDateISO(iso) {
@@ -987,6 +799,11 @@
     }).join('');
   }
 
+  /* Each pending request opens on its own page, separate from the application. */
+  function requestURL(appId, reqId) {
+    return 'rate-request.html?app=' + encodeURIComponent(appId) + '&req=' + encodeURIComponent(reqId);
+  }
+
   function askText(req) {
     return req.requested
       ? `${req.requested}%${req.requestedFee != null ? ` + ${req.requestedFee} EGP` : ''}`
@@ -999,11 +816,10 @@
   }
 
   /* One request per row, kept to four columns: who, what, the ask, and the way in.
-     Everything else — the justification, the application, the decision buttons — is in
-     the review drawer, one click away. */
+     Everything else — the justification, the details, the decision buttons — is on the
+     rate request page that Review opens. */
   function rateRowHTML(row) {
     const app = row.app, req = row.req, decision = row.decision;
-    const token = `${esc(app.id)}|${esc(req.id)}`;
     const outcome = decision
       ? (decision.decision === 'approved'
         ? `<span class="badge badge-activated"><span class="badge-dot"></span>Approved</span>`
@@ -1025,205 +841,10 @@
       </td>
       <td>${outcome}</td>
       <td class="row-action">
-        <button class="btn ${canAct(row) ? 'btn-primary' : 'btn-outline'} btn-sm" data-review="${token}">Review</button>
+        <a class="btn ${canAct(row) ? 'btn-primary' : 'btn-outline'} btn-sm" href="${requestURL(app.id, req.id)}">Review</a>
       </td>
     </tr>`;
   }
-
-  /* Approve and reject straight from the row — the same rules the drawer uses. */
-  function findRow(token) {
-    const parts = String(token).split('|');
-    const app = APPS.filter(a => a.id === parts[0])[0];
-    if (!app) return null;
-    const req = app.requests.filter(r => r.id === parts[1])[0];
-    return req ? { app, req } : null;
-  }
-  function decide(token, decision, reason) {
-    const target = findRow(token);
-    if (!target) return;
-    const result = window.KashierRates.recordDecision({
-      app: target.app, reqId: target.req.id, decision, reason, role,
-    });
-    if (!result) return;
-    // A decision moves the lead itself, so refresh the list state too.
-    applyStoredStatuses();
-    renderKpis(); renderRole(); renderTabs(); renderTable();
-    if (drawerToken) renderDrawer();
-    toast(decision === 'approved'
-      ? `${target.req.rate} approved for ${target.app.biz}.`
-      : `${target.req.rate} rejected — ${target.app.biz} went back to ${target.app.actor}.`);
-  }
-
-  // Review is the only action on a row — approve and reject live in the drawer, next to
-  // the justification and the application they are being judged against.
-  $('leadsBody').addEventListener('click', e => {
-    const reviewBtn = e.target.closest('[data-review]');
-    if (reviewBtn) openDrawer(reviewBtn.dataset.review);
-  });
-
-  /* ══════════ Review drawer ══════════ */
-  let drawerToken = '';
-
-  function fmtPricing(pct, fee) {
-    const parts = [];
-    if (pct !== undefined && pct !== null && pct !== '') parts.push(pct + '%');
-    if (fee !== undefined && fee !== null && fee !== '') parts.push(fee + ' EGP');
-    return parts.join(' + ') || '—';
-  }
-  /* How far below the published pricing this request sits — the number the approver
-     is actually weighing. */
-  function gapText(req) {
-    const bits = [];
-    if (req.requested != null && req.standard != null && req.requested < req.standard) {
-      bits.push(`${(req.standard - req.requested).toFixed(2).replace(/\.?0+$/, '')} pp below the standard rate`);
-    }
-    if (req.requestedFee != null && req.standardFee != null && req.requestedFee < req.standardFee) {
-      bits.push(`${(req.standardFee - req.requestedFee).toFixed(2).replace(/\.?0+$/, '')} EGP below the standard fixed fee`);
-    }
-    return bits.length ? bits.join(' &middot; ') : 'At or above the published pricing on both figures.';
-  }
-
-  function drawerSummaryHTML(app) {
-    const s = app.summary || {};
-    const field = (label, value) => `<div class="dw-field"><div class="lbl">${esc(label)}</div><div class="val">${esc(value || '—')}</div></div>`;
-    const configs = (s.serviceConfigs || []).map(sc => `
-      <div class="dw-svc">
-        <div class="dw-svc-name">${esc(sc.service)}</div>
-        <div class="dw-svc-cfg">${(sc.configs || []).map(c =>
-          [c.bank, c.module].filter(Boolean).join(' &middot; ') || 'No financial institution').join(' &nbsp;|&nbsp; ')}</div>
-      </div>`).join('');
-    return `
-      <div class="dw-section">
-        <div class="dw-title">Application Summary</div>
-        <div class="dw-grid">
-          ${field('Merchant Type', s.entity)}
-          ${field('Industry', s.industry)}
-          ${field('Contact Email', s.email)}
-          ${field('Contact Phone', s.phone)}
-          ${field('Documents', `${s.docsDone || 0} of ${s.docsTotal || 0} uploaded`)}
-          ${field('POS Terminals', s.posTerminals || 'Not requested')}
-        </div>
-      </div>
-      <div class="dw-section">
-        <div class="dw-title">Services &amp; Setup</div>
-        ${configs || '<div class="dw-svc"><div class="dw-svc-cfg">No service configuration was submitted.</div></div>'}
-      </div>`;
-  }
-
-  function drawerFootHTML(target, decision) {
-    const token = `${esc(target.app.id)}|${esc(target.req.id)}`;
-    if (decision) {
-      const approved = decision.decision === 'approved';
-      return `<div class="dw-outcome">${approved ? 'Approved' : 'Rejected'} by <b>${esc(decision.by)}</b>
-        (${esc(decision.roleLabel)}) &middot; ${esc(fmtDateISO(decision.ts))}
-        ${decision.reason ? `<div class="reason">Reason: ${esc(decision.reason)}</div>` : ''}</div>`;
-    }
-    if (!window.KashierRates.canRoleAct(role, target.req.tier)) {
-      return `<div class="foot-note">Waiting on the ${esc(TIER_OWNER[target.req.tier])} — this request is above the ${esc(ROLES[role].label)}'s approval level.</div>`;
-    }
-    return `<div class="foot-actions">
-      <button class="btn btn-success" data-drawer-approve="${token}">Approve Rate</button>
-      <button class="btn btn-destructive-outline" data-drawer-reject="${token}">Reject &amp; Return</button>
-    </div>`;
-  }
-
-  function renderDrawer() {
-    const target = findRow(drawerToken);
-    if (!target) return;
-    const app = target.app, req = target.req;
-    const decision = (readStore('kashierRateDecisions')[app.id] || {})[req.id] || null;
-
-    $('drawerBiz').textContent = app.biz;
-    $('drawerSub').innerHTML = `${esc(app.id)} &middot; submitted by ${esc(app.actor)} &middot; ${esc(fmtDateISO(app.ts))}`;
-    $('drawerStatus').innerHTML = decision
-      ? (decision.decision === 'approved'
-        ? '<span class="badge badge-activated"><span class="badge-dot"></span>Approved</span>'
-        : '<span class="badge badge-lost"><span class="badge-dot"></span>Rejected</span>')
-      : '<span class="badge badge-application"><span class="badge-dot"></span>Pending</span>';
-
-    $('drawerBody').innerHTML = `
-      <div class="dw-section">
-        <div class="dw-title">Rate Requested</div>
-        <div class="dw-ask">
-          <div class="dw-ask-rate">${esc(req.rate)}</div>
-          <div class="dw-ask-where">${esc([req.service, req.bank].filter(Boolean).join(' · '))}</div>
-          <div class="dw-figures">
-            <div class="dw-fig asking"><div class="dw-fig-label">Asking</div><div class="dw-fig-value">${esc(fmtPricing(req.requested, req.requestedFee))}</div></div>
-            <div class="dw-fig"><div class="dw-fig-label">Published</div><div class="dw-fig-value">${esc(fmtPricing(req.standard, req.standardFee))}</div></div>
-            <div class="dw-fig"><div class="dw-fig-label">Approval Level</div><div class="dw-fig-value">${esc(TIER_OWNER[req.tier])}</div></div>
-          </div>
-          <div class="dw-gap">${gapText(req)}</div>
-        </div>
-      </div>
-      <div class="dw-section">
-        <div class="dw-title">Salesperson's Justification</div>
-        <div class="dw-just${req.note ? '' : ' empty'}">${req.note ? esc(req.note) : 'No justification was recorded with this request.'}</div>
-      </div>
-      ${drawerSummaryHTML(app)}
-      <div class="dw-section">
-        <a class="link-open" href="${esc(app.url)}">Open the full application tracking page &rarr;</a>
-      </div>`;
-
-    $('drawerFoot').innerHTML = drawerFootHTML(target, decision);
-  }
-
-  function openDrawer(token) {
-    if (!findRow(token)) return;
-    drawerToken = token;
-    renderDrawer();
-    $('drawerBackdrop').classList.add('open');
-    $('reviewDrawer').classList.add('open');
-    $('drawerClose').focus();
-  }
-  function closeDrawer() {
-    $('drawerBackdrop').classList.remove('open');
-    $('reviewDrawer').classList.remove('open');
-    drawerToken = '';
-  }
-  $('drawerClose').addEventListener('click', closeDrawer);
-  $('drawerBackdrop').addEventListener('click', closeDrawer);
-  $('drawerFoot').addEventListener('click', e => {
-    const approveBtn = e.target.closest('[data-drawer-approve]');
-    if (approveBtn) { decide(approveBtn.dataset.drawerApprove, 'approved'); return; }
-    const rejectBtn = e.target.closest('[data-drawer-reject]');
-    if (rejectBtn) openRejectModal(rejectBtn.dataset.drawerReject);
-  });
-
-  /* Reject needs a reason — that reason is what the salesperson gets back. */
-  let rejectTarget = '';
-  function openRejectModal(token) {
-    const target = findRow(token);
-    if (!target) return;
-    rejectTarget = token;
-    $('rejectText').innerHTML = `Reject the <b>${esc(target.req.rate)}</b> request for <b>${esc(target.app.biz)}</b>? ` +
-      `This sends the whole application back to ${esc(target.app.actor)} to revise the pricing.`;
-    $('rejectReason').value = '';
-    clearRejectError();
-    $('rejectBackdrop').classList.add('open');
-    $('rejectReason').focus();
-  }
-  function closeRejectModal() { $('rejectBackdrop').classList.remove('open'); rejectTarget = ''; }
-  function clearRejectError() {
-    $('rejectReason').classList.remove('invalid');
-    $('rejectError').hidden = true;
-  }
-  $('rejectReason').addEventListener('input', clearRejectError);
-  $('rejectClose').addEventListener('click', closeRejectModal);
-  $('rejectCancel').addEventListener('click', closeRejectModal);
-  $('rejectBackdrop').addEventListener('click', e => { if (e.target === $('rejectBackdrop')) closeRejectModal(); });
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    // The modal sits on top of the drawer, so it closes first.
-    if ($('rejectBackdrop').classList.contains('open')) closeRejectModal();
-    else closeDrawer();
-  });
-  $('rejectConfirm').addEventListener('click', () => {
-    const reason = $('rejectReason').value.trim();
-    if (!reason) { $('rejectReason').classList.add('invalid'); $('rejectError').hidden = false; $('rejectReason').focus(); return; }
-    const token = rejectTarget;
-    closeRejectModal();
-    decide(token, 'rejected', reason);
-  });
 
   function renderRole() {
     $('roleSelect').value = role;
@@ -1250,7 +871,6 @@
     rateView = '';   // each role has its own set of band views
     currentPage = 1;
     renderRole(); renderTabs(); renderTable();
-    if (drawerToken) renderDrawer();
   });
 
   /* ?role=manager&view=rates opens the queue directly — the link an approver is sent,

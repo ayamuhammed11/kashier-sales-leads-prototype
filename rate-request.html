@@ -474,6 +474,7 @@
   function statusPillHTML(state) {
     if (state === 'approved') return '<span class="status-pill success"><span class="dot"></span>Approved</span>';
     if (state === 'rejected') return '<span class="status-pill danger"><span class="dot"></span>Rejected</span>';
+    if (state === 'closed') return '<span class="status-pill"><span class="dot"></span>Closed</span>';
     return '<span class="status-pill warn"><span class="dot"></span>Pending</span>';
   }
   function settlementFor(app, service, bank) {
@@ -535,6 +536,11 @@
           <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
           Approve${n > 1 ? ` All ${n}` : ''}
         </button>`;
+    } else if (state === 'closed') {
+      // Reached from an old link: another request on the application was rejected, so this
+      // one left the queue without a decision.
+      $('reqActions').innerHTML = `<div class="actions-note">No decision needed — the application went back to
+        ${esc(app.actor)} after another rate request on it was rejected. It returns to the queue if resubmitted.</div>`;
     } else if (state !== 'pending') {
       const next = nextPending();
       $('reqActions').innerHTML = next
@@ -568,8 +574,8 @@
     }).join('');
 
     // Decision
-    $('decisionCard').hidden = state === 'pending';
-    if (state !== 'pending' && decision) {
+    $('decisionCard').hidden = state === 'pending' || state === 'closed';
+    if ((state === 'approved' || state === 'rejected') && decision) {
       const approved = state === 'approved';
       $('decisionBody').innerHTML = `
         <div class="decision">

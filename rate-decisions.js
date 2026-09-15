@@ -111,6 +111,9 @@ window.KashierRates = (function () {
     const app = opts.app;
     if (!canRoleAct(opts.role, opts.tier)) return null;
     const decisions = decisionsFor(app.id);
+    // Once any rate on the application is rejected it has gone back to sales; refuse to
+    // decide what is left of it.
+    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return null;
     const lines = app.requests.filter(r => r.tier === opts.tier && !decisions[r.id]);
     if (!lines.length) return null;
     return { status: applyDecision(app, lines, opts), lines: lines };
@@ -240,6 +243,10 @@ window.KashierRates = (function () {
     let state = 'pending';
     if (decided.length === lines.length) {
       state = decided.some(r => decisions[r.id].decision === 'rejected') ? 'rejected' : 'approved';
+    } else if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) {
+      // Another request on this application was rejected, so the application is already back
+      // with the salesperson — nothing is left to decide here until it is resubmitted.
+      state = 'closed';
     }
     const services = [];
     lines.forEach(r => { if (services.indexOf(r.service) === -1) services.push(r.service); });
@@ -254,7 +261,8 @@ window.KashierRates = (function () {
     const out = [];
     loadApplications().forEach(app => ['head', 'manager'].forEach(tier => {
       const r = buildRequest(app, tier, all);
-      if (r) out.push(r);
+      // Closed requests leave the queue entirely — pending and decided views alike.
+      if (r && r.state !== 'closed') out.push(r);
     }));
     return out.sort((a, b) => new Date(a.app.ts) - new Date(b.app.ts));
   }

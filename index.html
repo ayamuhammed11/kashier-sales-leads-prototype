@@ -212,6 +212,7 @@
   .ask { display: inline-flex; flex-direction: column; gap: 2px; }
   .ask b { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: var(--foreground); }
   .ask-vs { font-size: 12px; color: var(--cadet-05); }
+  .rate-count { font-weight: 600; color: var(--foreground); }
   /* The merchant cell is borrowed from the leads table, where names may wrap — here
      the row is already wide, so keep each merchant on one line. */
   .rate-table .lead-name, .rate-table .lead-industry { white-space: nowrap; }
@@ -584,8 +585,8 @@
 
   const LEAD_HEAD = `<tr><th>Lead</th><th>MID</th><th>Contact</th><th>Source</th><th>Status</th>
     <th>Assigned</th><th>Last Activity</th><th></th></tr>`;
-  const RATE_HEAD = `<tr><th>Merchant</th><th>Rate Requested</th><th>Asking</th><th></th></tr>`;
-  const RATE_HEAD_DECIDED = `<tr><th>Merchant</th><th>Rate Requested</th><th>Outcome</th><th></th></tr>`;
+  const RATE_HEAD = `<tr><th>Merchant</th><th>Services</th><th>Rates</th><th>Status</th><th></th></tr>`;
+  const RATE_HEAD_DECIDED = `<tr><th>Merchant</th><th>Services</th><th>Rates</th><th>Outcome</th><th></th></tr>`;
 
   function renderTable() {
     // The Rate Approvals tab swaps the table over to one row per rate request.
@@ -751,15 +752,11 @@
     });
     return rows.sort((a, b) => new Date(a.app.ts) - new Date(b.app.ts));
   }
-  function stateOf(row) {
-    if (!row.decision) return 'pending';
-    return row.decision.decision === 'approved' ? 'approved' : 'rejected';
-  }
-  function canAct(row) { return !row.decision && window.KashierRates.canRoleAct(role, row.req.tier); }
 
-  /* Each approver works their own band and nothing else: a Pricing Manager never sees the
-     rates that are the Head's call, and the Head keeps the two bands on separate views
-     rather than one mixed list. */
+  /* The queue lists approval requests, not rate lines: one per application per approval
+     level, holding every rate on that application that needs that level across all of its
+     services. Each approver works their own band — a Pricing Manager never sees the Head's
+     requests, and the Head keeps the two bands on separate views. */
   let rateView = '';
   function rateViews() {
     if (role === 'head') {
@@ -773,21 +770,24 @@
   }
   function defaultRateView() { return rateViews()[0][0]; }
   function myBands() { return ROLES[role].approves; }
+  function canActOn(request) {
+    return request.state === 'pending' && window.KashierRates.canRoleAct(role, request.tier);
+  }
 
   function rateRows(view) {
     const v = view || rateView || defaultRateView();
     const term = searchTerm.trim().toLowerCase();
-    return allRequests().filter(r => {
-      const mine = myBands().indexOf(r.req.tier) !== -1;
-      if (!mine) return false;
-      if (v === 'decided') { if (!r.decision) return false; }
-      else if (r.decision || r.req.tier !== v) return false;
-      return !term || [r.app.biz, r.req.service, r.req.bank, r.req.rate]
-        .join(' ').toLowerCase().includes(term);
+    return window.KashierRates.approvalRequests().filter(r => {
+      if (myBands().indexOf(r.tier) === -1) return false;
+      if (v === 'decided') { if (r.state === 'pending') return false; }
+      else if (r.state !== 'pending' || r.tier !== v) return false;
+      if (!term) return true;
+      const text = [r.app.biz, r.app.id].concat(r.lines.map(l => [l.service, l.bank, l.rate].join(' ')));
+      return text.join(' ').toLowerCase().includes(term);
     });
   }
   /* What the tab badge counts: the requests actually sitting with this person. */
-  function myPending() { return allRequests().filter(canAct).length; }
+  function myPending() { return window.KashierRates.approvalRequests().filter(canActOn).length; }
 
   function renderRateViews() {
     const box = $('rateViews');
@@ -799,32 +799,17 @@
     }).join('');
   }
 
-  /* Each pending request opens on its own page, separate from the application. */
-  function requestURL(appId, reqId) {
-    return 'rate-request.html?app=' + encodeURIComponent(appId) + '&req=' + encodeURIComponent(reqId);
-  }
-
-  function askText(req) {
-    return req.requested
-      ? `${req.requested}%${req.requestedFee != null ? ` + ${req.requestedFee} EGP` : ''}`
-      : TIER_LABEL[req.tier];
-  }
-  function standardText(req) {
-    return req.standard != null
-      ? `standard ${req.standard}%${req.standardFee != null ? ` + ${req.standardFee} EGP` : ''}`
-      : `${req.from}%–under ${req.to}%`;
-  }
-
-  /* One request per row, kept to four columns: who, what, the ask, and the way in.
-     Everything else — the justification, the details, the decision buttons — is on the
-     rate request page that Review opens. */
-  function rateRowHTML(row) {
-    const app = row.app, req = row.req, decision = row.decision;
-    const outcome = decision
-      ? (decision.decision === 'approved'
+  /* One approval request per row: the merchant, the services it covers, how many rates are
+     in it, and the way in. The rates themselves, their justifications and the decision are
+     on the rate request page that Review opens. */
+  function rateRowHTML(request) {
+    const app = request.app;
+    const outcome = request.state === 'pending'
+      ? `<span class="badge badge-application"><span class="badge-dot"></span>Pending</span>`
+      : request.state === 'approved'
         ? `<span class="badge badge-activated"><span class="badge-dot"></span>Approved</span>`
-        : `<span class="badge badge-lost"><span class="badge-dot"></span>Rejected</span>`)
-      : `<span class="ask"><b>${esc(askText(req))}</b><span class="ask-vs">${esc(standardText(req))}</span></span>`;
+        : `<span class="badge badge-lost"><span class="badge-dot"></span>Rejected</span>`;
+    const n = request.lines.length;
     return `<tr>
       <td>
         <div class="lead-cell">
@@ -836,12 +821,14 @@
         </div>
       </td>
       <td>
-        <div>${esc(req.rate)}</div>
-        <div class="cell-sub">${esc([req.service, req.bank].filter(Boolean).join(' · '))}</div>
+        <div>${esc(request.services.join(', '))}</div>
+        <div class="cell-sub">${esc(TIER_LABEL[request.tier])}</div>
       </td>
+      <td><span class="rate-count">${n} rate${n === 1 ? '' : 's'}</span></td>
       <td>${outcome}</td>
       <td class="row-action">
-        <a class="btn ${canAct(row) ? 'btn-primary' : 'btn-outline'} btn-sm" href="${requestURL(app.id, req.id)}">Review</a>
+        <a class="btn ${canActOn(request) ? 'btn-primary' : 'btn-outline'} btn-sm"
+           href="${window.KashierRates.requestURL(app.id, request.tier)}">Review</a>
       </td>
     </tr>`;
   }

@@ -233,26 +233,35 @@
   }
   @media (max-width: 620px) { .user .name { display: none; } }
 
-  /* ---------- Rate request page ---------- */
+  /* ---------- Rate approval request page ---------- */
   .page-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .actions-note { font-size: 12.5px; color: var(--cadet-base); background: var(--muted); border-radius: var(--radius);
-    padding: 9px 12px; max-width: 320px; line-height: 1.45; }
-  .figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .fig { background: var(--muted); border-radius: 8px; padding: 12px 14px; }
-  .fig.asking { background: var(--ocean-10); }
-  .fig-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); }
-  .fig-value { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: var(--foreground); margin-top: 4px; }
-  .fig.asking .fig-value { color: var(--primary); }
-  .fig-sub { font-size: 12px; color: var(--cadet-05); margin-top: 2px; }
-  .gap-line { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-  .gap-chip { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 4px 10px;
+    padding: 9px 12px; max-width: 340px; line-height: 1.45; }
+  .level-pill { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; border-radius: 999px;
+    padding: 3px 10px; background: var(--warning-bg); color: var(--warning-text); }
+  .level-pill.head { background: var(--destructive-bg); color: var(--destructive); }
+
+  .svc-group + .svc-group { margin-top: 22px; }
+  .svc-group-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle); }
+  .svc-group-name { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); }
+  .svc-group-meta { font-size: 12px; color: var(--cadet-05); }
+  .rate-line { padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+  .rate-line:last-child { border-bottom: none; padding-bottom: 0; }
+  .rate-line-top { display: grid; grid-template-columns: minmax(150px, 1.3fr) 1fr 1fr; gap: 14px; align-items: start; }
+  .rate-line-name { font-size: 13.5px; font-weight: 600; color: var(--foreground); }
+  .rate-line-gap { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .fig-mini .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); }
+  .fig-mini .val { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
+  .fig-mini.asking .val { color: var(--primary); }
+  .gap-chip { font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 3px 9px;
     background: var(--warning-bg); color: var(--warning-text); }
   .gap-chip.head { background: var(--destructive-bg); color: var(--destructive); }
   .gap-chip.ok { background: var(--success-bg); color: var(--success-text); }
-  .just { font-size: 14px; color: var(--foreground); line-height: 1.65; background: var(--warning-bg);
-    border-left: 3px solid var(--warning); border-radius: 0 6px 6px 0; padding: 14px 16px; margin: 0; }
-  .just.empty { background: var(--muted); border-left-color: var(--border); color: var(--cadet-05); font-style: italic; }
-  .just-by { font-size: 12px; color: var(--cadet-05); margin-top: 10px; }
+  .line-note { font-size: 13px; color: var(--cadet-base); line-height: 1.55; margin-top: 10px;
+    border-left: 3px solid var(--warning); background: var(--warning-bg); border-radius: 0 6px 6px 0; padding: 9px 12px; }
+  .line-note.empty { border-left-color: var(--border); background: var(--muted); color: var(--cadet-05); font-style: italic; }
+
   .decision { display: flex; gap: 12px; align-items: flex-start; }
   .decision-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .decision-icon.approved { background: var(--success-bg); color: var(--success); }
@@ -262,18 +271,12 @@
   .decision-meta { font-size: 12.5px; color: var(--cadet-05); margin-top: 2px; }
   .decision-reason { font-size: 13px; color: var(--destructive); line-height: 1.5; margin-top: 8px; }
   .detail-list { display: flex; flex-direction: column; gap: 14px; }
-  .other-req { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0;
-    border-top: 1px solid var(--border-subtle); color: inherit; }
-  .other-req:first-child { border-top: none; padding-top: 0; }
-  .other-req:hover .other-req-name { color: var(--link); }
-  .other-req-name { font-size: 13px; font-weight: 600; color: var(--foreground); }
-  .other-req-sub { font-size: 11.5px; color: var(--cadet-05); margin-top: 2px; }
   .status-pill.danger { background: var(--destructive-bg); color: var(--destructive); }
   .status-pill.danger .dot { background: var(--destructive); }
   .app-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
   .not-found { text-align: center; padding: 48px 20px; color: var(--cadet-base); }
   .not-found h2 { font-size: 18px; color: var(--foreground); margin-bottom: 6px; }
-  @media (max-width: 700px) { .figures { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .rate-line-top { grid-template-columns: 1fr 1fr; } .rate-line-top > :first-child { grid-column: 1 / -1; } }
 </style>
 </head>
 <body>
@@ -366,34 +369,17 @@
         </div>
 
         <div class="layout-grid">
-          <!-- LEFT: the request itself -->
+          <!-- LEFT: every rate in this request, grouped by service -->
           <div>
             <div class="card">
               <div class="card-head">
                 <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg>
                 <div>
-                  <h2>Requested Pricing</h2>
-                  <p class="ch-sub">What the salesperson is asking for, against the published pricing for this rate.</p>
+                  <h2>Requested Rates</h2>
+                  <p class="ch-sub" id="ratesSub">Every rate on this application that needs this approval level, with the salesperson's justification for each.</p>
                 </div>
               </div>
-              <div class="card-body">
-                <div class="figures" id="figures"></div>
-                <div class="gap-line" id="gapLine"></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-head">
-                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
-                <div>
-                  <h2>Salesperson's Justification</h2>
-                  <p class="ch-sub">Why this merchant needs pricing below the published rate.</p>
-                </div>
-              </div>
-              <div class="card-body">
-                <p class="just" id="justText"></p>
-                <div class="just-by" id="justBy"></div>
-              </div>
+              <div class="card-body" id="rateGroups"></div>
             </div>
 
             <div class="card" id="decisionCard" hidden>
@@ -405,7 +391,7 @@
             </div>
           </div>
 
-          <!-- RIGHT: context, with the application kept one link away -->
+          <!-- RIGHT: request details, with the application kept one link away -->
           <div>
             <div class="card">
               <div class="card-head">
@@ -415,17 +401,6 @@
               <div class="card-body">
                 <div class="detail-list" id="detailList"></div>
               </div>
-            </div>
-
-            <div class="card" id="otherCard" hidden>
-              <div class="card-head">
-                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
-                <div>
-                  <h2>Other Rate Requests</h2>
-                  <p class="ch-sub">Submitted with the same application — each is decided on its own page.</p>
-                </div>
-              </div>
-              <div class="card-body" id="otherList"></div>
             </div>
 
             <a class="btn btn-outline app-link" id="appLink" href="#">
@@ -438,7 +413,7 @@
 
       <div class="card not-found" id="notFound" hidden>
         <h2>Rate request not found</h2>
-        <p>This link doesn't match a rate request. It may have been resubmitted under a new application.</p>
+        <p>This link doesn't match a rate approval request. It may have been resubmitted under a new application.</p>
         <a class="btn btn-primary" href="index.html?view=rates">Back to Rate Approvals</a>
       </div>
     </div>
@@ -454,7 +429,7 @@
       </div>
       <div class="modal-body">
         <p class="confirm-text" id="rejectText"></p>
-        <textarea id="rejectReason" placeholder="Why is this rate being rejected? The salesperson sees this when the application comes back to them."></textarea>
+        <textarea id="rejectReason" placeholder="Why are these rates being rejected? The salesperson sees this when the application comes back to them."></textarea>
         <div class="field-error" id="rejectError" hidden>Add a reason — this is what the salesperson gets back, so they know what to change.</div>
       </div>
       <div class="modal-footer">
@@ -468,12 +443,13 @@
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
-  const { ROLES, TIER_OWNER, readStore } = window.KashierRates;
+  const { ROLES, TIER_LABEL, TIER_OWNER } = window.KashierRates;
   let role = window.KashierRates.getRole();
 
+  /* A request is one application at one approval level: ?app=APP-…&level=manager|head */
   const params = new URLSearchParams(location.search);
   const APP_ID = params.get('app') || '';
-  const REQ_ID = params.get('req') || '';
+  const LEVEL = params.get('level') === 'head' ? 'head' : (params.get('level') === 'manager' ? 'manager' : '');
 
   function fmtDate(iso) {
     return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -482,117 +458,119 @@
     return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
   function trim(n) { return Number(n).toFixed(2).replace(/\.?0+$/, ''); }
-  function requestURL(appId, reqId) {
-    return 'rate-request.html?app=' + encodeURIComponent(appId) + '&req=' + encodeURIComponent(reqId);
+  function pricing(pct, fee) {
+    return [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
   }
-  function decisionFor(appId, reqId) {
-    return (readStore('kashierRateDecisions')[appId] || {})[reqId] || null;
-  }
+  function current() { return LEVEL ? window.KashierRates.findApprovalRequest(APP_ID, LEVEL) : null; }
 
   /* The next request waiting on this person, so an approver can work through the queue
      without going back to the list after every decision. */
-  function nextPendingFor(currentReqId) {
-    const decisions = readStore('kashierRateDecisions');
-    const bands = ROLES[role].approves;
-    const rows = [];
-    window.KashierRates.loadApplications().forEach(app => app.requests.forEach(req => {
-      if ((decisions[app.id] || {})[req.id]) return;
-      if (bands.indexOf(req.tier) === -1) return;
-      if (app.id === APP_ID && req.id === currentReqId) return;
-      rows.push({ app, req });
-    }));
-    return rows.sort((a, b) => new Date(a.app.ts) - new Date(b.app.ts))[0] || null;
+  function nextPending() {
+    return window.KashierRates.approvalRequests().filter(r =>
+      r.state === 'pending' && window.KashierRates.canRoleAct(role, r.tier) &&
+      !(r.app.id === APP_ID && r.tier === LEVEL))[0] || null;
   }
 
-  function statusPillHTML(decision) {
-    if (!decision) return '<span class="status-pill warn"><span class="dot"></span>Pending</span>';
-    return decision.decision === 'approved'
-      ? '<span class="status-pill success"><span class="dot"></span>Approved</span>'
-      : '<span class="status-pill danger"><span class="dot"></span>Rejected</span>';
+  function statusPillHTML(state) {
+    if (state === 'approved') return '<span class="status-pill success"><span class="dot"></span>Approved</span>';
+    if (state === 'rejected') return '<span class="status-pill danger"><span class="dot"></span>Rejected</span>';
+    return '<span class="status-pill warn"><span class="dot"></span>Pending</span>';
   }
-
-  function settlementFor(app, req) {
+  function settlementFor(app, service, bank) {
     const configs = (app.summary && app.summary.serviceConfigs) || [];
-    const svc = configs.filter(c => c.service === req.service)[0];
+    const svc = configs.filter(c => c.service === service)[0];
     if (!svc) return '';
-    const cfg = (svc.configs || []).filter(c => (c.bank || '') === (req.bank || ''))[0];
+    const cfg = (svc.configs || []).filter(c => (c.bank || '') === (bank || ''))[0];
     return cfg ? cfg.module : '';
   }
 
+  function lineHTML(line, tier) {
+    const cls = tier === 'head' ? ' head' : '';
+    const chips = [];
+    if (line.requested != null && line.standard != null && line.requested < line.standard) {
+      chips.push(`<span class="gap-chip${cls}">${trim(line.standard - line.requested)} pp below standard rate</span>`);
+    }
+    if (line.requestedFee != null && line.standardFee != null && line.requestedFee < line.standardFee) {
+      chips.push(`<span class="gap-chip${cls}">${trim(line.standardFee - line.requestedFee)} EGP below standard fee</span>`);
+    }
+    return `<div class="rate-line">
+      <div class="rate-line-top">
+        <div>
+          <div class="rate-line-name">${esc(line.rate)}</div>
+          ${chips.length ? `<div class="rate-line-gap">${chips.join('')}</div>` : ''}
+        </div>
+        <div class="fig-mini asking"><div class="lbl">Asking</div><div class="val">${esc(pricing(line.requested, line.requestedFee))}</div></div>
+        <div class="fig-mini"><div class="lbl">Published</div><div class="val">${esc(pricing(line.standard, line.standardFee))}</div></div>
+      </div>
+      <div class="line-note${line.note ? '' : ' empty'}">${line.note ? esc(line.note) : 'No justification was recorded for this rate.'}</div>
+    </div>`;
+  }
+
   function render() {
-    const found = window.KashierRates.findRequest(APP_ID, REQ_ID);
-    $('requestView').hidden = !found;
-    $('notFound').hidden = !!found;
-    if (!found) return;
+    const request = current();
+    $('requestView').hidden = !request;
+    $('notFound').hidden = !!request;
+    if (!request) return;
 
-    const { app, req } = found;
-    const decision = decisionFor(app.id, req.id);
-    const canAct = !decision && window.KashierRates.canRoleAct(role, req.tier);
-    document.title = `Kashier | ${req.rate} — ${app.biz}`;
+    const { app, tier, lines, services, state, decision } = request;
+    const canAct = state === 'pending' && window.KashierRates.canRoleAct(role, tier);
+    const n = lines.length;
+    document.title = `Kashier | ${TIER_LABEL[tier]} — ${app.biz}`;
 
-    // Header
-    $('crumbRate').textContent = req.rate;
-    $('reqTitle').textContent = req.rate;
-    $('reqStatus').innerHTML = statusPillHTML(decision);
-    $('reqSub').innerHTML = [app.biz, req.service, req.bank].filter(Boolean).map(esc).join('<span class="dot">&middot;</span>');
+    // Header: the request is the merchant at one approval level
+    $('crumbRate').textContent = `${app.biz} · ${TIER_LABEL[tier]}`;
+    $('reqTitle').textContent = app.biz;
+    $('reqStatus').innerHTML = statusPillHTML(state);
+    $('reqSub').innerHTML = [
+      `<span class="level-pill${tier === 'head' ? ' head' : ''}">${esc(TIER_LABEL[tier])}</span>`,
+      `${n} rate${n === 1 ? '' : 's'} across ${services.length} service${services.length === 1 ? '' : 's'}`,
+      esc(app.id),
+    ].join('<span class="dot">&middot;</span>');
 
-    // Actions live on the request, not on the application
+    // One decision covers the whole request
     if (canAct) {
       $('reqActions').innerHTML = `
         <button class="btn btn-destructive-outline" id="rejectBtn">Reject</button>
         <button class="btn btn-success" id="approveBtn">
           <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-          Approve
+          Approve${n > 1 ? ` All ${n}` : ''}
         </button>`;
-    } else if (decision) {
-      const next = nextPendingFor(req.id);
+    } else if (state !== 'pending') {
+      const next = nextPending();
       $('reqActions').innerHTML = next
-        ? `<a class="btn btn-primary" href="${requestURL(next.app.id, next.req.id)}">Next Request &rarr;</a>`
+        ? `<a class="btn btn-primary" href="${window.KashierRates.requestURL(next.app.id, next.tier)}">Next Request &rarr;</a>`
         : `<a class="btn btn-outline" href="index.html?view=rates">Back to Rate Approvals</a>`;
     } else {
       $('reqActions').innerHTML = role === 'sales'
-        ? `<div class="actions-note">Waiting on the ${esc(TIER_OWNER[req.tier])} to review this rate.</div>`
-        : `<div class="actions-note">This rate needs ${esc(TIER_OWNER[req.tier])} approval — it is above your approval level as ${esc(ROLES[role].label)}.</div>`;
+        ? `<div class="actions-note">Waiting on the ${esc(TIER_OWNER[tier])} to review these rates.</div>`
+        : `<div class="actions-note">This request needs ${esc(TIER_OWNER[tier])} approval — it is above your approval level as ${esc(ROLES[role].label)}.</div>`;
     }
 
-    // Requested pricing
-    const hasFee = req.requestedFee != null;
-    $('figures').innerHTML = `
-      <div class="fig asking">
-        <div class="fig-label">Asking</div>
-        <div class="fig-value">${esc(req.requested != null ? req.requested + '%' : '—')}</div>
-        <div class="fig-sub">${hasFee ? `+ ${esc(req.requestedFee)} EGP fixed fee` : '&nbsp;'}</div>
-      </div>
-      <div class="fig">
-        <div class="fig-label">Published</div>
-        <div class="fig-value">${esc(req.standard != null ? req.standard + '%' : '—')}</div>
-        <div class="fig-sub">${req.standardFee != null ? `+ ${esc(req.standardFee)} EGP fixed fee` : '&nbsp;'}</div>
-      </div>
-      <div class="fig">
-        <div class="fig-label">Approval Level</div>
-        <div class="fig-value">${esc(req.tier === 'head' ? 'Head' : 'Manager')}</div>
-        <div class="fig-sub">${esc(TIER_OWNER[req.tier])}</div>
+    // Rates, grouped by service (and institution within a service)
+    $('ratesSub').textContent = `Every rate on this application that needs ${TIER_OWNER[tier]} approval, with the salesperson's justification for each.`;
+    const groups = [];
+    lines.forEach(l => {
+      const key = l.service + '|' + (l.bank || '');
+      let g = groups.filter(x => x.key === key)[0];
+      if (!g) { g = { key, service: l.service, bank: l.bank, lines: [] }; groups.push(g); }
+      g.lines.push(l);
+    });
+    $('rateGroups').innerHTML = groups.map(g => {
+      const settlement = settlementFor(app, g.service, g.bank);
+      const meta = [g.bank, settlement ? `Settlement: ${settlement}` : ''].filter(Boolean).join(' · ');
+      return `<div class="svc-group">
+        <div class="svc-group-head">
+          <span class="svc-group-name">${esc(g.service)}</span>
+          ${meta ? `<span class="svc-group-meta">${esc(meta)}</span>` : ''}
+        </div>
+        ${g.lines.map(l => lineHTML(l, tier)).join('')}
       </div>`;
-    const chips = [];
-    const cls = req.tier === 'head' ? ' head' : '';
-    if (req.requested != null && req.standard != null && req.requested < req.standard) {
-      chips.push(`<span class="gap-chip${cls}">${trim(req.standard - req.requested)} pp below the standard rate</span>`);
-    }
-    if (hasFee && req.standardFee != null && req.requestedFee < req.standardFee) {
-      chips.push(`<span class="gap-chip${cls}">${trim(req.standardFee - req.requestedFee)} EGP below the standard fixed fee</span>`);
-    }
-    if (!chips.length) chips.push('<span class="gap-chip ok">At or above the published fixed fee</span>');
-    $('gapLine').innerHTML = chips.join('');
-
-    // Justification
-    $('justText').className = 'just' + (req.note ? '' : ' empty');
-    $('justText').textContent = req.note || 'No justification was recorded with this request.';
-    $('justBy').textContent = `${app.actor} · submitted ${fmtDate(app.ts)}`;
+    }).join('');
 
     // Decision
-    $('decisionCard').hidden = !decision;
-    if (decision) {
-      const approved = decision.decision === 'approved';
+    $('decisionCard').hidden = state === 'pending';
+    if (state !== 'pending' && decision) {
+      const approved = state === 'approved';
       $('decisionBody').innerHTML = `
         <div class="decision">
           <div class="decision-icon ${approved ? 'approved' : 'rejected'}">
@@ -601,7 +579,7 @@
               : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>'}
           </div>
           <div>
-            <div class="decision-title">${approved ? 'Approved' : 'Rejected and returned to ' + esc(app.actor)}</div>
+            <div class="decision-title">${approved ? `All ${n} rate${n === 1 ? '' : 's'} approved` : `Rejected and returned to ${esc(app.actor)}`}</div>
             <div class="decision-meta">${esc(decision.by)} (${esc(decision.roleLabel)}) &middot; ${esc(fmtDateTime(decision.ts))}</div>
             ${decision.reason ? `<div class="decision-reason">Reason: ${esc(decision.reason)}</div>` : ''}
           </div>
@@ -613,40 +591,29 @@
       `<div class="info-field"><div class="lbl">${esc(label)}</div><div class="val${value ? '' : ' muted'}">${esc(value || '—')}</div></div>`;
     $('detailList').innerHTML = [
       field('Merchant', app.biz),
-      field('Service', req.service),
-      field('Financial Institution', req.bank),
-      field('Settlement Type', settlementFor(app, req)),
+      field('Approval Level', TIER_OWNER[tier]),
+      field('Services', services.join(', ')),
+      field('Rates in This Request', String(n)),
       field('Requested By', app.actor),
       field('Submitted', fmtDate(app.ts)),
       field('Application', app.id),
     ].join('');
 
-    // Sibling requests — linked, each decided on its own page
-    const others = app.requests.filter(r => r.id !== req.id);
-    $('otherCard').hidden = !others.length;
-    $('otherList').innerHTML = others.map(r => `
-      <a class="other-req" href="${requestURL(app.id, r.id)}">
-        <div>
-          <div class="other-req-name">${esc(r.rate)}</div>
-          <div class="other-req-sub">${esc([r.service, r.bank].filter(Boolean).join(' · '))} &middot; ${esc(TIER_OWNER[r.tier])}</div>
-        </div>
-        ${statusPillHTML(decisionFor(app.id, r.id))}
-      </a>`).join('');
-
     $('appLink').href = app.url;
   }
 
   function decide(decision, reason) {
-    const found = window.KashierRates.findRequest(APP_ID, REQ_ID);
-    if (!found) return;
-    const result = window.KashierRates.recordDecision({
-      app: found.app, reqId: found.req.id, decision, reason, role,
+    const request = current();
+    if (!request) return;
+    const result = window.KashierRates.recordRequestDecision({
+      app: request.app, tier: request.tier, decision, reason, role,
     });
     if (!result) return;
     render();
+    const n = result.lines.length;
     toast(decision === 'approved'
-      ? `${found.req.rate} approved for ${found.app.biz}.`
-      : `${found.req.rate} rejected — ${found.app.biz} went back to ${found.app.actor}.`);
+      ? `${n} rate${n === 1 ? '' : 's'} approved for ${request.app.biz}.`
+      : `Rejected — ${request.app.biz} went back to ${request.app.actor}.`);
   }
 
   $('reqActions').addEventListener('click', e => {
@@ -656,10 +623,11 @@
 
   /* Reject needs a reason — that reason is what the salesperson gets back. */
   function openRejectModal() {
-    const found = window.KashierRates.findRequest(APP_ID, REQ_ID);
-    if (!found) return;
-    $('rejectText').innerHTML = `Reject the <b>${esc(found.req.rate)}</b> request for <b>${esc(found.app.biz)}</b>? ` +
-      `This sends the whole application back to ${esc(found.app.actor)} to revise the pricing.`;
+    const request = current();
+    if (!request) return;
+    const n = request.lines.length;
+    $('rejectText').innerHTML = `Reject the <b>${esc(TIER_LABEL[request.tier])}</b> request for <b>${esc(request.app.biz)}</b>` +
+      ` (${n} rate${n === 1 ? '' : 's'})? This sends the whole application back to ${esc(request.app.actor)} to revise the pricing.`;
     $('rejectReason').value = '';
     clearRejectError();
     $('rejectBackdrop').classList.add('open');

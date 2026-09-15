@@ -200,19 +200,18 @@
   .price-stat { background: #fff; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; }
   .price-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); }
   .price-stat-value { font-size: 14px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
-  /* Sales rate entry — the salesperson types the percentage and the fixed fee,
-     and the verdict below says whether the pair clears without sign-off */
+  /* Sales rate entry — the salesperson types the rate, the verdict beside it says whether
+     it clears without sign-off */
   .rate-entry { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
   .rate-field { display: flex; flex-direction: column; gap: 5px; }
   .rate-entry-label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); display: flex; align-items: center; gap: 4px; }
   .rate-entry-label .req { color: var(--destructive); }
   .rate-input-wrap { position: relative; display: inline-flex; align-items: center; }
-  .rate-input, .fee-input { width: 110px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius);
+  .rate-input { width: 110px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius);
     background: #fff; color: var(--foreground); font-family: inherit; font-size: 14px; font-weight: 600;
     padding: 0 28px 0 12px; color-scheme: light; }
-  .fee-input { width: 124px; padding-right: 44px; }
-  .rate-input:focus, .fee-input:focus { outline: none; border-color: var(--primary); }
-  .rate-input.empty, .fee-input.empty { border-color: var(--warning); }
+  .rate-input:focus { outline: none; border-color: var(--primary); }
+  .rate-input.empty { border-color: var(--warning); }
   .rate-input-suffix { position: absolute; right: 10px; font-size: 13px; font-weight: 600; color: var(--cadet-05); pointer-events: none; }
   .rate-verdict { align-self: center; }
   .rate-verdict { font-size: 12.5px; font-weight: 600; border-radius: 6px; padding: 6px 10px; }
@@ -610,10 +609,9 @@
     return keys.every(k => cfg.bankConfigs[k] && cfg.bankConfigs[k].module);
   }
 
-  /* The salesperson types the rate and the fixed fee the merchant needs; where those land
-     against the tier's own published pricing decides whether anyone has to sign off.
-     A rate under the Manager rate is the Head's call; anything else priced under the
-     published figures is a Manager's. */
+  /* The salesperson types the rate the merchant needs; where it lands against the tier's
+     own published rates decides whether anyone has to sign off. A rate under the Manager
+     rate is the Head's call; anything else under the standard rate is a Manager's. */
   function num(v) {
     const n = Number(v);
     return (v === '' || v === null || v === undefined || !isFinite(n) || n < 0) ? null : n;
@@ -625,30 +623,17 @@
     if (v >= t.manager) return 'manager';
     return 'head';
   }
-  function tierForFee(t, fee) {
-    const v = num(fee);
-    if (v === null) return '';
-    return v >= t.fixedFee ? 'auto' : 'manager';
-  }
-  /* The line as a whole takes the stricter of the two. */
+  /* The rate alone decides whether a line needs sign-off. */
   function lineVerdict(t, sel) {
-    const rateTier = tierForRate(t, sel.rate);
-    const feeTier = tierForFee(t, sel.fee);
-    if (!rateTier || !feeTier) {
-      return { tier: '', text: 'Enter the rate and fixed fee this merchant needs' };
-    }
-    if (rateTier === 'head') {
+    const tier = tierForRate(t, sel.rate);
+    if (!tier) return { tier: '', text: 'Enter the rate this merchant needs' };
+    if (tier === 'head') {
       return { tier: 'head', text: `Needs Head approval &middot; the rate is under the ${t.manager}% Manager rate` };
     }
-    if (rateTier === 'manager' || feeTier === 'manager') {
-      const under = rateTier === 'manager' && feeTier === 'manager'
-        ? `the rate and fixed fee are under the published ${t.standard}% + ${t.fixedFee} EGP`
-        : rateTier === 'manager'
-          ? `the rate is under the ${t.standard}% standard rate`
-          : `the fixed fee is under the ${t.fixedFee} EGP standard fee`;
-      return { tier: 'manager', text: `Needs Manager approval &middot; ${under}` };
+    if (tier === 'manager') {
+      return { tier: 'manager', text: `Needs Manager approval &middot; the rate is under the ${t.standard}% standard rate` };
     }
-    return { tier: 'auto', text: `Auto &middot; at or above the published ${t.standard}% + ${t.fixedFee} EGP, no approval needed` };
+    return { tier: 'auto', text: `Auto &middot; at or above the ${t.standard}% standard rate, no approval needed` };
   }
   function noteBlockHTML(t, tier, note, bankKey, key) {
     const who = tier === 'manager' ? 'Manager' : 'Head';
@@ -658,12 +643,11 @@
     </div>`;
   }
   function priceTierHTML(t, pricingMap, bankKey) {
-    const sel = pricingMap.get(t.key) || { rate: '', fee: '', tier: '', note: '' };
+    const sel = pricingMap.get(t.key) || { rate: '', tier: '', note: '' };
     const { tier, text } = lineVerdict(t, sel);
     const verdict = `<span class="rate-verdict ${tier || 'empty'}">${text}</span>`;
     const needsNote = tier === 'manager' || tier === 'head';
     const rateFilled = tierForRate(t, sel.rate) !== '';
-    const feeFilled = tierForFee(t, sel.fee) !== '';
     return `<div class="price-tier">
       <div class="price-tier-label">${esc(t.label)}</div>
       <div class="price-tier-desc">${esc(t.desc)}</div>
@@ -681,15 +665,6 @@
               inputmode="decimal" step="0.01" min="0" placeholder="${t.standard}"
               data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" value="${esc(sel.rate)}">
             <span class="rate-input-suffix">%</span>
-          </div>
-        </div>
-        <div class="rate-field">
-          <label class="rate-entry-label" for="fee-${esc(bankKey)}-${esc(t.key)}">Fixed fee<span class="req">*</span></label>
-          <div class="rate-input-wrap">
-            <input class="fee-input${feeFilled ? '' : ' empty'}" id="fee-${esc(bankKey)}-${esc(t.key)}" type="number"
-              inputmode="decimal" step="0.25" min="0" placeholder="${t.fixedFee}"
-              data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" value="${esc(sel.fee)}">
-            <span class="rate-input-suffix egp">EGP</span>
           </div>
         </div>
         ${verdict}
@@ -740,7 +715,6 @@
             id: `${s}::${k}::${t.key}`,
             service: s, bank: k, rate: t.label, tier, note: sel.note.trim(),
             requested: Number(sel.rate), standard: t.standard, managerRate: t.manager,
-            requestedFee: Number(sel.fee), standardFee: t.fixedFee,
             from: tier === 'manager' ? t.manager : t.head,
             to: tier === 'manager' ? t.standard : t.manager,
           });
@@ -1035,8 +1009,8 @@
       });
     });
     if (missing) {
-      toast(`Enter a rate and fixed fee for every line in ${stripChannel(service)} — ${missing} still incomplete`);
-      const blank = $('serviceSetupBody').querySelector('.rate-input.empty, .fee-input.empty');
+      toast(`Enter your rate for every line in ${stripChannel(service)} — ${missing} still blank`);
+      const blank = $('serviceSetupBody').querySelector('.rate-input.empty');
       if (blank) { blank.focus(); blank.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       return;
     }
@@ -1064,19 +1038,14 @@
   /* Typing a rate re-decides whether it needs sign-off. The verdict and the justification
      box are swapped in place rather than re-rendering the panel, so the field keeps focus. */
   $('serviceSetupBody').addEventListener('input', e => {
-    const input = e.target.closest('.rate-input, .fee-input');
+    const input = e.target.closest('.rate-input');
     const cfg = serviceConfig[activeService];
     if (input) {
-      const isFee = input.classList.contains('fee-input');
       const bankKey = input.dataset.bank, key = input.dataset.key;
       const t = ratesForService(activeService).find(x => x.key === key);
       const bc = ensureBankConfig(cfg, bankKey);
-      const cur = bc.pricing.get(key) || { rate: '', fee: '', tier: '', note: '' };
-      const next = {
-        rate: isFee ? cur.rate : input.value,
-        fee: isFee ? input.value : cur.fee,
-        note: cur.note,
-      };
+      const cur = bc.pricing.get(key) || { rate: '', tier: '', note: '' };
+      const next = { rate: input.value, note: cur.note };
       const { tier, text } = lineVerdict(t, next);
       next.tier = tier;
       bc.pricing.set(key, next);
@@ -1085,8 +1054,7 @@
       const verdictEl = block.querySelector('.rate-verdict');
       verdictEl.className = `rate-verdict ${tier || 'empty'}`;
       verdictEl.innerHTML = text;
-      block.querySelector('.rate-input').classList.toggle('empty', tierForRate(t, next.rate) === '');
-      block.querySelector('.fee-input').classList.toggle('empty', tierForFee(t, next.fee) === '');
+      input.classList.toggle('empty', !tier);
 
       const noteEl = block.querySelector('.price-note');
       const needsNote = tier === 'manager' || tier === 'head';
@@ -1104,8 +1072,8 @@
     const ta = e.target.closest('textarea[data-key]');
     if (!ta) return;
     const bc = ensureBankConfig(cfg, ta.dataset.bank);
-    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', fee: '', tier: '', note: '' };
-    bc.pricing.set(ta.dataset.key, { rate: cur.rate, fee: cur.fee, tier: cur.tier, note: ta.value });
+    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', tier: '', note: '' };
+    bc.pricing.set(ta.dataset.key, { rate: cur.rate, tier: cur.tier, note: ta.value });
     ta.classList.toggle('invalid', !ta.value.trim());
     if (cfg.done) { cfg.done = false; renderServiceTracker(); }
     renderSubmitSummary();

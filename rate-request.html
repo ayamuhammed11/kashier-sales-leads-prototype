@@ -458,9 +458,7 @@
     return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
   function trim(n) { return Number(n).toFixed(2).replace(/\.?0+$/, ''); }
-  function pricing(pct, fee) {
-    return [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
-  }
+  function pricing(pct) { return pct != null ? pct + '%' : '—'; }
   function current() { return LEVEL ? window.KashierRates.findApprovalRequest(APP_ID, LEVEL) : null; }
 
   /* The next request waiting on this person, so an approver can work through the queue
@@ -491,17 +489,14 @@
     if (line.requested != null && line.standard != null && line.requested < line.standard) {
       chips.push(`<span class="gap-chip${cls}">${trim(line.standard - line.requested)} pp below standard rate</span>`);
     }
-    if (line.requestedFee != null && line.standardFee != null && line.requestedFee < line.standardFee) {
-      chips.push(`<span class="gap-chip${cls}">${trim(line.standardFee - line.requestedFee)} EGP below standard fee</span>`);
-    }
     return `<div class="rate-line">
       <div class="rate-line-top">
         <div>
           <div class="rate-line-name">${esc(line.rate)}</div>
           ${chips.length ? `<div class="rate-line-gap">${chips.join('')}</div>` : ''}
         </div>
-        <div class="fig-mini asking"><div class="lbl">Asking</div><div class="val">${esc(pricing(line.requested, line.requestedFee))}</div></div>
-        <div class="fig-mini"><div class="lbl">Published</div><div class="val">${esc(pricing(line.standard, line.standardFee))}</div></div>
+        <div class="fig-mini asking"><div class="lbl">Asking</div><div class="val">${esc(pricing(line.requested))}</div></div>
+        <div class="fig-mini"><div class="lbl">Published</div><div class="val">${esc(pricing(line.standard))}</div></div>
       </div>
       <div class="line-note${line.note ? '' : ' empty'}">${line.note ? esc(line.note) : 'No justification was recorded for this rate.'}</div>
     </div>`;

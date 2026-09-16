@@ -543,14 +543,9 @@
       esc(app.id),
     ].join('<span class="dot">&middot;</span>');
 
-    // Decide rate by rate below, or everything still open in one go here.
+    // Rates are decided one by one below; the header only says how many are left.
     if (canAct) {
-      $('reqActions').innerHTML = `
-        <button class="btn btn-destructive-outline" id="rejectBtn">Reject${open > 1 ? ' All' : ''}</button>
-        <button class="btn btn-success" id="approveBtn">
-          <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-          Approve${open > 1 ? ` All ${open}` : ''}
-        </button>`;
+      $('reqActions').innerHTML = `<div class="actions-note">${open} of ${n} rate${n === 1 ? '' : 's'} still to decide — approve or reject each rate below.</div>`;
     } else if (app.superseded) {
       // An earlier version kept for the record; the live request is on the resubmission.
       $('reqActions').innerHTML = `<div class="actions-note">Revised and resubmitted as ${esc(app.supersededBy)}.</div>`;
@@ -629,18 +624,14 @@
     $('appLink').href = app.url;
   }
 
-  /* lineId set → decide that one rate; empty → every rate still open in the request. */
+  /* Decide one rate in the request. */
   function decide(decision, reason, lineId) {
     const request = current();
-    if (!request) return;
-    const K = window.KashierRates;
-    const result = lineId
-      ? K.recordDecision({ app: request.app, reqId: lineId, decision, reason, role })
-      : K.recordRequestDecision({ app: request.app, tier: request.tier, decision, reason, role });
+    if (!request || !lineId) return;
+    const result = window.KashierRates.recordDecision({ app: request.app, reqId: lineId, decision, reason, role });
     if (!result) return;
     render();
-    const decided = lineId ? [result.request] : result.lines;
-    const label = decided.length === 1 ? decided[0].rate : `${decided.length} rates`;
+    const label = result.request.rate;
     if (decision === 'rejected') {
       toast(`${label} rejected — ${request.app.biz} went back to ${request.app.actor}.`);
       return;
@@ -651,10 +642,6 @@
       : `${label} approved — ${after.pendingLines.length} still to decide.`);
   }
 
-  $('reqActions').addEventListener('click', e => {
-    if (e.target.closest('#approveBtn')) decide('approved');
-    else if (e.target.closest('#rejectBtn')) openRejectModal();
-  });
   $('rateGroups').addEventListener('click', e => {
     const approve = e.target.closest('[data-line-approve]');
     if (approve) { decide('approved', '', approve.dataset.lineApprove); return; }
@@ -667,12 +654,11 @@
   function openRejectModal(lineId) {
     const request = current();
     if (!request) return;
-    rejectLineId = lineId || '';
-    const line = request.lines.filter(l => l.id === rejectLineId)[0];
-    const open = request.pendingLines.length;
-    $('rejectText').innerHTML = (line
-      ? `Reject <b>${esc(line.rate)}</b> (${esc([line.service, line.bank].filter(Boolean).join(' · '))}) for <b>${esc(request.app.biz)}</b>?`
-      : `Reject the ${open === 1 ? 'remaining rate' : `${open} remaining rates`} in the <b>${esc(TIER_LABEL[request.tier])}</b> request for <b>${esc(request.app.biz)}</b>?`) +
+    const line = request.lines.filter(l => l.id === lineId)[0];
+    if (!line) return;
+    rejectLineId = lineId;
+    $('rejectText').innerHTML =
+      `Reject <b>${esc(line.rate)}</b> (${esc([line.service, line.bank].filter(Boolean).join(' · '))}) for <b>${esc(request.app.biz)}</b>?` +
       ` This sends the whole application back to ${esc(request.app.actor)} to revise the pricing.`;
     $('rejectReason').value = '';
     clearRejectError();

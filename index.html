@@ -657,7 +657,7 @@
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
           ${l.status === 'rate-approval' && waitingLabel(l) ? `<div class="cell-sub wait-sub">${esc(waitingLabel(l))}</div>` : ''}
-          ${l.status === 'application' && returnedLeads[l.id] ? `<div class="cell-sub wait-sub returned-sub">${returnedLeads[l.id].kind === 'onboarding' ? 'Rejected by Onboarding — update &amp; resubmit' : 'Rates rejected — revise &amp; resubmit'}</div>` : ''}
+          ${l.status === 'application' && returnedLeads[l.id] ? `<div class="cell-sub wait-sub returned-sub">${returnedLeads[l.id].kind === 'onboarding' ? 'Rejected by Onboarding — update &amp; resubmit' : 'Rates rejected — modify &amp; resubmit'}</div>` : ''}
         </td>
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>

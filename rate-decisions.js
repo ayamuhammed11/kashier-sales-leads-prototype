@@ -41,14 +41,16 @@ window.KashierRates = (function () {
   function decisionsFor(appId) { return readStore('kashierRateDecisions')[appId] || {}; }
   function canRoleAct(role, tier) { return ROLES[role].approves.indexOf(tier) !== -1; }
 
-  /* Where the application sits once a decision lands: any rejection sends it back to the
-     salesperson, a clean sweep pushes it on to Onboarding Review. */
+  /* Where the application sits once a decision lands. Approvers review every requested rate
+     — rejecting one does not stop the others being reviewed. While any rate is still open the
+     application waits on rate approval; once all are reviewed it goes back to the salesperson
+     if one or more were rejected, or on to Onboarding Review if every rate was approved. */
   function statusFor(requests, decisions) {
     const rejected = requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
     const pending = requests.filter(r => !decisions[r.id]);
+    if (pending.length) return 'pending-rate-approval';
     if (rejected.length) return 'returned-to-sales';
-    if (!pending.length) return 'pending-onboarding-review';
-    return 'pending-rate-approval';
+    return 'pending-onboarding-review';
   }
   const LEAD_STATUS = {
     'returned-to-sales': 'application',
@@ -85,7 +87,7 @@ window.KashierRates = (function () {
       // Leave a trail on the lead so the salesperson sees why it came back.
       const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
       const notes = readStore('kashierLeadReturnNote');
-      if (rejected.length) {
+      if (status === 'returned-to-sales') {
         const byReason = {};
         rejected.forEach(r => {
           const d = decisions[r.id];
@@ -113,23 +115,20 @@ window.KashierRates = (function () {
     const app = opts.app;
     if (!canRoleAct(opts.role, opts.tier)) return null;
     const decisions = decisionsFor(app.id);
-    // Once any rate on the application is rejected it has gone back to sales; refuse to
-    // decide what is left of it.
-    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return null;
+    if (readStore('kashierSupersededApplications')[app.id]) return null;
     const lines = app.requests.filter(r => r.tier === opts.tier && !decisions[r.id]);
     if (!lines.length) return null;
     return { status: applyDecision(app, lines, opts), lines: lines };
   }
 
-  /* Decide a single rate line from inside its request. Rejecting any one rate still sends
-     the whole application back to the salesperson, the same as rejecting the request. */
+  /* Decide a single rate line from inside its request. Other rates stay open for review;
+     the application goes back to the salesperson once every rate has been reviewed. */
   function recordDecision(opts) {
     const app = opts.app;
     const req = app.requests.filter(r => r.id === opts.reqId)[0];
     if (!req || !canRoleAct(opts.role, req.tier)) return null;
     const decisions = decisionsFor(app.id);
     if (decisions[req.id]) return null;
-    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return null;
     if (readStore('kashierSupersededApplications')[app.id]) return null;
     if (opts.decision === 'rejected' && !String(opts.reason || '').trim()) return null;
     return { status: applyDecision(app, [req], opts), request: req };
@@ -368,19 +367,12 @@ window.KashierRates = (function () {
     const lines = app.requests.filter(r => r.tier === tier);
     if (!lines.length) return null;
     const decided = lines.filter(r => decisions[r.id]);
-    // Rates can be decided one at a time: a request stays pending while some of its rates
-    // are still open, is rejected as soon as one of its own rates is, and is approved once
-    // every rate in it is.
+    // Rates are reviewed one at a time: the request stays pending until every rate in it has
+    // been reviewed, then it is rejected if any of its rates were, otherwise approved.
     const rejectedHere = lines.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
     let state = 'pending';
-    if (rejectedHere.length) {
-      state = 'rejected';
-    } else if (decided.length === lines.length) {
-      state = 'approved';
-    } else if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) {
-      // Another request on this application was rejected, so the application is already back
-      // with the salesperson — nothing is left to decide here until it is resubmitted.
-      state = 'closed';
+    if (decided.length === lines.length) {
+      state = rejectedHere.length ? 'rejected' : 'approved';
     }
     const services = [];
     lines.forEach(r => { if (services.indexOf(r.service) === -1) services.push(r.service); });
@@ -401,7 +393,7 @@ window.KashierRates = (function () {
       const r = buildRequest(app, tier, all);
       // Closed requests leave the queue entirely — pending and decided views alike. A
       // superseded application only contributes what was actually decided on it.
-      if (!r || r.state === 'closed') return;
+      if (!r) return;
       if (app.superseded && r.state === 'pending') return;
       out.push(r);
     }));
@@ -433,16 +425,14 @@ window.KashierRates = (function () {
   }
 
   function rejectionOf(app) {
-    const decisions = decisionsFor(app.id);
-    return app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
+    return statusFor(app.requests, decisionsFor(app.id)) === 'returned-to-sales';
   }
   /* The application a lead's revision starts from, if it came back rejected. */
   function rejectedApplicationFor(leadId) {
     return loadApplications().filter(a => a.leadId === leadId && !a.superseded && rejectionOf(a))[0] || null;
   }
-  /* Split a rejected application's lines into what the salesperson must revise and what
-     stays approved. Lines never reviewed (their request closed on the rejection) are revised
-     too — they still need a decision. */
+  /* Split a returned application's lines into the rejected rates the salesperson must modify
+     and the approved rates that keep their approval. */
   function revisionPlan(app) {
     const decisions = decisionsFor(app.id);
     const revise = [], approved = [];
@@ -556,8 +546,8 @@ window.KashierRates = (function () {
     if (stored) return stored;
     if (app.seedAccount) return app.seedAccount;
     const decisions = decisionsFor(app.id);
-    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return { status: 'returned' };
     if (app.requests.some(r => !decisions[r.id])) return { status: 'rate-approval' };
+    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return { status: 'returned' };
     return { status: 'submitted' };
   }
   function accountStatusFor(app) { return accountRecord(app).status; }

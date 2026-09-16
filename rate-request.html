@@ -477,7 +477,6 @@
   function statusPillHTML(state) {
     if (state === 'approved') return '<span class="status-pill success"><span class="dot"></span>Approved</span>';
     if (state === 'rejected') return '<span class="status-pill danger"><span class="dot"></span>Rejected</span>';
-    if (state === 'closed') return '<span class="status-pill"><span class="dot"></span>Closed</span>';
     return '<span class="status-pill warn"><span class="dot"></span>Pending</span>';
   }
   function settlementFor(app, service, bank) {
@@ -543,20 +542,17 @@
       esc(app.id),
     ].join('<span class="dot">&middot;</span>');
 
-    // Rates are decided one by one below; the header only says how many are left.
+    // Rates are decided one by one below; the header only says where the review stands.
+    const rejectedSoFar = lines.filter(l => lineDecisions[l.id] && lineDecisions[l.id].decision === 'rejected').length;
+    const returned = window.KashierRates.statusFor(app.requests, lineDecisions) === 'returned-to-sales';
     if (canAct) {
-      $('reqActions').innerHTML = `<div class="actions-note">${open} of ${n} rate${n === 1 ? '' : 's'} still to decide — approve or reject each rate below.</div>`;
+      $('reqActions').innerHTML = `<div class="actions-note">${open} of ${n} rate${n === 1 ? '' : 's'} still to review${rejectedSoFar ? ` · ${rejectedSoFar} rejected so far` : ''} — approve or reject each rate below.${rejectedSoFar ? ` The application goes back to ${esc(app.actor)} once every rate is reviewed.` : ''}</div>`;
     } else if (app.superseded) {
       // An earlier version kept for the record; the live request is on the resubmission.
       $('reqActions').innerHTML = `<div class="actions-note">Revised and resubmitted as ${esc(app.supersededBy)}.</div>`;
-    } else if (role === 'sales' && (state === 'rejected' || state === 'closed')) {
-      // The salesperson's way back in after a rejection.
-      $('reqActions').innerHTML = `<a class="btn btn-primary" href="${window.KashierRates.revisionURL(app.id)}">Revise &amp; Resubmit Rates</a>`;
-    } else if (state === 'closed') {
-      // Reached from an old link: another request on the application was rejected, so this
-      // one left the queue without a decision.
-      $('reqActions').innerHTML = `<div class="actions-note">No decision needed — the application went back to
-        ${esc(app.actor)} after another rate request on it was rejected. It returns to the queue if resubmitted.</div>`;
+    } else if (role === 'sales' && returned) {
+      // The salesperson's way back in: modify the rejected rates and resubmit.
+      $('reqActions').innerHTML = `<a class="btn btn-primary" href="${window.KashierRates.revisionURL(app.id)}">Modify Rejected Rates</a>`;
     } else if (state !== 'pending') {
       const next = nextPending();
       $('reqActions').innerHTML = next
@@ -590,7 +586,7 @@
     }).join('');
 
     // Decision
-    $('decisionCard').hidden = state === 'pending' || state === 'closed';
+    $('decisionCard').hidden = state === 'pending';
     if ((state === 'approved' || state === 'rejected') && decision) {
       const approved = state === 'approved';
       $('decisionBody').innerHTML = `
@@ -601,9 +597,9 @@
               : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>'}
           </div>
           <div>
-            <div class="decision-title">${approved ? `All ${n} rate${n === 1 ? '' : 's'} approved` : `${esc(lines.filter(l => lineDecisions[l.id] && lineDecisions[l.id].decision === 'rejected').map(l => l.rate).join(', '))} rejected — returned to ${esc(app.actor)}`}</div>
+            <div class="decision-title">${approved ? `All ${n} rate${n === 1 ? '' : 's'} approved` : `${rejectedSoFar} of ${n} rate${n === 1 ? '' : 's'} rejected — ${returned ? `returned to ${esc(app.actor)} to modify` : 'returns to the salesperson once the other approval level finishes its review'}`}</div>
             <div class="decision-meta">${esc(decision.by)} (${esc(decision.roleLabel)}) &middot; ${esc(fmtDateTime(decision.ts))}</div>
-            ${decision.reason ? `<div class="decision-reason">Reason: ${esc(decision.reason)}</div>` : ''}
+            ${approved ? '' : '<div class="decision-meta">Each rejected rate shows its reason below.</div>'}
           </div>
         </div>`;
     }
@@ -632,14 +628,15 @@
     if (!result) return;
     render();
     const label = result.request.rate;
-    if (decision === 'rejected') {
-      toast(`${label} rejected — ${request.app.biz} went back to ${request.app.actor}.`);
-      return;
-    }
     const after = current();
-    toast(after && after.state === 'approved'
-      ? `Every rate approved for ${request.app.biz}.`
-      : `${label} approved — ${after.pendingLines.length} still to decide.`);
+    const left = after ? after.pendingLines.length : 0;
+    if (result.status === 'returned-to-sales') {
+      toast(`${label} ${decision} — review complete, ${request.app.biz} went back to ${request.app.actor} to modify the rejected rates.`);
+    } else if (left) {
+      toast(`${label} ${decision} — ${left} still to review.`);
+    } else {
+      toast(after.state === 'approved' ? `Every rate approved for ${request.app.biz}.` : `${label} ${decision} — review complete.`);
+    }
   }
 
   $('rateGroups').addEventListener('click', e => {
@@ -659,7 +656,7 @@
     rejectLineId = lineId;
     $('rejectText').innerHTML =
       `Reject <b>${esc(line.rate)}</b> (${esc([line.service, line.bank].filter(Boolean).join(' · '))}) for <b>${esc(request.app.biz)}</b>?` +
-      ` This sends the whole application back to ${esc(request.app.actor)} to revise the pricing.`;
+      ` Keep reviewing the other rates — once every rate is reviewed, the application goes back to ${esc(request.app.actor)} to modify the rejected ones.`;
     $('rejectReason').value = '';
     clearRejectError();
     $('rejectBackdrop').classList.add('open');

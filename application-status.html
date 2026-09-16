@@ -549,18 +549,20 @@
       { key: 'created', label: 'Application Submitted', done: true, date: fmtDateTime(app.ts) },
     ];
     if (app.needsApproval > 0) {
+      // Approvers review every rate; it only counts as returned once the review is complete.
       const rejected = rejectedRequests().length;
       const pending = pendingRequests().length;
+      const returned = rejected > 0 && pending === 0;
       steps.push({
         key: 'rate',
-        label: rejected ? 'Rate Approval Rejected' : 'Waiting Rate Approval',
+        label: returned ? 'Rate Approval Rejected' : 'Waiting Rate Approval',
         done: !rejected && !pending,
-        rejected: !!rejected,
-        current: !rejected && pending > 0 && app.status === 'pending-rate-approval',
-        hint: rejected
-          ? `${rejected} rate${rejected === 1 ? '' : 's'} sent back to ${app.actor} to revise`
+        rejected: returned,
+        current: pending > 0 && app.status === 'pending-rate-approval',
+        hint: returned
+          ? `${rejected} rate${rejected === 1 ? '' : 's'} rejected — back with ${app.actor} to modify`
           : pending
-            ? `${pending} rate${pending === 1 ? '' : 's'} awaiting approval`
+            ? `${pending} rate${pending === 1 ? '' : 's'} awaiting review${rejected ? ` · ${rejected} rejected so far` : ''}`
             : `${app.needsApproval} rate${app.needsApproval === 1 ? '' : 's'} approved`,
       });
     }

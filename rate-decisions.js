@@ -156,13 +156,13 @@ window.KashierRates = (function () {
       ],
       requests: [
         { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5,
+          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1, standardFee: 2,
           note: 'Processes 450K EGP/month across 3 branches — matching the rate their current provider quoted.' },
         { id: 'Online Card::Bank Misr::meeza-onus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'Meeza — On-us rate', tier: 'manager', from: 0.9, to: 1.2, requested: 1, standard: 1.2,
+          rate: 'Meeza — On-us rate', tier: 'manager', from: 0.9, to: 1.2, requested: 1, standard: 1.2, requestedFee: 1.5, standardFee: 1.5,
           note: 'Most of their in-store customers pay with Meeza cards.' },
         { id: 'Online Bank Installments::National Bank of Egypt::6-month', service: 'Online Bank Installments', bank: 'National Bank of Egypt',
-          rate: '6-month plan', tier: 'manager', from: 2.5, to: 3, requested: 2.75, standard: 3,
+          rate: '6-month plan', tier: 'manager', from: 2.5, to: 3, requested: 2.75, standard: 3, requestedFee: 2, standardFee: 2,
           note: 'Installments on large grocery baskets are a key part of their loyalty programme.' },
       ],
     },
@@ -190,13 +190,13 @@ window.KashierRates = (function () {
       ],
       requests: [
         { id: 'Online Card::QNB::national-offus', service: 'Online Card', bank: 'QNB',
-          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2,
+          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2, requestedFee: 2, standardFee: 2,
           note: 'Subscription product on thin margins — Karim negotiated this rate before signing.' },
         { id: 'Online Wallet::::wallet', service: 'Online Wallet', bank: '',
-          rate: 'Wallet rate', tier: 'head', from: 1, to: 1.5, requested: 0.8, standard: 2,
+          rate: 'Wallet rate', tier: 'head', from: 1, to: 1.5, requested: 0.8, standard: 2, requestedFee: 1, standardFee: 1.5,
           note: 'Their app users top up by wallet — the same deal as cards keeps checkout consistent.' },
         { id: 'Online Card::QNB::intl', service: 'Online Card', bank: 'QNB',
-          rate: 'International rate', tier: 'manager', from: 2, to: 2.5, requested: 2.2, standard: 2.5,
+          rate: 'International rate', tier: 'manager', from: 2, to: 2.5, requested: 2.2, standard: 2.5, requestedFee: 1.5, standardFee: 2,
           note: 'Half their volume is international clients paying in USD.' },
       ],
     },
@@ -311,6 +311,7 @@ window.KashierRates = (function () {
       id: qs.get('id') || '—', leadId: leadId || qs.get('leadId') || '', url: url,
       documents: documents,
       mid: qs.get('mid') || '',
+      website: qs.get('website') || '',
       biz: qs.get('biz') || 'Untitled Application',
       actor: qs.get('actor') || 'Unknown',
       ts: qs.get('ts') || new Date().toISOString(),
@@ -404,13 +405,14 @@ window.KashierRates = (function () {
     if (line.managerRate != null) return Number(line.managerRate);
     return Number(line.tier === 'manager' ? line.from : line.to);
   }
-  /* Which approval a rate needs — the same rule the onboarding page applies: under the
-     Manager rate is the Head's call, anything else under the standard rate is a Manager's. */
-  function tierForPricing(line, rate) {
-    const r = Number(rate);
-    if (rate === '' || rate == null || !isFinite(r) || r <= 0) return '';
+  /* Which approval a rate + fixed fee needs — the same rule the onboarding page applies:
+     under the Manager rate is the Head's call, anything else under published is a Manager's. */
+  function tierForPricing(line, rate, fee) {
+    const r = Number(rate), f = Number(fee);
+    if (rate === '' || fee === '' || !isFinite(r) || !isFinite(f) || r <= 0 || f < 0) return '';
     if (r < managerRateFor(line)) return 'head';
-    if (r < Number(line.standard)) return 'manager';
+    const feeStandard = line.standardFee != null ? Number(line.standardFee) : 0;
+    if (r < Number(line.standard) || f < feeStandard) return 'manager';
     return 'auto';
   }
 
@@ -444,21 +446,20 @@ window.KashierRates = (function () {
     // Check the stored record, not the caller's copy — it may predate a resubmission made
     // in another tab or a moment ago.
     if (readStore('kashierSupersededApplications')[app.id] || !rejectionOf(app)) return null;
-    const revised = opts.revised; // [{ line, rate, note }]
+    const revised = opts.revised; // [{ line, rate, fee, note }]
     const qs = new URLSearchParams(String(app.url).split('?')[1] || '');
     const newId = 'APP-' + String(Date.now()).slice(-8);
     const ts = new Date().toISOString();
 
     const pending = [];
     revised.forEach(item => {
-      const tier = tierForPricing(item.line, item.rate);
+      const tier = tierForPricing(item.line, item.rate, item.fee);
       if (!tier || tier === 'auto') return;
       const managerRate = managerRateFor(item.line);
-      const base = Object.assign({}, item.line);
-      delete base.requestedFee; delete base.standardFee;
-      pending.push(Object.assign(base, {
+      pending.push(Object.assign({}, item.line, {
         tier: tier,
         requested: Number(item.rate),
+        requestedFee: Number(item.fee),
         note: String(item.note || '').trim(),
         managerRate: managerRate,
         from: tier === 'manager' ? managerRate : (item.line.tier === 'head' ? item.line.from : 0),

@@ -682,6 +682,7 @@
         ${kv('Industry', s.industry)}
         ${kv('Contact Email', s.email)}
         ${kv('Contact Phone', s.phone)}
+        ${app.website ? kv('Website', `<a href="${esc(/^https?:/i.test(app.website) ? app.website : 'https://' + app.website)}" target="_blank" rel="noopener">${esc(app.website)}</a>`, true) : ''}
       </div>
       <h3 class="subsection">Sales Application</h3>
       <div class="kv-grid">

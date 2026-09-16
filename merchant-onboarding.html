@@ -278,6 +278,49 @@
   .submit-row:last-child { border-bottom: none; }
   .submit-row .lbl { font-size: 13px; color: var(--cadet-04); }
   .submit-row .val { font-size: 13px; font-weight: 700; color: var(--foreground); }
+
+  /* Step 2 extras per channel */
+  .channel-extra { margin-top: 14px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 8px; background: #FCFCFD; }
+  .channel-extra .crit-label { display: block; margin-bottom: 8px; }
+  .website-inp { max-width: 420px; }
+  .field-hint { font-size: 12px; color: var(--destructive); margin-top: 6px; }
+
+  /* Step 3 — four-step service setup */
+  .setup-stepper { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
+  .setup-step { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: #fff; cursor: pointer; font-family: inherit; text-align: left; }
+  .setup-step:hover:not(:disabled) { border-color: var(--cadet-05); }
+  .setup-step:disabled { cursor: not-allowed; opacity: .55; }
+  .setup-step-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--muted); color: var(--cadet-base); font-size: 12.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .setup-step-dot svg { width: 13px; height: 13px; }
+  .setup-step-text { display: flex; flex-direction: column; }
+  .setup-step-label { font-size: 13px; font-weight: 700; color: var(--foreground); }
+  .setup-step-hint { font-size: 11.5px; color: var(--cadet-05); }
+  .setup-step.current { border-color: var(--primary); background: var(--ocean-10); }
+  .setup-step.current .setup-step-dot { background: var(--primary); color: #fff; }
+  .setup-step.done { border-color: var(--success); }
+  .setup-step.done .setup-step-dot { background: var(--success); color: #fff; }
+  .setup-step-line { width: 18px; height: 1.5px; background: var(--border); }
+  .setup-title { font-size: 15px; font-weight: 700; color: var(--foreground); margin-bottom: 16px; }
+  .setup-svc { padding: 16px 18px; border: 1px solid var(--border-subtle); border-radius: 10px; background: #FAFBFC; margin-bottom: 14px; }
+  .setup-svc-head { display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700;
+    color: var(--foreground); margin-bottom: 12px; }
+  .setup-svc-channel { font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--primary); background: var(--ocean-10); border-radius: 999px; padding: 2px 8px; }
+  .setup-svc-sub { font-size: 12.5px; color: var(--cadet-05); margin: -6px 0 12px; }
+  .setup-settle-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .setup-settle-label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); min-width: 200px; }
+  .setup-settle-label .req { color: var(--destructive); }
+  .setup-progress { font-size: 13px; color: var(--cadet-base); margin-bottom: 10px; }
+  .setup-contract-intro { font-size: 13px; color: var(--cadet-base); margin-bottom: 12px; line-height: 1.5; }
+  .setup-nav { align-items: center; }
+  .setup-nav-status { flex: 1; font-size: 12.5px; color: var(--cadet-05); }
+  .fee-input { width: 124px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--foreground);
+    font-family: inherit; font-size: 14px; font-weight: 600; padding: 0 44px 0 12px; color-scheme: light; }
+  .fee-input:focus { outline: none; border-color: var(--primary); }
+  .fee-input.empty { border-color: var(--warning); }
+
   /* What still stands between the salesperson and a created application */
   .submit-checklist { background: var(--muted); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
   .checklist-title { font-size: 12.5px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
@@ -435,11 +478,11 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
           <div>
             <h2>3. Service Setup</h2>
-            <p class="ch-sub">Configure each service one at a time — financial institution, settlement type, pricing, and required documents — then move on to the next service you selected above. A document you've already uploaded for one service won't be asked for again if another service also needs it.</p>
+            <p class="ch-sub">Set up every selected service in four steps: financial institution and settlement type, then rates and fixed fees, then the documents it all requires, and finally the signed Kashier contract.</p>
           </div>
         </div>
         <div class="card-body">
-          <div class="svc-tracker" id="svcTracker"></div>
+          <div class="setup-stepper" id="setupStepper"></div>
           <div id="serviceSetupBody"></div>
         </div>
       </div>
@@ -517,6 +560,8 @@
     'Signed Payout Contract': { ar: 'عقد الدفعات الموقع', formats: 'PDF', size: 10, slots: 'single' },
     'Disbursement Authorization Letter': { ar: 'خطاب تفويض الصرف', formats: 'PDF', size: 5, slots: 'single' },
     'Brand Authorization Letter': { ar: 'خطاب تفويض العلامة التجارية', formats: 'PDF', size: 5, slots: 'single' },
+    'Store Image': { ar: 'صورة المتجر', formats: 'JPG, PNG', size: 5, slots: 'single' },
+    'Kashier Signed Contract': { ar: 'عقد كاشير الموقع', formats: 'PDF', size: 10, slots: 'single' },
     'Store Lease / Location Proof': { ar: 'عقد إيجار المتجر / إثبات الموقع', formats: 'PDF, JPG', size: 5, slots: 'single' },
   };
 
@@ -545,7 +590,10 @@
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '' };
+  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '', website: '' };
+  const hasOnlineService = () => criteria.services.some(s => s.startsWith('Online '));
+  const STORE_IMAGE_DOC = 'Store Image';
+  const websiteValid = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
 
   function ruleMatches(r, cfg) {
     if (r.entities.length && !r.entities.includes(cfg.entity)) return false;
@@ -585,18 +633,13 @@
      (a merchant activating Bank Installments with NBE and Bank Misr can settle and price
      each bank differently). Services that don't need a bank keep a single implicit '' key. ══════════ */
   const serviceConfig = {}; // serviceConfig[service] = { banks: [], bankConfigs: { [bank]: {module, pricing: Map} }, done }
-  let activeService = '';
 
   function ensureServiceConfig(service) {
-    if (!serviceConfig[service]) serviceConfig[service] = { banks: [], bankConfigs: {}, done: false };
+    if (!serviceConfig[service]) serviceConfig[service] = { banks: [], bankConfigs: {} };
   }
   function syncServiceConfigs() {
     criteria.services.forEach(ensureServiceConfig);
     Object.keys(serviceConfig).forEach(s => { if (!criteria.services.includes(s)) delete serviceConfig[s]; });
-  }
-  function pickActiveService() {
-    const firstPending = criteria.services.find(s => !serviceConfig[s].done);
-    activeService = firstPending || criteria.services[criteria.services.length - 1] || '';
   }
   /* Financial Institution only applies to services that actually settle through a bank
      relationship — the other services (Wallet, Valu, OCTO, Transfer, etc.) don't need it. */
@@ -618,9 +661,10 @@
     return keys.every(k => cfg.bankConfigs[k] && cfg.bankConfigs[k].module);
   }
 
-  /* The salesperson types the rate the merchant needs; where it lands against the tier's
-     own published rates decides whether anyone has to sign off. A rate under the Manager
-     rate is the Head's call; anything else under the standard rate is a Manager's. */
+  /* The salesperson types the rate and the fixed fee the merchant needs; where they land
+     against the tier's pricing rules decides whether anyone has to sign off. A rate under
+     the Manager rate is the Head's call; a rate under the standard rate, or a fixed fee
+     under the published fee, is a Manager's. The line takes the stricter of the two. */
   function num(v) {
     const n = Number(v);
     return (v === '' || v === null || v === undefined || !isFinite(n) || n < 0) ? null : n;
@@ -632,31 +676,43 @@
     if (v >= t.manager) return 'manager';
     return 'head';
   }
-  /* The rate alone decides whether a line needs sign-off. */
+  function tierForFee(t, fee) {
+    const v = num(fee);
+    if (v === null) return '';
+    return v >= t.fixedFee ? 'auto' : 'manager';
+  }
   function lineVerdict(t, sel) {
-    const tier = tierForRate(t, sel.rate);
-    if (!tier) return { tier: '', text: 'Enter the rate this merchant needs' };
-    if (tier === 'head') {
+    const rateTier = tierForRate(t, sel.rate);
+    const feeTier = tierForFee(t, sel.fee);
+    if (!rateTier || !feeTier) return { tier: '', text: 'Enter the rate and fixed fee this merchant needs' };
+    if (rateTier === 'head') {
       return { tier: 'head', text: `Needs Head approval &middot; the rate is under the ${t.manager}% Manager rate` };
     }
-    if (tier === 'manager') {
-      return { tier: 'manager', text: `Needs Manager approval &middot; the rate is under the ${t.standard}% standard rate` };
+    if (rateTier === 'manager' || feeTier === 'manager') {
+      const under = rateTier === 'manager' && feeTier === 'manager'
+        ? `the rate and fixed fee are under the published ${t.standard}% + ${t.fixedFee} EGP`
+        : rateTier === 'manager'
+          ? `the rate is under the ${t.standard}% standard rate`
+          : `the fixed fee is under the ${t.fixedFee} EGP standard fee`;
+      return { tier: 'manager', text: `Needs Manager approval &middot; ${under}` };
     }
-    return { tier: 'auto', text: `Auto &middot; at or above the ${t.standard}% standard rate, no approval needed` };
+    return { tier: 'auto', text: `Auto &middot; at or above the published ${t.standard}% + ${t.fixedFee} EGP, no approval needed` };
   }
-  function noteBlockHTML(t, tier, note, bankKey, key) {
+  function lineAttrs(service, bankKey, key) {
+    return `data-service="${esc(service)}" data-bank="${esc(bankKey)}" data-key="${esc(key)}"`;
+  }
+  function noteBlockHTML(t, tier, note, service, bankKey, key) {
     const who = tier === 'manager' ? 'Manager' : 'Head';
     return `<div class="price-note">
-      <textarea class="inp${note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${who}-approved rate?" data-bank="${esc(bankKey)}" data-key="${esc(key)}">${esc(note)}</textarea>
-      <div class="price-note-hint">Required — this rate needs ${who} sign-off before you can continue.</div>
+      <textarea class="inp${note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${who}-approved rate?" ${lineAttrs(service, bankKey, key)}>${esc(note)}</textarea>
+      <div class="price-note-hint">Required — this pricing needs ${who} sign-off before you can continue.</div>
     </div>`;
   }
-  function priceTierHTML(t, pricingMap, bankKey) {
-    const sel = pricingMap.get(t.key) || { rate: '', tier: '', note: '' };
+  function priceTierHTML(service, t, pricingMap, bankKey) {
+    const sel = pricingMap.get(t.key) || { rate: '', fee: '', tier: '', note: '' };
     const { tier, text } = lineVerdict(t, sel);
-    const verdict = `<span class="rate-verdict ${tier || 'empty'}">${text}</span>`;
     const needsNote = tier === 'manager' || tier === 'head';
-    const rateFilled = tierForRate(t, sel.rate) !== '';
+    const id = `${service}-${bankKey}-${t.key}`.replace(/[^A-Za-z0-9-]/g, '_');
     return `<div class="price-tier">
       <div class="price-tier-label">${esc(t.label)}</div>
       <div class="price-tier-desc">${esc(t.desc)}</div>
@@ -668,21 +724,25 @@
       </div>
       <div class="rate-entry">
         <div class="rate-field">
-          <label class="rate-entry-label" for="rate-${esc(bankKey)}-${esc(t.key)}">Your rate<span class="req">*</span></label>
+          <label class="rate-entry-label" for="rate-${id}">Your rate<span class="req">*</span></label>
           <div class="rate-input-wrap">
-            <input class="rate-input${rateFilled ? '' : ' empty'}" id="rate-${esc(bankKey)}-${esc(t.key)}" type="number"
-              inputmode="decimal" step="0.01" min="0" placeholder="${t.standard}"
-              data-bank="${esc(bankKey)}" data-key="${esc(t.key)}" value="${esc(sel.rate)}">
+            <input class="rate-input${tierForRate(t, sel.rate) ? '' : ' empty'}" id="rate-${id}" type="number"
+              inputmode="decimal" step="0.01" min="0" placeholder="${t.standard}" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.rate)}">
             <span class="rate-input-suffix">%</span>
           </div>
         </div>
-        ${verdict}
+        <div class="rate-field">
+          <label class="rate-entry-label" for="fee-${id}">Fixed fee<span class="req">*</span></label>
+          <div class="rate-input-wrap">
+            <input class="fee-input${tierForFee(t, sel.fee) ? '' : ' empty'}" id="fee-${id}" type="number"
+              inputmode="decimal" step="0.25" min="0" placeholder="${t.fixedFee}" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.fee)}">
+            <span class="rate-input-suffix">EGP</span>
+          </div>
+        </div>
+        <span class="rate-verdict ${tier || 'empty'}">${text}</span>
       </div>
-      ${needsNote ? noteBlockHTML(t, tier, sel.note, bankKey, t.key) : ''}
+      ${needsNote ? noteBlockHTML(t, tier, sel.note || '', service, bankKey, t.key) : ''}
     </div>`;
-  }
-  function priceBankHTML(service, bankKey, bc) {
-    return ratesForService(service).map(t => priceTierHTML(t, bc.pricing, bankKey)).join('');
   }
   /* total = rate lines that need a rate typed in, missing = still blank,
      needsApproval = priced below standard, unresolved = those still missing a justification. */
@@ -700,7 +760,7 @@
           if (!tier) { missing++; return; }
           if (tier !== 'auto') {
             needsApproval++;
-            if (!sel.note.trim()) unresolved++;
+            if (!(sel.note || '').trim()) unresolved++;
           }
         });
       });
@@ -722,8 +782,9 @@
           if (!tier || tier === 'auto') return;
           out.push({
             id: `${s}::${k}::${t.key}`,
-            service: s, bank: k, rate: t.label, tier, note: sel.note.trim(),
+            service: s, bank: k, rate: t.label, tier, note: (sel.note || '').trim(),
             requested: Number(sel.rate), standard: t.standard, managerRate: t.manager,
+            requestedFee: Number(sel.fee), standardFee: t.fixedFee,
             from: tier === 'manager' ? t.manager : t.head,
             to: tier === 'manager' ? t.standard : t.manager,
           });
@@ -752,7 +813,6 @@
     const i = criteria.services.indexOf(name);
     if (i >= 0) criteria.services.splice(i, 1); else criteria.services.push(name);
     syncServiceConfigs();
-    pickActiveService();
     renderCriteria();
     refreshAll();
   }
@@ -778,7 +838,6 @@
           if (!criteria.posEnabled) {
             criteria.services = criteria.services.filter(s => !s.startsWith('POS '));
             syncServiceConfigs();
-            pickActiveService();
           }
           renderCriteria();
           refreshAll();
@@ -792,6 +851,14 @@
           activate.appendChild(field);
         }
         group.appendChild(activate);
+        // Activating POS needs a photo of the merchant's store.
+        if (criteria.posEnabled) {
+          const image = document.createElement('div');
+          image.className = 'channel-extra';
+          image.innerHTML = `<div class="crit-label">Store Image<span class="req">*</span><span class="opt">(a clear photo of the storefront where the terminals will be used)</span></div>
+            ${reqItemHTML(STORE_IMAGE_DOC, ['POS activation'])}`;
+          group.appendChild(image);
+        }
 
         if (!criteria.posEnabled) {
           const empty = document.createElement('div');
@@ -814,8 +881,27 @@
         row.appendChild(b);
       });
       group.appendChild(row);
+      // Any Online service needs the merchant's website.
+      if (tier.tier === 'Online' && hasOnlineService()) {
+        const site = document.createElement('div');
+        site.className = 'channel-extra';
+        const invalid = criteria.website && !websiteValid(criteria.website);
+        site.innerHTML = `<label class="crit-label" for="mWebsite">Merchant Website<span class="req">*</span><span class="opt">(required for Online services)</span></label>
+          <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com" value="${esc(criteria.website)}">
+          <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>Enter a valid website, e.g. www.merchant.com</div>`;
+        group.appendChild(site);
+      }
       c.appendChild(group);
     });
+    const website = $('mWebsite');
+    if (website) website.addEventListener('input', e => {
+      criteria.website = e.target.value;
+      const bad = e.target.value.trim() && !websiteValid(e.target.value);
+      e.target.classList.toggle('invalid', !!bad);
+      $('websiteHint').hidden = !bad;
+      renderSubmitSummary();
+    });
+    c.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
     if (criteria.posEnabled) {
       const input = $('posTerminals');
       if (input) input.addEventListener('input', e => { criteria.posTerminals = e.target.value; renderSubmitSummary(); });
@@ -853,9 +939,6 @@
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
   }
-  function firstServiceMissingDocs() {
-    return criteria.services.find(s => [...docsForService(s).keys()].some(name => !isDocDone(name)));
-  }
   function computeAggregatedDocs() {
     const merged = new Map();
     criteria.services.forEach(s => {
@@ -868,193 +951,243 @@
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
   }
-  /* ══════════ Step 3 — Service Setup: one service configured at a time, financial institution
-     through required documents, before moving to the next selected service ══════════ */
+  /* ══════════ Step 3 — Service Setup, as a four-step flow across every selected service:
+       1. Financial institution and settlement type
+       2. Rate and fixed fee for every pricing line, per the pricing rules
+       3. The documents all of it requires (each uploaded once)
+       4. The signed Kashier contract
+     A step can only be opened once every step before it is complete. ══════════ */
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
-  function renderServiceTracker() {
-    const el = $('svcTracker');
-    if (!criteria.services.length) { el.innerHTML = ''; return; }
-    const pillHTML = s => {
-      const i = criteria.services.indexOf(s);
+  const CONTRACT_DOC = 'Kashier Signed Contract';
+  const SETUP_STEPS = [
+    { label: 'Institution & Settlement', hint: 'Where each service settles' },
+    { label: 'Rates & Fixed Fees', hint: 'Pricing for every line' },
+    { label: 'Documents', hint: 'Everything the setup requires' },
+    { label: 'Signed Contract', hint: 'Kashier agreement' },
+  ];
+  let setupStep = 1;
+
+  const orderedServices = () => ['Online', 'POS']
+    .map(ch => criteria.services.filter(s => channelOf(s) === ch))
+    .reduce((a, b) => a.concat(b), []);
+
+  /* Every pricing line on a configured institution/settlement, in display order. */
+  function pricingLines() {
+    const out = [];
+    orderedServices().forEach(s => {
       const cfg = serviceConfig[s];
-      const cls = s === activeService ? 'current' : cfg.done ? 'done' : '';
-      return `<button type="button" class="svc-pill ${cls}" data-service="${esc(s)}">
-        <span class="svc-pill-dot">${cfg.done ? CHECK_SVG : i + 1}</span>
-        ${esc(stripChannel(s))}
+      bankKeysFor(cfg, s).forEach(k => {
+        const bc = cfg.bankConfigs[k];
+        if (!bc || !bc.module) return;
+        ratesForService(s).forEach(t => out.push({ service: s, bankKey: k, t, sel: bc.pricing.get(t.key) }));
+      });
+    });
+    return out;
+  }
+
+  /* What still stops each step from being complete — empty means done. */
+  function stepIssues(n) {
+    if (!criteria.services.length) return ['Select at least one service in Step 2'];
+    if (n === 1) {
+      const issues = [];
+      orderedServices().forEach(s => {
+        const cfg = serviceConfig[s];
+        const keys = bankKeysFor(cfg, s);
+        if (bankRequiredFor(s) && !keys.length) { issues.push(`Financial Institution for ${s}`); return; }
+        keys.forEach(k => {
+          if (!cfg.bankConfigs[k] || !cfg.bankConfigs[k].module) issues.push(`Settlement type for ${s}${k ? ' — ' + k : ''}`);
+        });
+      });
+      return issues;
+    }
+    if (n === 2) {
+      const lines = pricingLines();
+      const blank = lines.filter(l => !l.sel || !lineVerdict(l.t, l.sel).tier).length;
+      const unjustified = lines.filter(l => {
+        const tier = l.sel ? lineVerdict(l.t, l.sel).tier : '';
+        return (tier === 'manager' || tier === 'head') && !(l.sel.note || '').trim();
+      }).length;
+      const issues = [];
+      if (blank) issues.push(`${blank} pricing line${blank === 1 ? '' : 's'} still need a rate and fixed fee`);
+      if (unjustified) issues.push(`${unjustified} line${unjustified === 1 ? '' : 's'} below published pricing still need a justification`);
+      return issues;
+    }
+    if (n === 3) {
+      const missing = [...computeAggregatedDocs().keys()].filter(name => !isDocDone(name));
+      return missing.map(name => `Upload ${name}`);
+    }
+    return isDocDone(CONTRACT_DOC) ? [] : [`Upload the ${CONTRACT_DOC}`];
+  }
+  const stepDone = n => stepIssues(n).length === 0;
+  const canOpenStep = n => { for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
+
+  function renderSetupStepper() {
+    const el = $('setupStepper');
+    if (!criteria.services.length) { el.innerHTML = ''; return; }
+    el.innerHTML = SETUP_STEPS.map((s, i) => {
+      const n = i + 1;
+      const done = stepDone(n) && canOpenStep(n);
+      const cls = n === setupStep ? 'current' : done ? 'done' : canOpenStep(n) ? '' : 'locked';
+      return `<button type="button" class="setup-step ${cls}" data-step="${n}"${canOpenStep(n) ? '' : ' disabled'}>
+        <span class="setup-step-dot">${done && n !== setupStep ? CHECK_SVG : n}</span>
+        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${esc(s.hint)}</span></span>
       </button>`;
-    };
-    // Group by channel (without labeling the group) so Online and POS services are
-    // visually separated instead of interleaved in selection order.
-    const groups = ['Online', 'POS']
-      .map(ch => criteria.services.filter(s => channelOf(s) === ch))
-      .filter(g => g.length);
-    el.innerHTML = groups
-      .map(g => `<div class="svc-tracker-group">${g.map(pillHTML).join('')}</div>`)
-      .join('<div class="svc-tracker-divider"></div>');
-    el.querySelectorAll('.svc-pill').forEach(btn => btn.addEventListener('click', () => {
-      activeService = btn.dataset.service;
-      renderServiceTracker();
-      renderServiceSetup();
-    }));
+    }).join('<span class="setup-step-line"></span>');
   }
-  function bankBlockHTML(service, bankKey, cfg, showBankLabel) {
-    const bc = ensureBankConfig(cfg, bankKey);
-    const label = showBankLabel ? esc(bankKey) : esc(stripChannel(service));
-    const pricingHTML = bc.module
-      ? priceBankHTML(service, bankKey, bc)
-      : `<div class="price-empty">Select Settlement type${showBankLabel ? ' for ' + label : ''} above to see applicable rates.</div>`;
-    return `<div class="bank-config-block">
-      ${showBankLabel ? `<div class="bank-config-heading">${label}</div>` : ''}
-      <div class="svc-subhead">Settlement type${showBankLabel ? ' for ' + label : ''}</div>
-      <div class="crit-chips svc-module-group" data-bank="${esc(bankKey)}" style="margin-bottom: 16px;">
-        ${MODULES.map(m => `<button type="button" class="crit-chip${bc.module === m ? ' on' : ''}" data-module="${esc(m)}">${esc(m)}</button>`).join('')}
-      </div>
-      <div class="svc-subhead">Pricing${showBankLabel ? ' for ' + label : ''}</div>
-      <div>${pricingHTML}</div>
-    </div>`;
+
+  function serviceHeadHTML(s) {
+    return `<div class="setup-svc-head"><span class="setup-svc-channel">${esc(channelOf(s))}</span>${esc(stripChannel(s))}</div>`;
   }
+
+  function stepConfigureHTML() {
+    return orderedServices().map(s => {
+      const cfg = serviceConfig[s];
+      const needsBank = bankRequiredFor(s);
+      const multi = needsBank && bankMultiFor(s);
+      const keys = bankKeysFor(cfg, s);
+      const settlement = keys.length
+        ? keys.map(k => {
+            const bc = ensureBankConfig(cfg, k);
+            return `<div class="setup-settle-row">
+              <span class="setup-settle-label">Settlement type${k ? ` — ${esc(k)}` : ''}<span class="req">*</span></span>
+              <div class="crit-chips">${MODULES.map(m =>
+                `<button type="button" class="crit-chip${bc.module === m ? ' on' : ''}" data-module="${esc(m)}" data-service="${esc(s)}" data-bank="${esc(k)}">${esc(m)}</button>`).join('')}</div>
+            </div>`;
+          }).join('')
+        : '<div class="svc-empty">Select a Financial Institution to choose its settlement type.</div>';
+      return `<div class="setup-svc">
+        ${serviceHeadHTML(s)}
+        ${needsBank ? `<div class="crit-label">Financial Institution<span class="req">*</span>${multi ? '<span class="opt">(select all that apply)</span>' : ''}</div>
+          <div class="crit-chips" style="margin-bottom:14px">${BANKS.map(b =>
+            `<button type="button" class="crit-chip${cfg.banks.includes(b) ? ' on' : ''}" data-bank-chip="${esc(b)}" data-service="${esc(s)}">${esc(b)}</button>`).join('')}</div>` : ''}
+        ${settlement}
+      </div>`;
+    }).join('');
+  }
+
+  function stepPricingHTML() {
+    return orderedServices().map(s => {
+      const cfg = serviceConfig[s];
+      return bankKeysFor(cfg, s).map(k => {
+        const bc = cfg.bankConfigs[k];
+        if (!bc || !bc.module) return '';
+        return `<div class="setup-svc">
+          ${serviceHeadHTML(s)}
+          <div class="setup-svc-sub">${[k, 'Settlement: ' + bc.module].filter(Boolean).map(esc).join(' · ')}</div>
+          ${ratesForService(s).map(t => priceTierHTML(s, t, bc.pricing, k)).join('')}
+        </div>`;
+      }).join('');
+    }).join('');
+  }
+
+  function stepDocumentsHTML() {
+    const docs = computeAggregatedDocs();
+    if (!docs.size) return '<div class="whn-empty">No documents are required for this setup.</div>';
+    const done = [...docs.keys()].filter(isDocDone).length;
+    return `<div class="setup-progress">${done} of ${docs.size} uploaded — each document is uploaded once, even when several services need it.</div>
+      ${[...docs.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')}`;
+  }
+
+  function stepContractHTML() {
+    return `<div class="setup-contract-intro">Upload the Kashier merchant contract, signed and stamped by the merchant. This is the last step before you can create the application.</div>
+      ${reqItemHTML(CONTRACT_DOC, ['Required for every merchant'])}`;
+  }
+
   function renderServiceSetup() {
     const wrap = $('serviceSetupBody');
     if (!criteria.services.length) {
-      wrap.innerHTML = '<div class="svc-empty">Select at least one service in Step 2 to start configuring it here.</div>';
+      renderSetupStepper();
+      wrap.innerHTML = '<div class="svc-empty">Select at least one service in Step 2 to start setting it up here.</div>';
       return;
     }
-    if (!activeService || !criteria.services.includes(activeService)) pickActiveService();
-    const service = activeService;
-    const cfg = serviceConfig[service];
-    const idx = criteria.services.indexOf(service);
-    const needsBank = bankRequiredFor(service);
-    const multiBank = needsBank && bankMultiFor(service);
-    const keys = bankKeysFor(cfg, service);
+    // Never leave the salesperson on a step whose earlier steps have since become incomplete.
+    while (setupStep > 1 && !canOpenStep(setupStep)) setupStep--;
+    renderSetupStepper();
 
-    const bankSectionsHTML = keys.length
-      ? keys.map(k => bankBlockHTML(service, k, cfg, needsBank)).join('')
-      : `<div class="svc-empty">Select at least one Financial Institution above to set its settlement type and pricing.</div>`;
-
-    const fieldsLabel = needsBank ? 'Financial Institution and Settlement type' : 'Settlement type';
-    const allDocs = docsForService(service);
-    const stillNeeded = [...allDocs.entries()].filter(([name]) => !isDocDone(name));
-    const alreadyCovered = [...allDocs.entries()].filter(([name]) => isDocDone(name));
-    const docsHTML = !allDocs.size
-      ? `<div class="whn-empty">Select ${fieldsLabel} above to see the documents this service needs.</div>`
-      : `${alreadyCovered.length ? `<div class="whn-already">
-          <div class="whn-already-label">${alreadyCovered.length} document${alreadyCovered.length === 1 ? '' : 's'} already uploaded</div>
-          ${alreadyCovered.map(([name]) => `<div class="whn-already-row"><span class="whn-already-check">${CHECK_SVG}</span>${esc(name)}</div>`).join('')}
-        </div>` : ''}
-        ${stillNeeded.length ? stillNeeded.map(([name, via]) => reqItemHTML(name, via)).join('')
-          : (alreadyCovered.length ? '<div class="whn-empty">Nothing new to upload — every document for this service is already covered.</div>' : '')}`;
-
-    const nextService = criteria.services[idx + 1];
-    const continueLabel = nextService ? `Save &amp; Continue to ${esc(stripChannel(nextService))}` : (cfg.done ? 'Service Configured ✓' : 'Save &amp; Finish Service Setup');
-
+    const body = [stepConfigureHTML, stepPricingHTML, stepDocumentsHTML, stepContractHTML][setupStep - 1]();
+    const issues = stepIssues(setupStep);
+    const last = setupStep === SETUP_STEPS.length;
     wrap.innerHTML = `
-      <div class="svc-setup-title">Service ${idx + 1} of ${criteria.services.length} — ${esc(service)}</div>
-      ${needsBank ? `<div class="crit-grid" style="margin-bottom: 22px;">
-        <div class="crit-group full">
-          <div class="crit-label">Financial Institution<span class="req">*</span>${multiBank ? '<span class="opt">(select all that apply — each gets its own settlement type and pricing)</span>' : ''}</div>
-          <div class="crit-chips" id="svcBank">
-            ${BANKS.map(b => `<button type="button" class="crit-chip${cfg.banks.includes(b) ? ' on' : ''}" data-bank="${esc(b)}">${esc(b)}</button>`).join('')}
-          </div>
-        </div>
-      </div>` : ''}
-      ${bankSectionsHTML}
-      <div class="svc-subhead">Documents needed for ${esc(stripChannel(service))}</div>
-      <div style="margin-bottom: 22px;">${docsHTML}</div>
-      <div class="whn-actions">
-        <button type="button" class="btn btn-primary" id="svcContinueBtn">${continueLabel}</button>
-      </div>
-    `;
-
-    if (needsBank) {
-      wrap.querySelectorAll('#svcBank .crit-chip').forEach(b => b.addEventListener('click', () => {
-        const bank = b.dataset.bank;
-        if (multiBank) {
-          const i = cfg.banks.indexOf(bank);
-          if (i >= 0) cfg.banks.splice(i, 1); else { cfg.banks.push(bank); ensureBankConfig(cfg, bank); }
-        } else {
-          cfg.banks = cfg.banks[0] === bank ? [] : [bank];
-          if (cfg.banks.length) ensureBankConfig(cfg, bank);
-        }
-        cfg.done = false;
-        renderServiceSetup();
-        renderServiceTracker();
-        refreshAggregateAndSummary();
-      }));
-    }
-    wrap.querySelectorAll('.svc-module-group .crit-chip').forEach(b => b.addEventListener('click', () => {
-      const bankKey = b.closest('.svc-module-group').dataset.bank;
-      const bc = ensureBankConfig(cfg, bankKey);
-      bc.module = bc.module === b.dataset.module ? '' : b.dataset.module;
-      cfg.done = false;
-      renderServiceSetup();
-      renderServiceTracker();
-      refreshAggregateAndSummary();
-    }));
+      <div class="setup-title">Step ${setupStep} of ${SETUP_STEPS.length} — ${esc(SETUP_STEPS[setupStep - 1].label)}</div>
+      ${body}
+      <div class="whn-actions setup-nav">
+        ${setupStep > 1 ? '<button type="button" class="btn btn-outline" id="setupBack">Back</button>' : ''}
+        <span class="setup-nav-status">${issues.length ? esc(issues[0]) + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '') : (last ? 'Service setup complete — create the application below.' : 'This step is complete.')}</span>
+        ${last ? '' : `<button type="button" class="btn btn-primary" id="setupNext"${issues.length ? ' disabled' : ''}>Continue to ${esc(SETUP_STEPS[setupStep].label)}</button>`}
+      </div>`;
     wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
   }
-  function handleServiceContinue() {
-    const service = activeService;
-    const cfg = serviceConfig[service];
-    const keys = bankKeysFor(cfg, service);
-    if (bankRequiredFor(service) && !keys.length) {
-      toast(`Select Financial Institution for ${stripChannel(service)} first`);
-      return;
-    }
-    const missingModuleKey = keys.find(k => !cfg.bankConfigs[k] || !cfg.bankConfigs[k].module);
-    if (missingModuleKey !== undefined) {
-      const label = bankRequiredFor(service) ? `Settlement type for ${missingModuleKey}` : 'Settlement type';
-      toast(`Select ${label} for ${stripChannel(service)} first`);
-      return;
-    }
-    // Every rate line needs a rate typed in before this service counts as priced.
-    let missing = 0, unresolved = false;
-    keys.forEach(k => {
-      const bc = cfg.bankConfigs[k];
-      ratesForService(service).forEach(t => {
-        const sel = bc.pricing.get(t.key);
-        const tier = sel ? lineVerdict(t, sel).tier : '';
-        if (!tier) { missing++; return; }
-        if (tier !== 'auto' && !(sel.note || '').trim()) unresolved = true;
-      });
-    });
-    if (missing) {
-      toast(`Enter your rate for every line in ${stripChannel(service)} — ${missing} still blank`);
-      const blank = $('serviceSetupBody').querySelector('.rate-input.empty');
-      if (blank) { blank.focus(); blank.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-      return;
-    }
-    if (unresolved) {
-      toast('Add a justification for every rate below the standard rate before continuing');
-      return;
-    }
-    cfg.done = true;
-    const idx = criteria.services.indexOf(service);
-    const next = criteria.services[idx + 1];
-    if (next) {
-      activeService = next;
-      toast(`${stripChannel(service)} saved — now set up ${stripChannel(next)}.`);
-    } else {
-      toast('All services are configured. Review the documents below, then submit.');
-    }
-    renderServiceTracker();
+
+  /* Re-render after a choice that changes what the steps require. */
+  function onSetupChanged() {
     renderServiceSetup();
-    refreshAggregateAndSummary();
+    renderSubmitSummary();
   }
-  $('serviceSetupBody').addEventListener('click', e => {
-    if (e.target.closest('#svcContinueBtn')) handleServiceContinue();
+
+  $('setupStepper').addEventListener('click', e => {
+    const b = e.target.closest('[data-step]');
+    if (!b || b.disabled) return;
+    setupStep = Number(b.dataset.step);
+    renderServiceSetup();
   });
 
-  /* Typing a rate re-decides whether it needs sign-off. The verdict and the justification
-     box are swapped in place rather than re-rendering the panel, so the field keeps focus. */
+  $('serviceSetupBody').addEventListener('click', e => {
+    if (e.target.closest('#setupNext')) {
+      if (!stepDone(setupStep)) { toast(stepIssues(setupStep)[0]); return; }
+      setupStep++;
+      renderServiceSetup();
+      $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (e.target.closest('#setupBack')) { setupStep--; renderServiceSetup(); return; }
+
+    const bankChip = e.target.closest('[data-bank-chip]');
+    if (bankChip) {
+      const s = bankChip.dataset.service, bank = bankChip.dataset.bankChip, cfg = serviceConfig[s];
+      if (bankMultiFor(s)) {
+        const i = cfg.banks.indexOf(bank);
+        if (i >= 0) cfg.banks.splice(i, 1); else { cfg.banks.push(bank); ensureBankConfig(cfg, bank); }
+      } else {
+        cfg.banks = cfg.banks[0] === bank ? [] : [bank];
+        if (cfg.banks.length) ensureBankConfig(cfg, bank);
+      }
+      onSetupChanged();
+      return;
+    }
+    const moduleChip = e.target.closest('[data-module]');
+    if (moduleChip) {
+      const cfg = serviceConfig[moduleChip.dataset.service];
+      const bc = ensureBankConfig(cfg, moduleChip.dataset.bank);
+      bc.module = bc.module === moduleChip.dataset.module ? '' : moduleChip.dataset.module;
+      onSetupChanged();
+    }
+  });
+
+  /* Typing a rate or fee re-decides whether the line needs sign-off. The verdict and the
+     justification box are swapped in place rather than re-rendering, so the field keeps focus. */
+  function refreshStepChrome() {
+    renderSetupStepper();
+    const issues = stepIssues(setupStep);
+    const status = $('serviceSetupBody').querySelector('.setup-nav-status');
+    const next = $('setupNext');
+    if (status) status.textContent = issues.length
+      ? issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '')
+      : (setupStep === SETUP_STEPS.length ? 'Service setup complete — create the application below.' : 'This step is complete.');
+    if (next) next.disabled = issues.length > 0;
+    renderSubmitSummary();
+  }
   $('serviceSetupBody').addEventListener('input', e => {
-    const input = e.target.closest('.rate-input');
-    const cfg = serviceConfig[activeService];
+    const input = e.target.closest('.rate-input, .fee-input');
     if (input) {
-      const bankKey = input.dataset.bank, key = input.dataset.key;
-      const t = ratesForService(activeService).find(x => x.key === key);
-      const bc = ensureBankConfig(cfg, bankKey);
-      const cur = bc.pricing.get(key) || { rate: '', tier: '', note: '' };
-      const next = { rate: input.value, note: cur.note };
+      const s = input.dataset.service, bankKey = input.dataset.bank, key = input.dataset.key;
+      const t = ratesForService(s).find(x => x.key === key);
+      const bc = ensureBankConfig(serviceConfig[s], bankKey);
+      const cur = bc.pricing.get(key) || { rate: '', fee: '', tier: '', note: '' };
+      const next = {
+        rate: input.classList.contains('rate-input') ? input.value : cur.rate,
+        fee: input.classList.contains('fee-input') ? input.value : cur.fee,
+        note: cur.note || '',
+      };
       const { tier, text } = lineVerdict(t, next);
       next.tier = tier;
       bc.pricing.set(key, next);
@@ -1063,35 +1196,33 @@
       const verdictEl = block.querySelector('.rate-verdict');
       verdictEl.className = `rate-verdict ${tier || 'empty'}`;
       verdictEl.innerHTML = text;
-      input.classList.toggle('empty', !tier);
+      block.querySelector('.rate-input').classList.toggle('empty', !tierForRate(t, next.rate));
+      block.querySelector('.fee-input').classList.toggle('empty', !tierForFee(t, next.fee));
 
       const noteEl = block.querySelector('.price-note');
       const needsNote = tier === 'manager' || tier === 'head';
-      if (needsNote && !noteEl) block.insertAdjacentHTML('beforeend', noteBlockHTML(t, tier, cur.note, bankKey, key));
+      if (needsNote && !noteEl) block.insertAdjacentHTML('beforeend', noteBlockHTML(t, tier, next.note, s, bankKey, key));
       else if (needsNote && noteEl) {
         const who = tier === 'manager' ? 'Manager' : 'Head';
         noteEl.querySelector('textarea').placeholder = `Why does this merchant need a ${who}-approved rate?`;
-        noteEl.querySelector('.price-note-hint').textContent = `Required — this rate needs ${who} sign-off before you can continue.`;
+        noteEl.querySelector('.price-note-hint').textContent = `Required — this pricing needs ${who} sign-off before you can continue.`;
       } else if (!needsNote && noteEl) noteEl.remove();
-
-      if (cfg.done) { cfg.done = false; renderServiceTracker(); }
-      renderSubmitSummary();
+      refreshStepChrome();
       return;
     }
     const ta = e.target.closest('textarea[data-key]');
     if (!ta) return;
-    const bc = ensureBankConfig(cfg, ta.dataset.bank);
-    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', tier: '', note: '' };
-    bc.pricing.set(ta.dataset.key, { rate: cur.rate, tier: cur.tier, note: ta.value });
+    const bc = ensureBankConfig(serviceConfig[ta.dataset.service], ta.dataset.bank);
+    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', fee: '', tier: '', note: '' };
+    bc.pricing.set(ta.dataset.key, Object.assign({}, cur, { note: ta.value }));
     ta.classList.toggle('invalid', !ta.value.trim());
-    if (cfg.done) { cfg.done = false; renderServiceTracker(); }
-    renderSubmitSummary();
+    refreshStepChrome();
   });
+
   function refreshAggregateAndSummary() {
     renderSubmitSummary();
   }
   function refreshAll() {
-    renderServiceTracker();
     renderServiceSetup();
     renderSubmitSummary();
   }
@@ -1154,6 +1285,7 @@
     onDocFilesChanged();
   });
   function onDocFilesChanged() {
+    renderCriteria();
     renderServiceSetup();
     renderSubmitSummary();
   }
@@ -1180,9 +1312,6 @@
   function readinessChecks() {
     const hasContact = ['mBiz', 'mEmail', 'mPhone'].every(id => $(id).value.trim());
     const services = criteria.services;
-    const configured = services.filter(s => serviceConfig[s] && serviceConfig[s].done).length;
-    const { unresolved } = approvalStatus();
-    const { total, done } = currentDocStatus();
     const checks = [
       { label: 'Merchant details — business name, email and phone', done: hasContact },
       { label: 'Merchant type and industry', done: !!(criteria.entity && criteria.industry) },
@@ -1191,15 +1320,14 @@
     if (criteria.posEnabled) {
       checks.push({ label: 'Number of POS terminals', done: Number(criteria.posTerminals) > 0 });
     }
-    checks.push({
-      label: services.length
-        ? `Every service set up and saved — ${configured} of ${services.length}`
-        : 'Every service set up and saved',
-      done: services.length > 0 && configured === services.length && !unresolved,
-    });
-    checks.push({
-      label: total ? `All required documents uploaded — ${done} of ${total}` : 'All required documents uploaded',
-      done: services.length > 0 && done === total,
+    if (hasOnlineService()) {
+      checks.push({ label: 'Merchant website', done: websiteValid(criteria.website) });
+    }
+    if (criteria.posEnabled) {
+      checks.push({ label: 'Store image', done: isDocDone(STORE_IMAGE_DOC) });
+    }
+    SETUP_STEPS.forEach((step, i) => {
+      checks.push({ label: `Service setup — ${step.label}`, done: services.length > 0 && stepDone(i + 1) && canOpenStep(i + 1) });
     });
     return checks;
   }
@@ -1264,61 +1392,13 @@
   })();
   $('submitAppBtn').addEventListener('click', () => {
     const biz = $('mBiz').value.trim(), email = $('mEmail').value.trim(), phone = $('mPhone').value.trim();
-    let ok = true;
-    [['mBiz', biz], ['mEmail', email], ['mPhone', phone]].forEach(([id, val]) => {
-      $(id).classList.toggle('invalid', !val);
-      if (!val) ok = false;
-    });
-    if (!ok) {
-      toast("Fill in the merchant's business name, email, and phone first");
-      $('mBiz').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const remaining = readinessChecks().filter(c => !c.done);
+    if (remaining.length) {
+      toast(`Complete this first: ${remaining[0].label}`);
       return;
     }
-    const critChecks = [['critEntity', criteria.entity], ['critIndustry', criteria.industry]];
-    let critOk = true;
-    critChecks.forEach(([id, val]) => {
-      $(id).classList.toggle('invalid', !val);
-      if (!val) critOk = false;
-    });
-    if (!criteria.services.length) critOk = false;
-    if (!critOk) {
-      toast('Fill in Merchant Type, Industry and at least one Service first');
-      $('critEntity').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    if (criteria.posEnabled && !(Number(criteria.posTerminals) > 0)) {
-      const input = $('posTerminals');
-      if (input) input.classList.add('invalid');
-      toast('Enter the number of POS terminals to activate first');
-      $('critEntity').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    const notConfigured = criteria.services.find(s => !serviceConfig[s].done);
-    if (notConfigured) {
-      activeService = notConfigured;
-      renderServiceTracker();
-      renderServiceSetup();
-      toast(`Finish setting up ${stripChannel(notConfigured)} — ${bankRequiredFor(notConfigured) ? 'Financial Institution, Settlement type,' : 'Settlement type,'} and pricing — before submitting`);
-      $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    const { unresolved, needsApproval } = approvalStatus();
-    if (unresolved) {
-      toast('Add an approval note for every rate below Auto before submitting');
-      return;
-    }
+    const { needsApproval } = approvalStatus();
     const { total, done } = currentDocStatus();
-    if (done < total) {
-      const missingService = firstServiceMissingDocs();
-      if (missingService) {
-        activeService = missingService;
-        renderServiceTracker();
-        renderServiceSetup();
-      }
-      toast(`Upload all required documents before submitting — ${done} of ${total} attached`);
-      $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
     const serviceConfigsPayload = criteria.services.map(s => {
       const cfg = serviceConfig[s];
@@ -1336,10 +1416,13 @@
       actor: 'Aya Muhammed', ts: new Date().toISOString(),
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
+    if (hasOnlineService()) qs.set('website', criteria.website.trim());
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
     if (sourceLeadMid) qs.set('mid', sourceLeadMid);
     // The Onboarding team reviews the uploaded documents on the merchant account.
-    qs.set('documents', JSON.stringify([...computeAggregatedDocs().keys()].map(name => ({
+    const submittedDocs = [...computeAggregatedDocs().keys()]
+      .concat(criteria.posEnabled ? [STORE_IMAGE_DOC] : [], [CONTRACT_DOC]);
+    qs.set('documents', JSON.stringify(submittedDocs.map(name => ({
       name, file: [...(docFiles.get(name) || new Map()).values()].map(f => f.name).join(', '),
     }))));
     const trackURL = 'application-status.html?' + qs.toString();
@@ -1386,7 +1469,6 @@
 
   /* ══════════ Init ══════════ */
   renderCriteria();
-  renderServiceTracker();
   renderServiceSetup();
 </script>
 

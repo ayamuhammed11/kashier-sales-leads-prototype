@@ -558,7 +558,7 @@
       ? `${counts.blank} rate${counts.blank === 1 ? '' : 's'} still need a rate and fixed fee.`
       : (counts.head || counts.manager)
         ? `Resubmitting sends ${[counts.head ? `${counts.head} to the Head of Sales` : '', counts.manager ? `${counts.manager} to the Pricing Manager` : ''].filter(Boolean).join(' and ')} as a new request.`
-        : 'Every rate is at published pricing — the application goes straight to Onboarding Review.';
+        : 'Every rate is at published pricing — the application goes straight to Underwriting Review.';
   }
 
   function render() {

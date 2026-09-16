@@ -637,7 +637,7 @@
     // One line saying where the account stands and what happens next.
     const pendingRates = pendingRateSummary(app);
     const notes = {
-      'rate-approval': ['warn', `Waiting for rate approval — ${pendingRates}. The onboarding review opens once every rate is decided.`],
+      'rate-approval': ['warn', `Waiting for rate approval — ${pendingRates}. The underwriting review opens once every rate is decided.`],
       'returned': ['danger', `Rates were rejected, so the application is back with ${esc(app.actor)} for revision.`],
       'submitted': isOnboarding()
         ? ['info', 'Review Business Info, Documents and Payment Configurations, then approve to send the application to the bank — or reject it with a reason.']

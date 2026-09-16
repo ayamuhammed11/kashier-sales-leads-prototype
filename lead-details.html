@@ -422,7 +422,7 @@
     application:         { label: 'Application in Progress',   cls: 'badge-application' },
     submitted:           { label: 'Application Submitted',     cls: 'badge-submitted' },
     'rate-approval':     { label: 'Waiting Rate Approval',     cls: 'badge-rate-approval' },
-    'onboarding-review': { label: 'Onboarding Review',          cls: 'badge-onboarding-review' },
+    'onboarding-review': { label: 'Underwriting Review',          cls: 'badge-onboarding-review' },
     'bank-submission':   { label: 'Bank Submission',            cls: 'badge-bank-submission' },
     activated:           { label: 'Live',                       cls: 'badge-activated' },
     lost:                { label: 'Lost',                       cls: 'badge-lost' },
@@ -463,14 +463,14 @@
       ] },
     'L-006': { biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',     role: 'Revenue Manager',   email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',     type: 'Registered Business', volume: '620,000 EGP / month', city: 'Cairo, Egypt',      website: 'zamalekhotel.com',  source: 'Referral',  status: 'onboarding-review', needsRateApproval: false, assigned: '2026-08-30', mid: 'MID-10874-556',
       activity: [
-        { icon: 'flag', actor: 'System',         time: '2026-09-05 10:00', text: 'Application moved to Onboarding Review — no rate approval was needed.' },
+        { icon: 'flag', actor: 'System',         time: '2026-09-05 10:00', text: 'Application moved to Underwriting Review — no rate approval was needed.' },
         { icon: 'call', actor: 'Mostafa Khaled', time: '2026-09-04 13:45', text: 'Discussed booking-engine integration and installment plans with Dina. She is checking with finance before proceeding.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-02 09:30', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag', actor: 'System',         time: '2026-08-30 11:20', text: 'Lead referred by an existing Kashier merchant and assigned to Mostafa Khaled.' },
       ] },
     'L-007': { biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',    role: 'Co-Founder',        email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',    type: 'Registered Business', volume: '95,000 EGP / month',  city: 'Mansoura, Egypt',   website: 'mansouratech.io',   source: 'Website',   status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-22', mid: 'MID-10651-689',
       activity: [
-        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-05 11:00', text: 'Submitted the application — the discounted rate Karim negotiated needs Manager approval before it can move to Onboarding Review.' },
+        { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-05 11:00', text: 'Submitted the application — the discounted rate Karim negotiated needs Manager approval before it can move to Underwriting Review.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-03 10:00', text: 'Started the merchant onboarding application — awaiting CR and tax card upload from Karim.' },
         { icon: 'call',  actor: 'Mostafa Khaled', time: '2026-08-25 14:00', text: 'Walkthrough call covering online checkout integration for their subscription product.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-22 09:10', text: 'Lead submitted a demo request on the Kashier website.' },
@@ -489,7 +489,7 @@
       ] },
     'L-010': { biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',   role: 'Managing Partner',  email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',          type: 'Registered Business', volume: '2,100,000 EGP / month', city: 'Aswan, Egypt',      website: 'aswanrealty.com',   source: 'Event',     status: 'bank-submission', needsRateApproval: false, assigned: '2026-09-07', mid: 'MID-11605-018',
       activity: [
-        { icon: 'flag', actor: 'System',         time: '2026-09-12 09:00', text: 'Onboarding review passed — application submitted to the bank for final sign-off.' },
+        { icon: 'flag', actor: 'System',         time: '2026-09-12 09:00', text: 'Underwriting review passed — application submitted to the bank for final sign-off.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-09 14:00', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag', actor: 'System', time: '2026-09-07 15:00', text: 'Lead assigned to Mostafa Khaled after meeting at the Aswan Real Estate Forum.' },
       ] },
@@ -548,7 +548,7 @@
       icon: 'check', actor: resubmitted.by || 'Salesperson', time: resubmitted.ts.slice(0, 16).replace('T', ' '),
       text: to
         ? `Revised rates resubmitted as ${resubmitted.appId} — ${to} for approval.`
-        : `Revised rates resubmitted as ${resubmitted.appId} at published pricing — sent to Onboarding Review.`,
+        : `Revised rates resubmitted as ${resubmitted.appId} at published pricing — sent to Underwriting Review.`,
     });
   }
   approvalEvents.sort((a, b) => b.time.localeCompare(a.time));

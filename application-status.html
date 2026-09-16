@@ -402,7 +402,7 @@
   const STATUS_META = {
     'draft':                     { label: 'Draft',                     cls: '' },
     'pending-rate-approval':     { label: 'Waiting Rate Approval',      cls: 'warn' },
-    'pending-onboarding-review': { label: 'Onboarding Review',          cls: 'info' },
+    'pending-onboarding-review': { label: 'Underwriting Review',          cls: 'info' },
     'returned-to-sales':         { label: 'Returned to Sales',          cls: 'danger' },
     // Set by the Onboarding team from the merchant account in the Merchant module.
     'pending-bank-submission':   { label: 'Bank Submission',            cls: 'info' },
@@ -479,7 +479,7 @@
     note.hidden = !rejected.length;
     if (rejected.length) {
       $('returnedText').innerHTML = `${rejected.length} rate request${rejected.length === 1 ? ' was' : 's were'} rejected, so this application went back to ` +
-        `${esc(app.actor)} to revise the pricing. It can't move on to Onboarding Review until the pricing is resubmitted.`;
+        `${esc(app.actor)} to revise the pricing. It can't move on to Underwriting Review until the pricing is resubmitted.`;
     }
   }
 
@@ -572,7 +572,7 @@
     const atBank = app.status === 'pending-bank-submission';
     const live = app.status === 'live';
     steps.push({
-      key: 'review', label: onboardingRejected ? 'Rejected by Onboarding' : 'Onboarding Review',
+      key: 'review', label: onboardingRejected ? 'Rejected by Onboarding' : 'Underwriting Review',
       done: atBank || live,
       rejected: onboardingRejected,
       current: app.status === 'pending-onboarding-review',

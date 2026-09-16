@@ -1491,12 +1491,12 @@
     renderSubmitSummary();
   }
 
-  /* ══════════ Submit application — last step: routes to rate approval (if needed) then Onboarding review ══════════ */
+  /* ══════════ Submit application — last step: routes to rate approval (if needed) then Underwriting review ══════════ */
   let appStatus = 'draft'; // 'draft' | 'pending-rate-approval' | 'pending-onboarding-review'
   const STATUS_META = {
     'draft':                     { label: 'Draft',                     cls: '' },
     'pending-rate-approval':     { label: 'Pending Rate Approval',      cls: 'warn' },
-    'pending-onboarding-review': { label: 'Pending Onboarding Review',  cls: 'info' },
+    'pending-onboarding-review': { label: 'Pending Underwriting Review',  cls: 'info' },
   };
   function currentDocStatus() {
     const map = computeAggregatedDocs();

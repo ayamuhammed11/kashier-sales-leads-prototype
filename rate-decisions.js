@@ -45,7 +45,7 @@ window.KashierRates = (function () {
   /* Where the application sits once a decision lands. Approvers review every requested rate
      — rejecting one does not stop the others being reviewed. While any rate is still open the
      application waits on rate approval; once all are reviewed it goes back to the salesperson
-     if one or more were rejected, or on to Onboarding Review if every rate was approved. */
+     if one or more were rejected, or on to Underwriting Review if every rate was approved. */
   function statusFor(requests, decisions) {
     const rejected = requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
     const pending = requests.filter(r => !decisions[r.id]);
@@ -448,7 +448,7 @@ window.KashierRates = (function () {
 
   /* Create the resubmitted application: a new id carrying the revised rates that still need
      approval, linked back to the one it replaces. The lead moves to Waiting Rate Approval, or
-     straight to Onboarding Review when every revised rate is at published pricing. */
+     straight to Underwriting Review when every revised rate is at published pricing. */
   function resubmitApplication(opts) {
     const app = opts.app;
     // Check the stored record, not the caller's copy — it may predate a resubmission made

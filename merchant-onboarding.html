@@ -321,6 +321,42 @@
   .fee-input:focus { outline: none; border-color: var(--primary); }
   .fee-input.empty { border-color: var(--warning); }
 
+
+  /* Transfers */
+  .setup-svc-channel.transfers { color: #006A66; background: var(--accent-10); }
+  .tf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+  .tf-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .tf-label { font-size: 13px; font-weight: 700; color: var(--cadet-base); }
+  .tf-label .req { color: var(--destructive); }
+  .tf-fees-title { font-size: 13px; font-weight: 700; color: var(--cadet-base); margin-bottom: 8px; }
+  .tf-fees { border: 1px solid var(--border); border-radius: 10px; background: #F6F7F7; padding: 4px 18px; }
+  .tf-fee-block { padding: 16px 0; }
+  .tf-fee-block + .tf-fee-block { border-top: 1px solid var(--border); }
+  .tf-fee-name { font-size: 14px; font-weight: 700; color: var(--cadet-base); margin-bottom: 12px; }
+  .tf-input-wrap { display: flex; }
+  .tf-input-wrap .inp { width: 100%; background: #fff; }
+  .tf-input-wrap.has-suffix .inp { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .tf-suffix { display: flex; align-items: center; justify-content: center; min-width: 64px; border: 1.5px solid var(--border); border-left: none;
+    border-radius: 0 var(--radius) var(--radius) 0; background: #FAFBFB; font-size: 14px; color: var(--foreground); }
+  .tf-error { margin-top: 8px; }
+  .combo { position: relative; }
+  .combo-btn { width: 100%; height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px;
+    border: 1.5px solid var(--border); border-radius: 6px; background: #fff; font-family: inherit; font-size: 14px; color: var(--foreground); cursor: pointer; }
+  .combo-btn.empty .combo-val { color: var(--cadet-05); }
+  .combo-btn svg { color: var(--cadet-base); flex-shrink: 0; }
+  .combo-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; background: #fff; border: 1px solid var(--border);
+    border-radius: 6px; box-shadow: 0 10px 28px rgba(0,20,60,.14); padding: 6px 0; }
+  .combo-search { width: calc(100% - 16px); margin: 2px 8px 6px; height: 40px; border: 1.5px solid var(--border); border-radius: 6px; padding: 0 12px;
+    font-family: inherit; font-size: 14px; color: var(--foreground); background: #fff; color-scheme: light; }
+  .combo-search:focus { outline: none; border-color: var(--primary); }
+  .combo-list { max-height: 240px; overflow-y: auto; }
+  .combo-opt { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; background: #fff; font-family: inherit;
+    font-size: 14px; color: var(--cadet-base); cursor: pointer; }
+  .combo-opt:hover { background: var(--muted); }
+  .combo-opt.on { background: #D6DADA; color: var(--foreground); }
+  .combo-none { padding: 10px 16px; font-size: 13px; color: var(--cadet-05); }
+  @media (max-width: 700px) { .tf-grid { grid-template-columns: 1fr; } }
+
   /* What still stands between the salesperson and a created application */
   .submit-checklist { background: var(--muted); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
   .checklist-title { font-size: 12.5px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
@@ -540,10 +576,10 @@
   const SERVICE_CATALOG = [
     { tier: 'Online', services: ['Online Card', 'Online Wallet', 'Online Valu', 'Online OCTO', 'Online Souhoola',
       'Online Contact', 'Online Basata', 'Online Mogo', 'Online Tru', 'Online Forsa', 'Online Aman',
-      'Online Bank Installments', 'Online Transfer', 'Online Instapay'] },
+      'Online Bank Installments', 'Online Instapay'] },
     { tier: 'POS', services: ['POS Card', 'POS Wallet', 'POS Valu', 'POS OCTO', 'POS Souhoola',
       'POS Contact', 'POS Basata', 'POS Mogo', 'POS Tru', 'POS Forsa', 'POS Aman',
-      'POS Bank Installments', 'POS Transfer', 'POS Instapay'] },
+      'POS Bank Installments', 'POS Instapay'] },
   ];
   const SERVICES = SERVICE_CATALOG[0].services.concat(SERVICE_CATALOG[1].services);
   const BASIC_SERVICES = SERVICES;
@@ -587,10 +623,17 @@
     { name: 'Foreign owner KYC',       docs: ["Owner's Passport", "Owner's Residence Card"],                  entities: [], owners: ['Foreign Owner'], industries: [], banks: [], modules: [], services: [] },
     { name: 'Bank Misr PSP annex',     docs: ['BM PSP Agreement Annex'],                                      entities: [], owners: [], industries: [], banks: ['Bank Misr'], modules: ['PSP'], services: [] },
     { name: 'Online services',         docs: ['Brand Authorization Letter'],                                  entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('Online ')) },
+    { name: 'Transfers',               docs: ['Disbursement Authorization Letter'],                           entities: [], owners: [], industries: [], banks: [], modules: [], services: ['Transfers'] },
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '', website: '' };
+  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '', website: '', transfersEnabled: false };
+  const TRANSFER_VERSIONS = ['Ebc_v1', 'Ebc_instant_wallet_v1', 'Axis_pay_v1', 'Kashier_account_v1', 'Octo_payout_v1'];
+  const TRANSFER_INSTITUTIONS = ['Bdc', 'Nbe', 'Bm'];
+  const TRANSFER_FEE_TYPES = [['wallet', 'Wallet'], ['bank', 'Bank'], ['card', 'Card']];
+  const blankFee = () => ({ percentage: '', flat: '', min: '', max: '' });
+  const transferConfig = { version: '', bank: '', fees: { wallet: blankFee(), bank: blankFee(), card: blankFee() } };
+  const hasAnyService = () => criteria.services.length > 0 || criteria.transfersEnabled;
   const hasOnlineService = () => criteria.services.some(s => s.startsWith('Online '));
   const STORE_IMAGE_DOC = 'Store Image';
   const websiteValid = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
@@ -893,6 +936,24 @@
       }
       c.appendChild(group);
     });
+
+    // Transfers — its own service type, activated rather than picked from methods.
+    const tGroup = document.createElement('div');
+    tGroup.className = 'svc-group';
+    tGroup.innerHTML = `<div class="svc-group-label">Transfers</div>
+      <div class="pos-activate">
+        <button type="button" class="crit-chip${criteria.transfersEnabled ? ' on' : ''}" id="transfersToggle">Activate Transfers for this merchant</button>
+      </div>
+      <div class="svc-empty">${criteria.transfersEnabled
+        ? 'Set the Transfers version, financial institution and selling fees in Service Setup below.'
+        : 'Activate Transfers to set up payouts with their own version, financial institution and selling fees.'}</div>`;
+    c.appendChild(tGroup);
+    $('transfersToggle').addEventListener('click', () => {
+      criteria.transfersEnabled = !criteria.transfersEnabled;
+      renderCriteria();
+      refreshAll();
+    });
+
     const website = $('mWebsite');
     if (website) website.addEventListener('input', e => {
       criteria.website = e.target.value;
@@ -941,12 +1002,15 @@
   }
   function computeAggregatedDocs() {
     const merged = new Map();
-    criteria.services.forEach(s => {
-      docsForService(s).forEach((via, name) => {
-        if (!merged.has(name)) merged.set(name, new Set());
-        via.forEach(v => merged.get(name).add(v));
-      });
-    });
+    const add = (via, name) => {
+      if (!merged.has(name)) merged.set(name, new Set());
+      via.forEach(v => merged.get(name).add(v));
+    };
+    criteria.services.forEach(s => docsForService(s).forEach(add));
+    if (criteria.transfersEnabled) {
+      computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry,
+        bank: transferConfig.bank, module: '', services: ['Transfers'] }).forEach(add);
+    }
     const out = new Map();
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
@@ -986,8 +1050,8 @@
   }
 
   /* What still stops each step from being complete — empty means done. */
-  function stepIssues(n) {
-    if (!criteria.services.length) return ['Select at least one service in Step 2'];
+  function serviceStepIssues(n) {
+    if (!hasAnyService()) return ['Select at least one service in Step 2'];
     if (n === 1) {
       const issues = [];
       orderedServices().forEach(s => {
@@ -1018,12 +1082,13 @@
     }
     return isDocDone(CONTRACT_DOC) ? [] : [`Upload the ${CONTRACT_DOC}`];
   }
+  function stepIssues(n) { return serviceStepIssues(n).concat(n <= 2 && hasAnyService() ? transferIssues(n) : []); }
   const stepDone = n => stepIssues(n).length === 0;
   const canOpenStep = n => { for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
 
   function renderSetupStepper() {
     const el = $('setupStepper');
-    if (!criteria.services.length) { el.innerHTML = ''; return; }
+    if (!hasAnyService()) { el.innerHTML = ''; return; }
     el.innerHTML = SETUP_STEPS.map((s, i) => {
       const n = i + 1;
       const done = stepDone(n) && canOpenStep(n);
@@ -1095,7 +1160,7 @@
 
   function renderServiceSetup() {
     const wrap = $('serviceSetupBody');
-    if (!criteria.services.length) {
+    if (!hasAnyService()) {
       renderSetupStepper();
       wrap.innerHTML = '<div class="svc-empty">Select at least one service in Step 2 to start setting it up here.</div>';
       return;
@@ -1104,7 +1169,11 @@
     while (setupStep > 1 && !canOpenStep(setupStep)) setupStep--;
     renderSetupStepper();
 
-    const body = [stepConfigureHTML, stepPricingHTML, stepDocumentsHTML, stepContractHTML][setupStep - 1]();
+    const body = [
+      () => stepConfigureHTML() + transferConfigureHTML(),
+      () => stepPricingHTML() + transferPricingHTML(),
+      stepDocumentsHTML, stepContractHTML,
+    ][setupStep - 1]();
     const issues = stepIssues(setupStep);
     const last = setupStep === SETUP_STEPS.length;
     wrap.innerHTML = `
@@ -1219,6 +1288,138 @@
     refreshStepChrome();
   });
 
+
+  /* ══════════ Transfers — the third service type, next to Online and POS. It is not picked
+     from a list of methods: once activated it needs a version, a financial institution and its
+     own selling fees for each transfer destination (wallet, bank, card). ══════════ */
+  const CHEVRON_SVG = '<svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
+
+  /* A searchable dropdown: the button shows the value, the panel filters as you type. */
+  function comboHTML(field, value, options, placeholder) {
+    return `<div class="combo" data-combo="${esc(field)}">
+      <button type="button" class="combo-btn${value ? '' : ' empty'}"><span class="combo-val">${esc(value || placeholder)}</span>${CHEVRON_SVG}</button>
+      <div class="combo-panel" hidden>
+        <input type="text" class="combo-search" placeholder="Search" autocomplete="off">
+        <div class="combo-list">${options.map(o =>
+          `<button type="button" class="combo-opt${o === value ? ' on' : ''}" data-value="${esc(o)}">${esc(o)}</button>`).join('')}
+          <div class="combo-none" hidden>No matches</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  function closeCombos(except) {
+    document.querySelectorAll('.combo-panel').forEach(p => { if (p !== except) p.hidden = true; });
+  }
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.combo-btn');
+    if (btn) {
+      const panel = btn.parentElement.querySelector('.combo-panel');
+      closeCombos(panel);
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) { const s = panel.querySelector('.combo-search'); s.value = ''; filterCombo(s); s.focus(); }
+      return;
+    }
+    const opt = e.target.closest('.combo-opt');
+    if (opt) {
+      transferConfig[opt.closest('.combo').dataset.combo] = opt.dataset.value;
+      closeCombos();
+      onSetupChanged();
+      return;
+    }
+    if (!e.target.closest('.combo-panel')) closeCombos();
+  });
+  function filterCombo(input) {
+    const term = input.value.trim().toLowerCase();
+    let shown = 0;
+    input.closest('.combo-panel').querySelectorAll('.combo-opt').forEach(o => {
+      const match = !term || o.dataset.value.toLowerCase().includes(term);
+      o.hidden = !match;
+      if (match) shown++;
+    });
+    input.closest('.combo-panel').querySelector('.combo-none').hidden = shown > 0;
+  }
+  document.addEventListener('input', e => { if (e.target.classList.contains('combo-search')) filterCombo(e.target); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCombos(); });
+
+  function transferHeadHTML() {
+    return `<div class="setup-svc-head"><span class="setup-svc-channel transfers">Transfers</span>Transfers</div>`;
+  }
+
+  function transferConfigureHTML() {
+    if (!criteria.transfersEnabled) return '';
+    return `<div class="setup-svc">
+      ${transferHeadHTML()}
+      <div class="tf-grid">
+        <div class="tf-field">
+          <div class="tf-label">Version<span class="req">*</span></div>
+          ${comboHTML('version', transferConfig.version, TRANSFER_VERSIONS, 'Select version')}
+        </div>
+        <div class="tf-field">
+          <div class="tf-label">Financial Institution<span class="req">*</span></div>
+          ${comboHTML('bank', transferConfig.bank, TRANSFER_INSTITUTIONS, 'Select financial institution')}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function transferPricingHTML() {
+    if (!criteria.transfersEnabled) return '';
+    const input = (type, field, placeholder, suffix) => {
+      const v = transferConfig.fees[type][field];
+      return `<div class="tf-input-wrap${suffix ? ' has-suffix' : ''}">
+        <input class="inp tf-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="${esc(placeholder)}"
+          data-fee="${esc(type)}" data-field="${esc(field)}" value="${esc(v)}">
+        ${suffix ? `<span class="tf-suffix">${suffix}</span>` : ''}
+      </div>`;
+    };
+    return `<div class="setup-svc">
+      ${transferHeadHTML()}
+      <div class="setup-svc-sub">${esc([transferConfig.bank, transferConfig.version].filter(Boolean).join(' · '))}</div>
+      <div class="tf-fees-title">Selling Fees</div>
+      <div class="tf-fees">
+        ${TRANSFER_FEE_TYPES.map(([type, label]) => `<div class="tf-fee-block">
+          <div class="tf-fee-name">${esc(label)}</div>
+          <div class="tf-grid">
+            <div class="tf-field"><div class="tf-label">Percentage<span class="req">*</span></div>${input(type, 'percentage', 'percentage', '%')}</div>
+            <div class="tf-field"><div class="tf-label">Flat<span class="req">*</span></div>${input(type, 'flat', 'flat')}</div>
+            <div class="tf-field"><div class="tf-label">Min</div>${input(type, 'min', 'min')}</div>
+            <div class="tf-field"><div class="tf-label">Max</div>${input(type, 'max', 'max')}</div>
+          </div>
+          <div class="field-hint tf-error" data-fee-error="${esc(type)}" hidden>Min can't be higher than Max.</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  /* What still stops the Transfers setup at each step. */
+  function transferIssues(n) {
+    if (!criteria.transfersEnabled) return [];
+    const issues = [];
+    if (n === 1) {
+      if (!transferConfig.version) issues.push('Version for Transfers');
+      if (!transferConfig.bank) issues.push('Financial Institution for Transfers');
+    }
+    if (n === 2) {
+      TRANSFER_FEE_TYPES.forEach(([type, label]) => {
+        const f = transferConfig.fees[type];
+        if (f.percentage === '' || f.flat === '') issues.push(`Transfers ${label} selling fee — percentage and flat`);
+        else if (f.min !== '' && f.max !== '' && Number(f.min) > Number(f.max)) issues.push(`Transfers ${label} selling fee — Min is higher than Max`);
+      });
+    }
+    return issues;
+  }
+
+  // Typing a selling fee updates in place, so the field keeps focus.
+  $('serviceSetupBody').addEventListener('input', e => {
+    const input = e.target.closest('.tf-input');
+    if (!input) return;
+    const fee = transferConfig.fees[input.dataset.fee];
+    fee[input.dataset.field] = input.value;
+    const err = $('serviceSetupBody').querySelector(`[data-fee-error="${input.dataset.fee}"]`);
+    if (err) err.hidden = !(fee.min !== '' && fee.max !== '' && Number(fee.min) > Number(fee.max));
+    refreshStepChrome();
+  });
+
   function refreshAggregateAndSummary() {
     renderSubmitSummary();
   }
@@ -1315,7 +1516,7 @@
     const checks = [
       { label: 'Merchant details — business name, email and phone', done: hasContact },
       { label: 'Merchant type and industry', done: !!(criteria.entity && criteria.industry) },
-      { label: 'At least one service selected', done: services.length > 0 },
+      { label: 'At least one service selected', done: hasAnyService() },
     ];
     if (criteria.posEnabled) {
       checks.push({ label: 'Number of POS terminals', done: Number(criteria.posTerminals) > 0 });
@@ -1327,7 +1528,7 @@
       checks.push({ label: 'Store image', done: isDocDone(STORE_IMAGE_DOC) });
     }
     SETUP_STEPS.forEach((step, i) => {
-      checks.push({ label: `Service setup — ${step.label}`, done: services.length > 0 && stepDone(i + 1) && canOpenStep(i + 1) });
+      checks.push({ label: `Service setup — ${step.label}`, done: hasAnyService() && stepDone(i + 1) && canOpenStep(i + 1) });
     });
     return checks;
   }
@@ -1405,11 +1606,14 @@
       const configs = bankKeysFor(cfg, s).map(k => ({ bank: k, module: (cfg.bankConfigs[k] && cfg.bankConfigs[k].module) || '' }));
       return { service: s, configs };
     });
+    if (criteria.transfersEnabled) {
+      serviceConfigsPayload.push({ service: 'Transfers', configs: [{ bank: transferConfig.bank, module: transferConfig.version }] });
+    }
     const qs = new URLSearchParams({
       id: 'APP-' + Date.now().toString().slice(-8),
       biz, email, phone,
       entity: criteria.entity, industry: criteria.industry,
-      services: criteria.services.join(','),
+      services: criteria.services.concat(criteria.transfersEnabled ? ['Transfers'] : []).join(','),
       serviceConfigs: JSON.stringify(serviceConfigsPayload),
       pricingRequests: JSON.stringify(pricingRequests()),
       total, done, needsApproval, status,
@@ -1417,6 +1621,7 @@
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
     if (hasOnlineService()) qs.set('website', criteria.website.trim());
+    if (criteria.transfersEnabled) qs.set('transfers', JSON.stringify(transferConfig));
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
     if (sourceLeadMid) qs.set('mid', sourceLeadMid);
     // The Onboarding team reviews the uploaded documents on the merchant account.

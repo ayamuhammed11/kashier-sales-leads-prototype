@@ -717,6 +717,25 @@
     const decisions = K.decisionsFor(app.id);
     const cards = [];
     configs.forEach(sc => (sc.configs || [{ bank: '', module: '' }]).forEach(cfg => {
+      // Transfers carry a version and their own selling fees instead of rate lines.
+      if (sc.service === 'Transfers') {
+        const t = app.transfers || { fees: {} };
+        const fees = [['wallet', 'Wallet'], ['bank', 'Bank'], ['card', 'Card']].map(([k, label]) => {
+          const f = (t.fees || {})[k] || {};
+          const range = [f.min !== '' && f.min != null ? `min ${esc(f.min)}` : '', f.max !== '' && f.max != null ? `max ${esc(f.max)}` : ''].filter(Boolean).join(' · ');
+          return `<div class="cfg-rate"><span class="name">${label}</span>
+            <span><span class="pct">${esc(f.percentage || '—')}% + ${esc(f.flat || '—')}</span>${range ? `<span class="std">${range}</span>` : ''}</span></div>`;
+        }).join('');
+        cards.push(`<div class="cfg-card">
+          <div class="cfg-head"><span class="cfg-name">Transfers</span></div>
+          <div class="cfg-rows">
+            <div><div class="k">Financial Institution</div><div class="v">${esc(cfg.bank || '—')}</div></div>
+            <div><div class="k">Version</div><div class="v">${esc(cfg.module || '—')}</div></div>
+          </div>
+          <div class="cfg-rates"><div class="k" style="font-size:12px;color:var(--cadet-05);margin-bottom:4px">Selling Fees</div>${fees}</div>
+        </div>`);
+        return;
+      }
       const lines = app.requests.filter(r => r.service === sc.service && (r.bank || '') === (cfg.bank || ''));
       const rates = lines.map(l => {
         const d = decisions[l.id];

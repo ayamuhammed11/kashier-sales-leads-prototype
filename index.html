@@ -591,17 +591,16 @@
   const LEAD_HEAD = `<tr><th>Lead</th><th>MID</th><th>Contact</th><th>Source</th><th>Status</th>
     <th>Assigned</th><th>Last Activity</th><th></th></tr>`;
   const RATE_HEAD = `<tr><th>Merchant</th><th>Services</th><th>Rates</th><th>Status</th><th></th></tr>`;
-  const RATE_HEAD_DECIDED = `<tr><th>Merchant</th><th>Services</th><th>Rates</th><th>Outcome</th><th></th></tr>`;
 
   function renderTable() {
     // The Rate Approvals tab swaps the table over to one row per rate request.
     const rateMode = activeStatus === 'rates';
-    if (rateMode && !rateView) rateView = defaultRateView();
+    if (rateMode && !rateViews().some(v => v[0] === rateView)) rateView = defaultRateView();
     const rows = rateMode ? rateRows() : filteredLeads();
-    const decidedView = rateMode && rateView === 'decided';
-    $('tableHead').innerHTML = rateMode ? (decidedView ? RATE_HEAD_DECIDED : RATE_HEAD) : LEAD_HEAD;
+    $('tableHead').innerHTML = rateMode ? RATE_HEAD : LEAD_HEAD;
     $('mainTable').classList.toggle('rate-table', rateMode);
-    $('rateViews').hidden = !rateMode;
+    // A single view needs no filter row — only the Head has two bands to switch between.
+    $('rateViews').hidden = !rateMode || rateViews().length < 2;
     if (rateMode) renderRateViews();
     const waitMode = activeStatus === 'rate-approval';
     $('waitViews').hidden = !waitMode;
@@ -616,9 +615,7 @@
     $('emptyState').classList.toggle('show', rows.length === 0);
     $('emptyTitle').textContent = rateMode ? 'Nothing to review here.' : 'No leads match this filter.';
     $('emptySub').textContent = rateMode
-      ? (decidedView
-        ? 'Requests you have approved or rejected will show up here.'
-        : `No ${rateView === 'head' ? 'Head' : 'Manager'}-approval rates are waiting on you right now.`)
+      ? `No ${rateView === 'head' ? 'Head' : 'Manager'}-approval rates are waiting on you right now.`
       : 'Try a different status tab or clear your search to see all your assigned leads.';
 
     const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
@@ -771,10 +768,9 @@
       return [
         ['head', 'Head approval'],
         ['manager', 'Manager approval'],
-        ['decided', 'Decided'],
       ];
     }
-    return [['manager', 'Needs my approval'], ['decided', 'Decided']];
+    return [['manager', 'Needs my approval']];
   }
   function defaultRateView() { return rateViews()[0][0]; }
   function myBands() { return ROLES[role].approves; }
@@ -788,8 +784,7 @@
     const term = searchTerm.trim().toLowerCase();
     return window.KashierRates.approvalRequests().filter(r => {
       if (myBands().indexOf(r.tier) === -1) return false;
-      if (v === 'decided') { if (r.state === 'pending') return false; }
-      else if (r.state !== 'pending' || r.tier !== v) return false;
+      if (r.state !== 'pending' || r.tier !== v) return false;
       if (!term) return true;
       const text = [r.app.biz, r.app.id].concat(r.lines.map(l => [l.service, l.bank, l.rate].join(' ')));
       return text.join(' ').toLowerCase().includes(term);

@@ -513,11 +513,15 @@
   function renderTabs() {
     const counts = { all: LEADS.length };
     Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => l.status === k).length);
-    const tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
+    let tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
     // Rate Approvals is an approver's tab — a salesperson never sees it, and the count is
     // what is waiting on this person's own approval level, not everyone's. It leads the
     // row rather than trailing nine lead statuses, because it is the work they came for.
+    // For an approver it is the one list of applications waiting on rate approval, so the
+    // Waiting Rate Approval status tab is not shown alongside it.
     if (isApprover()) {
+      tabs = tabs.filter(([k]) => k !== 'rate-approval');
+      if (activeStatus === 'rate-approval') activeStatus = 'rates';
       counts.rates = myPending();
       tabs.unshift(['rates', 'Rate Approvals']);
     }

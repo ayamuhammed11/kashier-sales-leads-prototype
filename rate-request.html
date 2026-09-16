@@ -561,7 +561,7 @@
     } else {
       $('reqActions').innerHTML = !ROLES[role].approves.length
         ? `<div class="actions-note">Waiting on the ${esc(TIER_OWNER[tier])} to review these rates.</div>`
-        : `<div class="actions-note">This request needs ${esc(TIER_OWNER[tier])} approval — it is above your approval level as ${esc(ROLES[role].label)}.</div>`;
+        : `<div class="actions-note">This request is for the ${esc(TIER_OWNER[tier])} to review — it is not assigned to you as ${esc(ROLES[role].label)}.</div>`;
     }
 
     // Rates, grouped by service (and institution within a service)

@@ -760,19 +760,13 @@
 
   /* The queue lists approval requests, not rate lines: one per application per approval
      level, holding every rate on that application that needs that level across all of its
-     services. Each approver works their own band — a Pricing Manager never sees the Head's
-     requests, and the Head keeps the two bands on separate views. */
+     services. Each approver sees only their own level — the Pricing Manager never sees the
+     Head's requests, and the Head of Sales never sees the Manager's. */
   let rateView = '';
   function rateViews() {
-    if (role === 'head') {
-      return [
-        ['head', 'Head approval'],
-        ['manager', 'Manager approval'],
-      ];
-    }
-    return [['manager', 'Needs my approval']];
+    return myBands().map(band => [band, band === 'head' ? 'Head approval' : 'Manager approval']);
   }
-  function defaultRateView() { return rateViews()[0][0]; }
+  function defaultRateView() { return (rateViews()[0] || [''])[0]; }
   function myBands() { return ROLES[role].approves; }
   function isApprover() { return myBands().length > 0; }
   function canActOn(request) {

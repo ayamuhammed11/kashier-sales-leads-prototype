@@ -2,7 +2,8 @@
    application page so all three agree on who may sign off and what a decision does.
 
    Rates between the Manager and Standard rate are a Pricing Manager's call; anything under
-   the Manager rate needs the Head of Sales, who can also cover the Manager band.
+   the Manager rate needs the Head of Sales. Each approver sees and decides only the
+   requests at their own level — the Head does not review the Manager's requests.
 
    What an approver decides is an approval request: one application at one approval level.
    Every rate line on the application that needs that level — across all of its services —
@@ -12,7 +13,7 @@ window.KashierRates = (function () {
   const ROLES = {
     sales:   { label: 'Salesperson',     name: 'Aya Muhammed', initials: 'AM', approves: [] },
     manager: { label: 'Pricing Manager', name: 'Nadia Salah',  initials: 'NS', approves: ['manager'] },
-    head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['manager', 'head'] },
+    head:    { label: 'Head of Sales',   name: 'Tarek Fahmy',  initials: 'TF', approves: ['head'] },
     // Works submitted applications in the Merchant module; approves no rates.
     onboarding: { label: 'Onboarding Team', name: 'Rana Adel', initials: 'RA', approves: [] },
   };

@@ -256,6 +256,14 @@
   .line-note { font-size: 13px; color: var(--cadet-base); line-height: 1.55; margin-top: 10px;
     border-left: 3px solid var(--warning); background: var(--warning-bg); border-radius: 0 6px 6px 0; padding: 9px 12px; }
   .line-note.empty { border-left-color: var(--border); background: var(--muted); color: var(--cadet-05); font-style: italic; }
+  /* Per-rate decision */
+  .line-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .line-outcome { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .line-outcome-pill { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; border-radius: 999px; padding: 3px 10px; }
+  .line-outcome.approved .line-outcome-pill { background: var(--success-bg); color: var(--success-text); }
+  .line-outcome.rejected .line-outcome-pill { background: var(--destructive-bg); color: var(--destructive); }
+  .line-outcome-by { font-size: 12px; color: var(--cadet-05); }
+  .line-outcome-reason { flex-basis: 100%; font-size: 12.5px; color: var(--destructive); }
 
   .decision { display: flex; gap: 12px; align-items: flex-start; }
   .decision-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -480,7 +488,25 @@
     return cfg ? cfg.module : '';
   }
 
-  function lineHTML(line) {
+  /* Each rate carries its own decision: Approve / Reject while it is open and this person can
+     act on it, otherwise who decided it and why. */
+  function lineActionsHTML(line, decision, canAct) {
+    if (decision) {
+      const approved = decision.decision === 'approved';
+      return `<div class="line-outcome ${approved ? 'approved' : 'rejected'}">
+        <span class="line-outcome-pill">${approved ? 'Approved' : 'Rejected'}</span>
+        <span class="line-outcome-by">${esc(decision.by)} &middot; ${esc(fmtDate(decision.ts))}</span>
+        ${!approved && decision.reason ? `<div class="line-outcome-reason">${esc(decision.reason)}</div>` : ''}
+      </div>`;
+    }
+    if (!canAct) return '';
+    return `<div class="line-actions">
+      <button type="button" class="btn btn-sm btn-destructive-outline" data-line-reject="${esc(line.id)}">Reject</button>
+      <button type="button" class="btn btn-sm btn-success" data-line-approve="${esc(line.id)}">Approve</button>
+    </div>`;
+  }
+
+  function lineHTML(line, decision, canAct) {
     return `<div class="rate-line">
       <div class="rate-line-top">
         <div>
@@ -490,6 +516,7 @@
         <div class="fig-mini"><div class="lbl">Published</div><div class="val">${esc(pricing(line.standard, line.standardFee))}</div></div>
       </div>
       <div class="line-note${line.note ? '' : ' empty'}">${line.note ? esc(line.note) : 'No justification was recorded for this rate.'}</div>
+      ${lineActionsHTML(line, decision, canAct)}
     </div>`;
   }
 
@@ -499,9 +526,11 @@
     $('notFound').hidden = !!request;
     if (!request) return;
 
-    const { app, tier, lines, services, state, decision } = request;
-    const canAct = state === 'pending' && window.KashierRates.canRoleAct(role, tier);
+    const { app, tier, lines, services, state, decision, pendingLines } = request;
+    const canAct = state === 'pending' && !app.superseded && window.KashierRates.canRoleAct(role, tier);
+    const lineDecisions = window.KashierRates.decisionsFor(app.id);
     const n = lines.length;
+    const open = pendingLines.length;
     document.title = `Kashier | ${TIER_LABEL[tier]} — ${app.biz}`;
 
     // Header: the request is the merchant at one approval level
@@ -514,13 +543,13 @@
       esc(app.id),
     ].join('<span class="dot">&middot;</span>');
 
-    // One decision covers the whole request
+    // Decide rate by rate below, or everything still open in one go here.
     if (canAct) {
       $('reqActions').innerHTML = `
-        <button class="btn btn-destructive-outline" id="rejectBtn">Reject</button>
+        <button class="btn btn-destructive-outline" id="rejectBtn">Reject${open > 1 ? ' All' : ''}</button>
         <button class="btn btn-success" id="approveBtn">
           <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-          Approve${n > 1 ? ` All ${n}` : ''}
+          Approve${open > 1 ? ` All ${open}` : ''}
         </button>`;
     } else if (app.superseded) {
       // An earlier version kept for the record; the live request is on the resubmission.
@@ -561,7 +590,7 @@
           <span class="svc-group-name">${esc(g.service)}</span>
           ${meta ? `<span class="svc-group-meta">${esc(meta)}</span>` : ''}
         </div>
-        ${g.lines.map(l => lineHTML(l)).join('')}
+        ${g.lines.map(l => lineHTML(l, lineDecisions[l.id] || null, canAct)).join('')}
       </div>`;
     }).join('');
 
@@ -577,7 +606,7 @@
               : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>'}
           </div>
           <div>
-            <div class="decision-title">${approved ? `All ${n} rate${n === 1 ? '' : 's'} approved` : `Rejected and returned to ${esc(app.actor)}`}</div>
+            <div class="decision-title">${approved ? `All ${n} rate${n === 1 ? '' : 's'} approved` : `${esc(lines.filter(l => lineDecisions[l.id] && lineDecisions[l.id].decision === 'rejected').map(l => l.rate).join(', '))} rejected — returned to ${esc(app.actor)}`}</div>
             <div class="decision-meta">${esc(decision.by)} (${esc(decision.roleLabel)}) &middot; ${esc(fmtDateTime(decision.ts))}</div>
             ${decision.reason ? `<div class="decision-reason">Reason: ${esc(decision.reason)}</div>` : ''}
           </div>
@@ -600,32 +629,51 @@
     $('appLink').href = app.url;
   }
 
-  function decide(decision, reason) {
+  /* lineId set → decide that one rate; empty → every rate still open in the request. */
+  function decide(decision, reason, lineId) {
     const request = current();
     if (!request) return;
-    const result = window.KashierRates.recordRequestDecision({
-      app: request.app, tier: request.tier, decision, reason, role,
-    });
+    const K = window.KashierRates;
+    const result = lineId
+      ? K.recordDecision({ app: request.app, reqId: lineId, decision, reason, role })
+      : K.recordRequestDecision({ app: request.app, tier: request.tier, decision, reason, role });
     if (!result) return;
     render();
-    const n = result.lines.length;
-    toast(decision === 'approved'
-      ? `${n} rate${n === 1 ? '' : 's'} approved for ${request.app.biz}.`
-      : `Rejected — ${request.app.biz} went back to ${request.app.actor}.`);
+    const decided = lineId ? [result.request] : result.lines;
+    const label = decided.length === 1 ? decided[0].rate : `${decided.length} rates`;
+    if (decision === 'rejected') {
+      toast(`${label} rejected — ${request.app.biz} went back to ${request.app.actor}.`);
+      return;
+    }
+    const after = current();
+    toast(after && after.state === 'approved'
+      ? `Every rate approved for ${request.app.biz}.`
+      : `${label} approved — ${after.pendingLines.length} still to decide.`);
   }
 
   $('reqActions').addEventListener('click', e => {
     if (e.target.closest('#approveBtn')) decide('approved');
     else if (e.target.closest('#rejectBtn')) openRejectModal();
   });
+  $('rateGroups').addEventListener('click', e => {
+    const approve = e.target.closest('[data-line-approve]');
+    if (approve) { decide('approved', '', approve.dataset.lineApprove); return; }
+    const reject = e.target.closest('[data-line-reject]');
+    if (reject) openRejectModal(reject.dataset.lineReject);
+  });
 
   /* Reject needs a reason — that reason is what the salesperson gets back. */
-  function openRejectModal() {
+  let rejectLineId = '';
+  function openRejectModal(lineId) {
     const request = current();
     if (!request) return;
-    const n = request.lines.length;
-    $('rejectText').innerHTML = `Reject the <b>${esc(TIER_LABEL[request.tier])}</b> request for <b>${esc(request.app.biz)}</b>` +
-      ` (${n} rate${n === 1 ? '' : 's'})? This sends the whole application back to ${esc(request.app.actor)} to revise the pricing.`;
+    rejectLineId = lineId || '';
+    const line = request.lines.filter(l => l.id === rejectLineId)[0];
+    const open = request.pendingLines.length;
+    $('rejectText').innerHTML = (line
+      ? `Reject <b>${esc(line.rate)}</b> (${esc([line.service, line.bank].filter(Boolean).join(' · '))}) for <b>${esc(request.app.biz)}</b>?`
+      : `Reject the ${open === 1 ? 'remaining rate' : `${open} remaining rates`} in the <b>${esc(TIER_LABEL[request.tier])}</b> request for <b>${esc(request.app.biz)}</b>?`) +
+      ` This sends the whole application back to ${esc(request.app.actor)} to revise the pricing.`;
     $('rejectReason').value = '';
     clearRejectError();
     $('rejectBackdrop').classList.add('open');
@@ -644,8 +692,9 @@
   $('rejectConfirm').addEventListener('click', () => {
     const reason = $('rejectReason').value.trim();
     if (!reason) { $('rejectReason').classList.add('invalid'); $('rejectError').hidden = false; $('rejectReason').focus(); return; }
+    const lineId = rejectLineId;
     closeRejectModal();
-    decide('rejected', reason);
+    decide('rejected', reason, lineId);
   });
 
   let toastTimer;

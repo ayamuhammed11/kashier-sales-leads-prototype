@@ -121,11 +121,17 @@ window.KashierRates = (function () {
     return { status: applyDecision(app, lines, opts), lines: lines };
   }
 
-  /* Decide a single rate line. Kept for callers that still work line by line. */
+  /* Decide a single rate line from inside its request. Rejecting any one rate still sends
+     the whole application back to the salesperson, the same as rejecting the request. */
   function recordDecision(opts) {
     const app = opts.app;
     const req = app.requests.filter(r => r.id === opts.reqId)[0];
     if (!req || !canRoleAct(opts.role, req.tier)) return null;
+    const decisions = decisionsFor(app.id);
+    if (decisions[req.id]) return null;
+    if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) return null;
+    if (readStore('kashierSupersededApplications')[app.id]) return null;
+    if (opts.decision === 'rejected' && !String(opts.reason || '').trim()) return null;
     return { status: applyDecision(app, [req], opts), request: req };
   }
 
@@ -362,9 +368,15 @@ window.KashierRates = (function () {
     const lines = app.requests.filter(r => r.tier === tier);
     if (!lines.length) return null;
     const decided = lines.filter(r => decisions[r.id]);
+    // Rates can be decided one at a time: a request stays pending while some of its rates
+    // are still open, is rejected as soon as one of its own rates is, and is approved once
+    // every rate in it is.
+    const rejectedHere = lines.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected');
     let state = 'pending';
-    if (decided.length === lines.length) {
-      state = decided.some(r => decisions[r.id].decision === 'rejected') ? 'rejected' : 'approved';
+    if (rejectedHere.length) {
+      state = 'rejected';
+    } else if (decided.length === lines.length) {
+      state = 'approved';
     } else if (app.requests.some(r => decisions[r.id] && decisions[r.id].decision === 'rejected')) {
       // Another request on this application was rejected, so the application is already back
       // with the salesperson — nothing is left to decide here until it is resubmitted.
@@ -375,7 +387,11 @@ window.KashierRates = (function () {
     return {
       key: app.id + '::' + tier,
       app: app, tier: tier, lines: lines, services: services, state: state,
-      decision: state === 'pending' ? null : decisions[lines[0].id],
+      pendingLines: lines.filter(r => !decisions[r.id]),
+      decision: state === 'rejected' ? decisions[rejectedHere[0].id]
+        : state === 'approved'
+          ? decided.map(r => decisions[r.id]).sort((a, b) => new Date(b.ts) - new Date(a.ts))[0]
+          : null,
     };
   }
   function approvalRequests() {

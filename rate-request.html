@@ -250,14 +250,9 @@
   .rate-line:last-child { border-bottom: none; padding-bottom: 0; }
   .rate-line-top { display: grid; grid-template-columns: minmax(150px, 1.3fr) 1fr 1fr; gap: 14px; align-items: start; }
   .rate-line-name { font-size: 13.5px; font-weight: 600; color: var(--foreground); }
-  .rate-line-gap { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .fig-mini .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); }
   .fig-mini .val { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
   .fig-mini.asking .val { color: var(--primary); }
-  .gap-chip { font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 3px 9px;
-    background: var(--warning-bg); color: var(--warning-text); }
-  .gap-chip.head { background: var(--destructive-bg); color: var(--destructive); }
-  .gap-chip.ok { background: var(--success-bg); color: var(--success-text); }
   .line-note { font-size: 13px; color: var(--cadet-base); line-height: 1.55; margin-top: 10px;
     border-left: 3px solid var(--warning); background: var(--warning-bg); border-radius: 0 6px 6px 0; padding: 9px 12px; }
   .line-note.empty { border-left-color: var(--border); background: var(--muted); color: var(--cadet-05); font-style: italic; }
@@ -458,7 +453,6 @@
   function fmtDateTime(iso) {
     return new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
-  function trim(n) { return Number(n).toFixed(2).replace(/\.?0+$/, ''); }
   function pricing(pct, fee) {
     return [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
   }
@@ -486,20 +480,11 @@
     return cfg ? cfg.module : '';
   }
 
-  function lineHTML(line, tier) {
-    const cls = tier === 'head' ? ' head' : '';
-    const chips = [];
-    if (line.requested != null && line.standard != null && line.requested < line.standard) {
-      chips.push(`<span class="gap-chip${cls}">${trim(line.standard - line.requested)} pp below standard rate</span>`);
-    }
-    if (line.requestedFee != null && line.standardFee != null && line.requestedFee < line.standardFee) {
-      chips.push(`<span class="gap-chip${cls}">${trim(line.standardFee - line.requestedFee)} EGP below standard fee</span>`);
-    }
+  function lineHTML(line) {
     return `<div class="rate-line">
       <div class="rate-line-top">
         <div>
           <div class="rate-line-name">${esc(line.rate)}</div>
-          ${chips.length ? `<div class="rate-line-gap">${chips.join('')}</div>` : ''}
         </div>
         <div class="fig-mini asking"><div class="lbl">Asking</div><div class="val">${esc(pricing(line.requested, line.requestedFee))}</div></div>
         <div class="fig-mini"><div class="lbl">Published</div><div class="val">${esc(pricing(line.standard, line.standardFee))}</div></div>
@@ -576,7 +561,7 @@
           <span class="svc-group-name">${esc(g.service)}</span>
           ${meta ? `<span class="svc-group-meta">${esc(meta)}</span>` : ''}
         </div>
-        ${g.lines.map(l => lineHTML(l, tier)).join('')}
+        ${g.lines.map(l => lineHTML(l)).join('')}
       </div>`;
     }).join('');
 

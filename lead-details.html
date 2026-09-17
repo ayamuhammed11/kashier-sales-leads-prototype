@@ -228,6 +228,58 @@
     .info-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 620px) { .user .name { display: none; } .page-actions { width: 100%; } .page-actions .btn { flex: 1; } }
+
+  /* Application-first layout */
+  .app-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border-subtle); margin: -6px 0 22px; }
+  .app-tab { padding: 11px 16px; font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--cadet-base); background: none;
+    border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+  .app-tab:hover { color: var(--foreground); }
+  .app-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .readonly-note { display: flex; align-items: center; gap: 10px; background: var(--muted); border-radius: 8px; padding: 11px 14px;
+    margin-bottom: 18px; font-size: 13px; color: var(--cadet-base); }
+  .readonly-note svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--cadet-04); }
+  .readonly-note a { color: var(--link); font-weight: 600; }
+  .returned-callout { display: flex; flex-direction: column; gap: 4px; background: var(--destructive-bg); border: 1px solid #FFBBC4;
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: var(--destructive); line-height: 1.5; }
+  .app-intro { font-size: 13px; color: var(--cadet-base); margin: 0 0 16px; line-height: 1.5; }
+  .app-empty { font-size: 13px; color: var(--cadet-05); }
+  .app-svc { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .app-svc:last-child { margin-bottom: 0; }
+  .app-svc-name { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--foreground); }
+  .app-svc-meta { font-size: 12px; color: var(--cadet-05); margin: 2px 0 8px; }
+  .app-svc-foot { font-size: 12px; color: var(--cadet-05); margin-top: 6px; }
+  .app-rate { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border-subtle); font-size: 13px; color: var(--cadet-base); }
+  .app-rate span:first-child { flex: 1; }
+  .app-rate b { font-family: 'Outfit', sans-serif; color: var(--foreground); }
+  .app-rate-state { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; }
+  .app-rate-state.approved { background: var(--success-bg); color: var(--success-text); }
+  .app-rate-state.rejected { background: var(--destructive-bg); color: var(--destructive); }
+  .app-rate-state.pending { background: var(--warning-bg); color: var(--warning-text); }
+  .app-doc { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border-subtle); font-size: 13px; }
+  .app-doc:first-child { border-top: none; padding-top: 0; }
+  .app-doc-name { font-weight: 600; color: var(--foreground); }
+  .app-doc-file { color: var(--cadet-05); }
+  .card.nested { border: none; margin-bottom: 14px; }
+  .card.nested .card-head { padding: 0; }
+  .card.nested .card-body { padding: 10px 0 0; }
+  .app-side-state { display: inline-flex; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 4px 12px; margin-bottom: 12px; }
+  .app-side-state.new { background: var(--ocean-10); color: var(--primary); }
+  .app-side-state.progress { background: var(--warning-bg); color: var(--warning-text); }
+  .app-side-state.returned, .app-side-state.lost { background: var(--destructive-bg); color: var(--destructive); }
+  .app-side-state.submitted { background: var(--success-bg); color: var(--success-text); }
+  .app-side-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--cadet-base); padding: 5px 0; }
+  .app-side-row b { color: var(--foreground); }
+  .app-side-hint { font-size: 12.5px; color: var(--cadet-05); line-height: 1.5; }
+  .app-side-btn { width: 100%; margin-top: 12px; }
+  .track-list { display: flex; flex-direction: column; }
+  .track-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
+  .track-row:first-child { border-top: none; padding-top: 0; }
+  .track-label { font-size: 13px; color: var(--cadet-04); }
+  .track-val { font-size: 13.5px; font-weight: 600; color: var(--foreground); text-align: right; }
+  .track-val.ok { color: var(--success-text); }
+  .track-val.warn { color: var(--warning-text); }
+  .track-val.bad { color: var(--destructive); }
+  .track-sub { font-size: 12px; font-weight: 400; color: var(--cadet-05); margin-top: 3px; }
 </style>
 </head>
 <body>
@@ -238,7 +290,7 @@
     <div class="brand">kashier</div>
 
     <a class="nav-link" href="home.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>Home</a>
-    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Leads<span class="count-badge" id="navLeadCount">10</span></a>
+    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Applications<span class="count-badge" id="navLeadCount">10</span></a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>BIN Management</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>Financial Institutions</a>
     <a class="nav-link" href="merchants.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>Merchant</a>
@@ -289,13 +341,13 @@
     </div>
 
     <div class="content">
-      <div class="breadcrumb"><a href="index.html">My Leads</a> <span class="sep">/</span> <span class="current" id="crumbBiz">Lead</span></div>
+      <div class="breadcrumb"><a href="index.html">My Applications</a> <span class="sep">/</span> <span class="current" id="crumbBiz">Lead</span></div>
 
       <div class="crm-sync-pill" id="crmSyncPill"></div>
 
       <div class="page-head">
         <div class="page-head-left">
-          <a class="back-btn" href="index.html" title="Back to My Leads">
+          <a class="back-btn" href="index.html" title="Back to My Applications">
             <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
           </a>
           <div>
@@ -304,93 +356,135 @@
               <span class="lead-mid" id="leadMid" hidden></span>
               <span class="badge" id="statusBadge"></span>
             </div>
-            <div class="sub"><span id="industryLabel"></span><span class="dot">&middot;</span>Source: <span id="sourceLabel"></span><span class="dot">&middot;</span>Assigned <span id="assignedLabel"></span></div>
+            <div class="sub"><span id="industryLabel"></span><span class="dot">&middot;</span>Onboarding application<span class="dot">&middot;</span>Assigned <span id="assignedLabel"></span></div>
           </div>
         </div>
         <div class="page-actions" id="pageActions"></div>
       </div>
 
-      <div class="layout-grid">
-        <!-- LEFT COLUMN -->
-        <div>
-          <div class="card">
-            <div class="card-head">
-              <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>
-              <div>
-                <h2>Lead Information</h2>
-                <p class="ch-sub">Business details captured when this lead was created.</p>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="info-grid" id="leadInfoGrid"></div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">
-              <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-              <div>
-                <h2>Contact Person</h2>
-                <p class="ch-sub">Primary point of contact at the business.</p>
-              </div>
-            </div>
-            <div class="card-body" id="contactCard"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">
-              <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-              <div>
-                <h2>Notes &amp; Activity</h2>
-                <p class="ch-sub">Every interaction logged for this lead, most recent first.</p>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="timeline" id="timeline"></div>
-              <div class="note-form">
-                <textarea class="note-input" id="noteInput" placeholder="Log a call, meeting, or update about this lead…"></textarea>
-                <div class="note-form-actions">
-                  <button class="btn btn-primary btn-sm" id="addNoteBtn">Add Note</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div>
-          <div class="card">
-            <div class="card-head">
-              <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-              <div>
-                <h2>Pipeline Status</h2>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="stepper" id="stepper"></div>
-              <div class="status-actions" id="statusActions"></div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-head">
-              <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-              <div>
-                <h2>Assigned Salesperson</h2>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="assignee-row">
-                <div class="assignee-avatar">MK</div>
-                <div>
-                  <div class="assignee-name">Mostafa Khaled</div>
-                  <div class="assignee-team">Sales Team &middot; Cairo Region</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- The page is about the application; the lead's CRM data is one tab away. -->
+      <div class="app-tabs" id="appTabs" role="tablist">
+        <button type="button" class="app-tab active" data-tab="application" role="tab">Application</button>
+        <button type="button" class="app-tab" data-tab="tracking" role="tab" id="trackingTabBtn" hidden>Tracking</button>
+        <button type="button" class="app-tab" data-tab="lead" role="tab">Lead Info</button>
       </div>
+
+      <!-- ── Application ── -->
+      <section class="tab-panel" data-panel="application">
+        <div class="layout-grid">
+          <div id="applicationMain"></div>
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+                <div><h2>Application Status</h2></div>
+              </div>
+              <div class="card-body">
+                <div class="app-side" id="applicationSide"></div>
+                <div class="status-actions" id="statusActions"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Tracking (submitted applications only, read-only) ── -->
+      <section class="tab-panel" data-panel="tracking" hidden>
+        <div class="readonly-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+          <span>This application has been submitted — tracking is read-only.</span>
+        </div>
+        <div class="layout-grid">
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v-5.5m3 5.5V8.25m3 3v-2"/></svg>
+                <div>
+                  <h2>Where It Stands</h2>
+                  <p class="ch-sub">Progress through rate approval, underwriting and go-live.</p>
+                </div>
+              </div>
+              <div class="card-body"><div class="track-list" id="trackingDetails"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
+                <div><h2>Pipeline</h2></div>
+              </div>
+              <div class="card-body"><div class="stepper" id="stepper"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Lead Info ── -->
+      <section class="tab-panel" data-panel="lead" hidden>
+        <div class="layout-grid">
+          <!-- LEFT COLUMN -->
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+                <div>
+                  <h2>Lead Information</h2>
+                  <p class="ch-sub">Business details captured when this lead was created.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="info-grid" id="leadInfoGrid"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                <div>
+                  <h2>Contact Person</h2>
+                  <p class="ch-sub">Primary point of contact at the business.</p>
+                </div>
+              </div>
+              <div class="card-body" id="contactCard"></div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
+                <div>
+                  <h2>Notes &amp; Activity</h2>
+                  <p class="ch-sub">Every interaction logged for this lead, most recent first.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="timeline" id="timeline"></div>
+                <div class="note-form">
+                  <textarea class="note-input" id="noteInput" placeholder="Log a call, meeting, or update about this lead…"></textarea>
+                  <div class="note-form-actions">
+                    <button class="btn btn-primary btn-sm" id="addNoteBtn">Add Note</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- RIGHT COLUMN -->
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+                <div><h2>Assigned Salesperson</h2></div>
+              </div>
+              <div class="card-body">
+                <div class="assignee-row">
+                  <div class="assignee-avatar">MK</div>
+                  <div>
+                    <div class="assignee-name">Mostafa Khaled</div>
+                    <div class="assignee-team">Sales Team &middot; Cairo Region</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -507,7 +601,7 @@
   const lead = LEADS[id] || LEADS['L-001'];
 
   // Status changes are demo-local (no CRM write-back), kept in localStorage so they
-  // persist across pages here in the prototype — that's what My Leads reads too.
+  // persist across pages here in the prototype — that's what My Applications reads too.
   const STATUS_STORE_KEY = 'kashierLeadStatusOverrides';
   function readStatusStore() {
     try { return JSON.parse(localStorage.getItem(STATUS_STORE_KEY) || '{}'); } catch (e) { return {}; }
@@ -600,7 +694,6 @@
   $('bizName').textContent = lead.biz;
   if (lead.mid) { $('leadMid').textContent = lead.mid; $('leadMid').hidden = false; }
   $('industryLabel').textContent = lead.industry;
-  $('sourceLabel').textContent = lead.source;
   $('assignedLabel').textContent = fmtDate(lead.assigned);
 
   const meta = STATUS_META[lead.status];
@@ -673,11 +766,8 @@
   function renderPageActions() {
     const box = $('pageActions');
     if (['submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'].includes(lead.status)) {
-      const trackURL = readApplicationURL(id);
-      box.innerHTML = trackURL ? `<a class="btn btn-primary" href="${esc(trackURL)}">
-        Track Application
-        <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-      </a>` : '';
+      // Submitted applications are read-only; their progress lives in the Tracking tab.
+      box.innerHTML = '';
     } else if (lead.status === 'application' && rejectedApp) {
       // Rates came back rejected: revise just those and resubmit, rather than starting the
       // whole onboarding application over.
@@ -706,6 +796,7 @@
     renderTimeline();
     renderStatusActions();
     renderPageActions();
+    renderApplicationView();
     toast(`Marked as ${meta.label}.`);
   }
 
@@ -721,12 +812,198 @@
   }
   renderStatusActions();
   renderPageActions();
+
+  /* ══════════ Application-first view ══════════
+     The page opens on the merchant's application. Once it is submitted the application is a
+     read-only record, and a Tracking tab follows it through approval, underwriting and go-live. */
+  const K = window.KashierRates;
+  const SUBMITTED_STATUSES = ['submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+  function currentApplication() {
+    return K.loadApplications().filter(a => a.leadId === id && !a.superseded)[0] || null;
+  }
+  const isSubmitted = () => SUBMITTED_STATUSES.includes(lead.status);
+  const hasTracking = () => isSubmitted() || !!currentApplication();
+
+  function fmtIsoDate(iso) {
+    return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  const field = (label, value) =>
+    `<div class="info-field"><div class="lbl">${esc(label)}</div><div class="val">${esc(value || '—')}</div></div>`;
+  const cardHTML = (title, sub, body) => `<div class="card">
+      <div class="card-head"><div><h2>${esc(title)}</h2>${sub ? `<p class="ch-sub">${sub}</p>` : ''}</div></div>
+      <div class="card-body">${body}</div>
+    </div>`;
+
+  /* What was submitted, shown exactly as sent — nothing here is editable. */
+  function submittedApplicationHTML(app) {
+    const s = app.summary || {};
+    const decisions = K.decisionsFor(app.id);
+    const details = cardHTML('Merchant Details', 'As submitted with the application.', `<div class="info-grid">
+      ${field('Business Name', app.biz)}
+      ${field('Kashier MID', K.midFor(app))}
+      ${field('Merchant Type', s.entity)}
+      ${field('Industry', s.industry)}
+      ${field('Contact Email', s.email)}
+      ${field('Contact Phone', s.phone)}
+      ${app.website ? field('Website', app.website) : ''}
+      ${s.posTerminals ? field('POS Terminals', s.posTerminals) : ''}
+    </div>`);
+
+    const services = (s.serviceConfigs || []).map(sc => {
+      if (sc.service === 'Transfers') {
+        const t = app.transfers || { fees: {} };
+        const fees = [['wallet', 'Wallet'], ['bank', 'Bank'], ['card', 'Card']].map(([k, label]) => {
+          const f = (t.fees || {})[k] || {};
+          return `<div class="app-rate"><span>${label} selling fee</span><b>${esc(f.percentage || '—')}% + ${esc(f.flat || '—')}</b></div>`;
+        }).join('');
+        const cfg = (sc.configs || [])[0] || {};
+        return `<div class="app-svc">
+          <div class="app-svc-name">Transfers</div>
+          <div class="app-svc-meta">${esc([cfg.bank, cfg.module ? 'Version ' + cfg.module : ''].filter(Boolean).join(' · '))}</div>
+          ${fees}
+        </div>`;
+      }
+      return (sc.configs || [{}]).map(cfg => {
+        const lines = app.requests.filter(r => r.service === sc.service && (r.bank || '') === (cfg.bank || ''));
+        const rates = lines.map(l => {
+          const d = decisions[l.id];
+          const state = d ? d.decision : 'pending';
+          const label = d ? (d.decision === 'approved' ? 'Approved' : 'Rejected') : `With ${K.TIER_OWNER[l.tier]}`;
+          const fee = l.requestedFee != null ? ` + ${l.requestedFee} EGP` : '';
+          return `<div class="app-rate"><span>${esc(l.rate)}</span><b>${esc(l.requested)}%${esc(fee)}</b><span class="app-rate-state ${state}">${esc(label)}</span></div>`;
+        }).join('');
+        return `<div class="app-svc">
+          <div class="app-svc-name">${esc(sc.service)}</div>
+          <div class="app-svc-meta">${esc([cfg.bank, cfg.module ? 'Settlement: ' + cfg.module : ''].filter(Boolean).join(' · '))}</div>
+          ${rates}
+          <div class="app-svc-foot">${rates ? 'Other rates at no-approval pricing.' : 'All rates at no-approval pricing.'}</div>
+        </div>`;
+      }).join('');
+    }).join('');
+    const servicesCard = cardHTML('Services & Pricing', 'Every service, where it settles, and the rates that needed approval.',
+      services || '<div class="app-empty">No service setup was recorded with this application.</div>');
+
+    const docs = app.documents || [];
+    const docsCard = cardHTML('Documents', `${docs.length} uploaded with the application.`,
+      docs.length
+        ? docs.map(d => `<div class="app-doc"><span class="app-doc-name">${esc(d.name)}</span><span class="app-doc-file">${esc(d.file || '')}</span></div>`).join('')
+        : `<div class="app-empty">${esc(s.docsDone || 0)} of ${esc(s.docsTotal || 0)} documents uploaded.</div>`);
+    return details + servicesCard + docsCard;
+  }
+
+  function renderApplicationTab() {
+    const app = currentApplication();
+    let main = '';
+    let side = '';
+    if (lead.status === 'lost') {
+      main = cardHTML('Onboarding Application', '', '<div class="app-empty">This lead was marked as Lost, so no application will be submitted.</div>');
+      side = `<div class="app-side-state lost">Lost</div>`;
+    } else if (isSubmitted()) {
+      main = `<div class="readonly-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+          <span>Submitted${app ? ` on ${esc(fmtIsoDate(app.ts))}` : ''} — this application can no longer be edited. Follow its progress in <a href="#" data-goto="tracking">Tracking</a>.</span>
+        </div>` +
+        (app ? submittedApplicationHTML(app)
+             : cardHTML('Onboarding Application', '', '<div class="app-empty">This application was submitted before this prototype kept application details, so only its tracking is available.</div>'));
+      side = `<div class="app-side-state submitted">Submitted</div>
+        ${app ? `<div class="app-side-row"><span>Application</span><b>${esc(app.id)}</b></div>
+        <div class="app-side-row"><span>Submitted</span><b>${esc(fmtIsoDate(app.ts))}</b></div>
+        <div class="app-side-row"><span>By</span><b>${esc(app.actor)}</b></div>` : ''}
+        <button type="button" class="btn btn-outline btn-sm app-side-btn" data-goto="tracking">View Tracking</button>`;
+    } else {
+      // Not submitted yet (or returned): the application is still the salesperson's to work on.
+      const returned = returnedNote ? `<div class="returned-callout">
+          <b>Returned for changes</b>
+          <span>${esc(returnedNote.text)}</span>
+        </div>` : '';
+      const started = lead.status === 'application';
+      main = returned + cardHTML('Onboarding Application',
+        started ? 'In progress — continue where you left off.' : 'Not started yet.',
+        `<p class="app-intro">${rejectedApp
+            ? 'Modify only the rejected rates and resubmit — everything already approved stays as it is.'
+            : 'The application is prefilled from this lead. Add the services, pricing, documents and signed contract, then submit it.'}</p>
+         <div class="info-grid">
+           ${field('Business Name', lead.biz)}
+           ${field('Merchant Type', lead.type)}
+           ${field('Industry', lead.industry)}
+           ${field('Kashier MID', lead.mid)}
+           ${field('Contact Email', lead.email)}
+           ${field('Contact Phone', lead.phone)}
+         </div>`) +
+        (app ? cardHTML('Last Submitted Version', 'For reference while you make the requested changes.', submittedApplicationHTML(app).replace(/<div class="card">/g, '<div class="card nested">')) : '');
+      side = `<div class="app-side-state ${returnedNote ? 'returned' : started ? 'progress' : 'new'}">${returnedNote ? 'Returned for changes' : started ? 'In progress' : 'Not started'}</div>
+        <div class="app-side-hint">${rejectedApp ? 'Use Modify Rejected Rates above to resubmit.' : 'Use Complete Onboarding Application above to continue.'}</div>`;
+    }
+    $('applicationMain').innerHTML = main;
+    $('applicationSide').innerHTML = side;
+  }
+
+  /* Tracking: where the submitted application stands. Nothing here can be changed. */
+  function renderTrackingTab() {
+    const app = currentApplication();
+    const rows = [];
+    const row = (label, value, tone) =>
+      rows.push(`<div class="track-row"><span class="track-label">${esc(label)}</span><span class="track-val ${tone || ''}">${value}</span></div>`);
+    row('Current status', `<span class="badge ${STATUS_META[lead.status].cls}"><span class="badge-dot"></span>${esc(STATUS_META[lead.status].label)}</span>`);
+    if (app) {
+      row('Application', esc(app.id));
+      row('Submitted', `${esc(fmtIsoDate(app.ts))} by ${esc(app.actor)}`);
+      const decisions = K.decisionsFor(app.id);
+      const total = app.requests.length;
+      if (!total) {
+        row('Rate approval', 'Not needed — every rate was at no-approval pricing', 'ok');
+      } else {
+        const approved = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'approved').length;
+        const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected').length;
+        const open = total - approved - rejected;
+        const levels = K.approvalRequests().filter(r => r.app.id === app.id)
+          .map(r => `${K.TIER_OWNER[r.tier]}: ${r.state === 'pending' ? `${r.pendingLines.length} to review` : r.state}`).join(' · ');
+        row('Rate approval', `${approved} approved · ${rejected} rejected · ${open} to review${levels ? `<div class="track-sub">${esc(levels)}</div>` : ''}`,
+          open ? 'warn' : rejected ? 'bad' : 'ok');
+      }
+      const acct = K.findAccount(app.id);
+      if (acct) row('Underwriting', esc(acct.meta.label), acct.meta.tone === 'success' ? 'ok' : acct.meta.tone === 'danger' ? 'bad' : 'warn');
+    } else {
+      row('Details', 'Tracking details are not available for this demo record.');
+    }
+    $('trackingDetails').innerHTML = rows.join('');
+  }
+
+  let activeTab = 'application';
+  function renderTabs() {
+    const tracking = hasTracking();
+    $('trackingTabBtn').hidden = !tracking;
+    if (activeTab === 'tracking' && !tracking) activeTab = 'application';
+    document.querySelectorAll('.app-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+    document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = p.dataset.panel !== activeTab; });
+  }
+  function showTab(tab) { activeTab = tab; renderTabs(); }
+  $('appTabs').addEventListener('click', e => {
+    const b = e.target.closest('.app-tab');
+    if (b) showTab(b.dataset.tab);
+  });
+  document.addEventListener('click', e => {
+    const go = e.target.closest('[data-goto]');
+    if (!go) return;
+    e.preventDefault();
+    showTab(go.dataset.goto);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  function renderApplicationView() {
+    renderApplicationTab();
+    renderTrackingTab();
+    renderTabs();
+  }
+  if (['tracking', 'lead'].includes(params.get('tab'))) activeTab = params.get('tab');
+  renderApplicationView();
+
   if (params.get('resubmitted')) {
     setTimeout(() => toast(`Rates resubmitted as ${params.get('resubmitted')}.`), 150);
   }
 
   function openLostModal() {
-    $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lead.biz)}</b> as lost? This moves them out of the active pipeline — you can still see them under My Leads, but no further onboarding action can be taken.`;
+    $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lead.biz)}</b> as lost? This moves them out of the active pipeline — you can still see them under My Applications, but no further onboarding action can be taken.`;
     $('lostBackdrop').classList.add('open');
   }
   function closeLostModal() { $('lostBackdrop').classList.remove('open'); }

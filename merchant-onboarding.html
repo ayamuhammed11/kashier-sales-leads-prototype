@@ -196,10 +196,6 @@
   .price-tier:last-child { margin-bottom: 0; }
   .price-tier-label { font-weight: 700; font-size: 13px; color: var(--foreground); }
   .price-tier-desc { font-size: 12px; color: var(--cadet-05); margin: 2px 0 10px; }
-  .price-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
-  .price-stat { background: #fff; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 10px; }
-  .price-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); }
-  .price-stat-value { font-size: 14px; font-weight: 700; color: var(--foreground); margin-top: 2px; }
   /* Sales rate entry — the salesperson types the rate, the verdict beside it says whether
      it clears without sign-off */
   .rate-entry { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
@@ -284,6 +280,8 @@
   .channel-extra .crit-label { display: block; margin-bottom: 8px; }
   .website-inp { max-width: 420px; }
   .field-hint { font-size: 12px; color: var(--destructive); margin-top: 6px; }
+  .channel-extra + .channel-extra { margin-top: 12px; }
+  .setup-docs-gap { height: 18px; }
 
   /* Step 3 — four-step service setup */
   .setup-stepper { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
@@ -392,7 +390,7 @@
     <div class="brand">kashier</div>
 
     <a class="nav-link" href="home.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>Home</a>
-    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Leads</a>
+    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Applications</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>BIN Management</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>Financial Institutions</a>
     <a class="nav-link" href="merchants.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>Merchant</a>
@@ -443,7 +441,7 @@
     </div>
 
     <div class="content">
-      <div class="breadcrumb"><a href="index.html">My Leads</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
+      <div class="breadcrumb"><a href="index.html">My Applications</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
 
       <div class="page-head">
         <h1>Complete Onboarding Application</h1>
@@ -727,19 +725,11 @@
   function lineVerdict(t, sel) {
     const rateTier = tierForRate(t, sel.rate);
     const feeTier = tierForFee(t, sel.fee);
-    if (!rateTier || !feeTier) return { tier: '', text: 'Enter the rate and fixed fee this merchant needs' };
-    if (rateTier === 'head') {
-      return { tier: 'head', text: `Needs Head approval &middot; the rate is under the ${t.manager}% Manager rate` };
-    }
-    if (rateTier === 'manager' || feeTier === 'manager') {
-      const under = rateTier === 'manager' && feeTier === 'manager'
-        ? `the rate and fixed fee are under the published ${t.standard}% + ${t.fixedFee} EGP`
-        : rateTier === 'manager'
-          ? `the rate is under the ${t.standard}% standard rate`
-          : `the fixed fee is under the ${t.fixedFee} EGP standard fee`;
-      return { tier: 'manager', text: `Needs Manager approval &middot; ${under}` };
-    }
-    return { tier: 'auto', text: `Auto &middot; at or above the published ${t.standard}% + ${t.fixedFee} EGP, no approval needed` };
+    // The verdict says who has to approve — never the thresholds behind it.
+    if (!rateTier || !feeTier) return { tier: '', text: 'Enter the rate and fixed fee' };
+    if (rateTier === 'head') return { tier: 'head', text: 'Needs Head of Sales approval' };
+    if (rateTier === 'manager' || feeTier === 'manager') return { tier: 'manager', text: 'Needs Pricing Manager approval' };
+    return { tier: 'auto', text: 'No approval needed' };
   }
   function lineAttrs(service, bankKey, key) {
     return `data-service="${esc(service)}" data-bank="${esc(bankKey)}" data-key="${esc(key)}"`;
@@ -759,18 +749,12 @@
     return `<div class="price-tier">
       <div class="price-tier-label">${esc(t.label)}</div>
       <div class="price-tier-desc">${esc(t.desc)}</div>
-      <div class="price-stats">
-        <div class="price-stat"><div class="price-stat-label">Fixed Fee</div><div class="price-stat-value">${t.fixedFee} EGP</div></div>
-        <div class="price-stat"><div class="price-stat-label">Standard</div><div class="price-stat-value">${t.standard}%</div></div>
-        <div class="price-stat"><div class="price-stat-label">Manager approval</div><div class="price-stat-value">${t.manager}%</div></div>
-        <div class="price-stat"><div class="price-stat-label">Head approval</div><div class="price-stat-value">${t.head}%</div></div>
-      </div>
       <div class="rate-entry">
         <div class="rate-field">
           <label class="rate-entry-label" for="rate-${id}">Your rate<span class="req">*</span></label>
           <div class="rate-input-wrap">
             <input class="rate-input${tierForRate(t, sel.rate) ? '' : ' empty'}" id="rate-${id}" type="number"
-              inputmode="decimal" step="0.01" min="0" placeholder="${t.standard}" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.rate)}">
+              inputmode="decimal" step="0.01" min="0" placeholder="0.00" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.rate)}">
             <span class="rate-input-suffix">%</span>
           </div>
         </div>
@@ -778,7 +762,7 @@
           <label class="rate-entry-label" for="fee-${id}">Fixed fee<span class="req">*</span></label>
           <div class="rate-input-wrap">
             <input class="fee-input${tierForFee(t, sel.fee) ? '' : ' empty'}" id="fee-${id}" type="number"
-              inputmode="decimal" step="0.25" min="0" placeholder="${t.fixedFee}" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.fee)}">
+              inputmode="decimal" step="0.25" min="0" placeholder="0.00" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.fee)}">
             <span class="rate-input-suffix">EGP</span>
           </div>
         </div>
@@ -894,14 +878,6 @@
           activate.appendChild(field);
         }
         group.appendChild(activate);
-        // Activating POS needs a photo of the merchant's store.
-        if (criteria.posEnabled) {
-          const image = document.createElement('div');
-          image.className = 'channel-extra';
-          image.innerHTML = `<div class="crit-label">Store Image<span class="req">*</span><span class="opt">(a clear photo of the storefront where the terminals will be used)</span></div>
-            ${reqItemHTML(STORE_IMAGE_DOC, ['POS activation'])}`;
-          group.appendChild(image);
-        }
 
         if (!criteria.posEnabled) {
           const empty = document.createElement('div');
@@ -924,16 +900,6 @@
         row.appendChild(b);
       });
       group.appendChild(row);
-      // Any Online service needs the merchant's website.
-      if (tier.tier === 'Online' && hasOnlineService()) {
-        const site = document.createElement('div');
-        site.className = 'channel-extra';
-        const invalid = criteria.website && !websiteValid(criteria.website);
-        site.innerHTML = `<label class="crit-label" for="mWebsite">Merchant Website<span class="req">*</span><span class="opt">(required for Online services)</span></label>
-          <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com" value="${esc(criteria.website)}">
-          <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>Enter a valid website, e.g. www.merchant.com</div>`;
-        group.appendChild(site);
-      }
       c.appendChild(group);
     });
 
@@ -954,14 +920,6 @@
       refreshAll();
     });
 
-    const website = $('mWebsite');
-    if (website) website.addEventListener('input', e => {
-      criteria.website = e.target.value;
-      const bad = e.target.value.trim() && !websiteValid(e.target.value);
-      e.target.classList.toggle('invalid', !!bad);
-      $('websiteHint').hidden = !bad;
-      renderSubmitSummary();
-    });
     c.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
     if (criteria.posEnabled) {
       const input = $('posTerminals');
@@ -1073,12 +1031,15 @@
       }).length;
       const issues = [];
       if (blank) issues.push(`${blank} pricing line${blank === 1 ? '' : 's'} still need a rate and fixed fee`);
-      if (unjustified) issues.push(`${unjustified} line${unjustified === 1 ? '' : 's'} below published pricing still need a justification`);
+      if (unjustified) issues.push(`${unjustified} line${unjustified === 1 ? '' : 's'} needing approval still need a justification`);
       return issues;
     }
     if (n === 3) {
-      const missing = [...computeAggregatedDocs().keys()].filter(name => !isDocDone(name));
-      return missing.map(name => `Upload ${name}`);
+      // Choosing an Online service asks for the website here; activating POS asks for the store image.
+      const issues = [];
+      if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website');
+      if (criteria.posEnabled && !isDocDone(STORE_IMAGE_DOC)) issues.push('Upload the store image');
+      return issues.concat([...computeAggregatedDocs().keys()].filter(name => !isDocDone(name)).map(name => `Upload ${name}`));
     }
     return isDocDone(CONTRACT_DOC) ? [] : [`Upload the ${CONTRACT_DOC}`];
   }
@@ -1146,12 +1107,40 @@
   }
 
   function stepDocumentsHTML() {
+    // Channel requirements come first: the website for Online services, the store image for POS.
+    let channel = '';
+    if (hasOnlineService()) {
+      const invalid = criteria.website && !websiteValid(criteria.website);
+      channel += `<div class="channel-extra">
+        <label class="crit-label" for="mWebsite">Merchant Website<span class="req">*</span><span class="opt">(required for Online services)</span></label>
+        <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com" value="${esc(criteria.website)}">
+        <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>Enter a valid website, e.g. www.merchant.com</div>
+      </div>`;
+    }
+    if (criteria.posEnabled) {
+      channel += `<div class="channel-extra">
+        <div class="crit-label">Store Image<span class="req">*</span><span class="opt">(a clear photo of the storefront where the terminals will be used)</span></div>
+        ${reqItemHTML(STORE_IMAGE_DOC, ['POS activation'])}
+      </div>`;
+    }
     const docs = computeAggregatedDocs();
-    if (!docs.size) return '<div class="whn-empty">No documents are required for this setup.</div>';
     const done = [...docs.keys()].filter(isDocDone).length;
-    return `<div class="setup-progress">${done} of ${docs.size} uploaded — each document is uploaded once, even when several services need it.</div>
-      ${[...docs.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')}`;
+    const list = docs.size
+      ? `<div class="setup-progress">${done} of ${docs.size} uploaded — each document is uploaded once, even when several services need it.</div>
+        ${[...docs.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')}`
+      : '<div class="whn-empty">No documents are required for this setup.</div>';
+    return channel + (channel ? '<div class="setup-docs-gap"></div>' : '') + list;
   }
+
+  // Typing the website updates in place, so the field keeps focus.
+  $('serviceSetupBody').addEventListener('input', e => {
+    if (e.target.id !== 'mWebsite') return;
+    criteria.website = e.target.value;
+    const bad = e.target.value.trim() && !websiteValid(e.target.value);
+    e.target.classList.toggle('invalid', !!bad);
+    $('websiteHint').hidden = !bad;
+    refreshStepChrome();
+  });
 
   function stepContractHTML() {
     return `<div class="setup-contract-intro">Upload the Kashier merchant contract, signed and stamped by the merchant. This is the last step before you can create the application.</div>
@@ -1521,12 +1510,6 @@
     if (criteria.posEnabled) {
       checks.push({ label: 'Number of POS terminals', done: Number(criteria.posTerminals) > 0 });
     }
-    if (hasOnlineService()) {
-      checks.push({ label: 'Merchant website', done: websiteValid(criteria.website) });
-    }
-    if (criteria.posEnabled) {
-      checks.push({ label: 'Store image', done: isDocDone(STORE_IMAGE_DOC) });
-    }
     SETUP_STEPS.forEach((step, i) => {
       checks.push({ label: `Service setup — ${step.label}`, done: hasAnyService() && stepDone(i + 1) && canOpenStep(i + 1) });
     });
@@ -1564,7 +1547,7 @@
   // Paint once on load so the button starts disabled, not only after the first edit.
   renderSubmitSummary();
 
-  // Prefill from a Sales lead handoff (My Leads → Complete Onboarding Application)
+  // Prefill from a Sales lead handoff (My Applications → Complete Onboarding Application)
   // The lead already carries the merchant's minimum info from the CRM, so the
   // salesperson never re-types business, contact, or classification details here —
   // they only review what CRM sent over and fill in what CRM can't know (bank, services, pricing).
@@ -1634,7 +1617,7 @@
 
     // Advance the originating lead straight to whichever stage follows submission —
     // Waiting Rate Approval if any rate needs sign-off, else straight to Onboarding
-    // Review — and hand it the tracking link. My Leads / Lead Details read the same
+    // Review — and hand it the tracking link. My Applications / Lead Details read the same
     // localStorage keys to stay in sync.
     if (sourceLeadId) {
       try {

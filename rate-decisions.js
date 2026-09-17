@@ -140,7 +140,7 @@ window.KashierRates = (function () {
      sitting with the Rate Approval desk before this demo started. */
   const SEEDED = [
     {
-      id: 'APP-00000001', leadId: 'L-001', biz: 'Cairo Fresh Market', actor: 'Mostafa Khaled',
+      id: 'APP-00000001', leadId: 'L-001', website: 'https://cairofresh.com', biz: 'Cairo Fresh Market', actor: 'Mostafa Khaled',
       ts: '2026-09-06T14:20:00.000Z',
       summary: {
         email: 'ops@cairofresh.eg', phone: '+20 100 123 4567',
@@ -173,7 +173,7 @@ window.KashierRates = (function () {
       ],
     },
     {
-      id: 'APP-00000007', leadId: 'L-007', biz: 'Mansoura Tech Studio', actor: 'Mostafa Khaled',
+      id: 'APP-00000007', leadId: 'L-007', website: 'https://mansouratech.io', biz: 'Mansoura Tech Studio', actor: 'Mostafa Khaled',
       ts: '2026-09-05T11:00:00.000Z',
       summary: {
         email: 'karim@mansouratech.eg', phone: '+20 122 998 7766',
@@ -208,7 +208,7 @@ window.KashierRates = (function () {
     },
     // Returned to the salesperson: reviewed, with rates rejected — waiting on a resubmission.
     {
-      id: 'APP-00000005', leadId: 'L-005', biz: 'Giza Learning Hub', actor: 'Mostafa Khaled',
+      id: 'APP-00000005', leadId: 'L-005', website: 'https://gizalearning.edu', biz: 'Giza Learning Hub', actor: 'Mostafa Khaled',
       ts: '2026-09-07T09:10:00.000Z',
       summary: {
         email: 'omar@gizalearning.edu', phone: '+20 106 567 8901',
@@ -246,7 +246,7 @@ window.KashierRates = (function () {
     },
     // Applications already past rate approval, one at each onboarding stage.
     {
-      id: 'APP-00000006', leadId: 'L-006', biz: 'Zamalek Boutique Hotel', actor: 'Mostafa Khaled',
+      id: 'APP-00000006', leadId: 'L-006', website: 'https://zamalekhotel.com', biz: 'Zamalek Boutique Hotel', actor: 'Mostafa Khaled',
       ts: '2026-09-04T10:15:00.000Z', seedAccount: { status: 'submitted' },
       summary: {
         email: 'dina@zamalekhotel.com', phone: '+20 128 678 9012',
@@ -269,7 +269,7 @@ window.KashierRates = (function () {
       requests: [],
     },
     {
-      id: 'APP-00000010', leadId: 'L-010', biz: 'Aswan Realty Partners', actor: 'Mostafa Khaled',
+      id: 'APP-00000010', leadId: 'L-010', website: 'https://aswanrealty.com', biz: 'Aswan Realty Partners', actor: 'Mostafa Khaled',
       ts: '2026-09-02T13:40:00.000Z',
       seedAccount: { status: 'pending-configurations', by: 'Rana Adel', ts: '2026-09-07T09:30:00.000Z' },
       summary: {
@@ -292,7 +292,7 @@ window.KashierRates = (function () {
       requests: [],
     },
     {
-      id: 'APP-00000004', leadId: 'L-004', biz: 'Alexandria Auto Parts', actor: 'Mostafa Khaled',
+      id: 'APP-00000004', leadId: 'L-004', website: 'https://alexautoparts.com', biz: 'Alexandria Auto Parts', actor: 'Mostafa Khaled',
       ts: '2026-08-18T08:50:00.000Z',
       seedAccount: { status: 'live', by: 'Rana Adel', ts: '2026-08-30T15:05:00.000Z', approvedTs: '2026-08-22T11:20:00.000Z' },
       summary: {
@@ -363,6 +363,7 @@ window.KashierRates = (function () {
     const s = a.summary;
     const qs = new URLSearchParams({
       id: a.id, leadId: a.leadId, biz: a.biz, actor: a.actor, ts: a.ts,
+      website: a.website || '',
       email: s.email, phone: s.phone, entity: s.entity, industry: s.industry,
       services: s.services.join(','),
       serviceConfigs: JSON.stringify(s.serviceConfigs),

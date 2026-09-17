@@ -464,7 +464,7 @@
   function pipelineFor(l) { return l.needsRateApproval ? PIPELINE : PIPELINE.filter(k => k !== 'rate-approval'); }
 
   const LEADS = {
-    'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    source: 'Referral', status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-28', mid: 'MID-10237-114',
+    'L-001': { biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',   role: 'Owner',              email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',   type: 'Registered Business', volume: '450,000 EGP / month', city: 'Cairo, Egypt',      website: 'cairofresh.com',    status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-28', mid: 'MID-10237-114',
       activity: [
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-06 14:20', text: 'Submitted the onboarding application — one rate below Auto needs Manager approval.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-04 09:00', text: 'Started the merchant onboarding application on behalf of the business.' },
@@ -472,83 +472,83 @@
         { icon: 'note', actor: 'Mostafa Khaled', time: '2026-08-29 09:40', text: 'Qualified — business is registered, processes ~450K EGP/month across 3 branches.' },
         { icon: 'flag', actor: 'System',         time: '2026-08-28 10:00', text: 'Lead assigned to Mostafa Khaled from the Referral pipeline.' },
       ] },
-    'L-002': { biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',  role: 'Operations Manager', email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy', type: 'Registered Business', volume: '900,000 EGP / month', city: 'Tanta, Egypt',      website: 'deltapharma.eg',    source: 'Cold Call', status: 'application', assigned: '2026-09-01', mid: 'MID-10589-227',
+    'L-002': { biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',  role: 'Operations Manager', email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy', type: 'Registered Business', volume: '900,000 EGP / month', city: 'Tanta, Egypt',      website: 'deltapharma.eg',    status: 'application', assigned: '2026-09-01', mid: 'MID-10589-227',
       activity: [
         { icon: 'call', actor: 'Mostafa Khaled', time: '2026-09-07 16:10', text: 'Spoke with Nourhan — interested in POS + online checkout for their 6 pharmacy branches. Sending pricing sheet.' },
         { icon: 'flag', actor: 'System',         time: '2026-09-01 09:15', text: 'Lead assigned to Mostafa Khaled from the Cold Call campaign.' },
       ] },
-    'L-003': { biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa', role: 'Founder',            email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',      type: 'Registered Business', volume: '210,000 EGP / month', city: 'Cairo, Egypt',      website: 'nilebites.com',     source: 'Website',   status: 'new', assigned: '2026-09-05', mid: 'MID-11042-350',
+    'L-003': { biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa', role: 'Founder',            email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',      type: 'Registered Business', volume: '210,000 EGP / month', city: 'Cairo, Egypt',      website: 'nilebites.com',     status: 'new', assigned: '2026-09-05', mid: 'MID-11042-350',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-05 08:30', text: 'Lead submitted a demo request on the Kashier website and was routed to Mostafa Khaled.' },
       ] },
-    'L-004': { biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',     role: 'General Manager',   email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',           type: 'Registered Business', volume: '1,200,000 EGP / month', city: 'Alexandria, Egypt', website: 'alexautoparts.com', source: 'Event',     status: 'activated', needsRateApproval: true, assigned: '2026-08-10', mid: 'MID-20458-771',
+    'L-004': { biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',     role: 'General Manager',   email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',           type: 'Registered Business', volume: '1,200,000 EGP / month', city: 'Alexandria, Egypt', website: 'alexautoparts.com', status: 'activated', needsRateApproval: true, assigned: '2026-08-10', mid: 'MID-20458-771',
       activity: [
         { icon: 'check', actor: 'System',         time: '2026-08-30 12:00', text: 'Merchant application approved — account activated in live mode.' },
         { icon: 'flag',  actor: 'Mostafa Khaled', time: '2026-08-22 10:00', text: 'Submitted the onboarding application after collecting all required documents.' },
         { icon: 'call',  actor: 'Mostafa Khaled', time: '2026-08-14 15:30', text: 'Follow-up meeting at their Alexandria showroom — confirmed pricing and settlement schedule.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-10 09:00', text: 'Lead assigned to Mostafa Khaled after meeting at Cairo ICT event.' },
       ] },
-    'L-005': { biz: 'Giza Learning Hub',       contact: 'Omar Khalil',    role: 'Director',          email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',            type: 'Professional Business', volume: '150,000 EGP / month', city: 'Giza, Egypt',       website: 'gizalearning.edu',  source: 'Partner',   status: 'new', assigned: '2026-09-06', mid: 'MID-11298-463',
+    'L-005': { biz: 'Giza Learning Hub',       contact: 'Omar Khalil',    role: 'Director',          email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',            type: 'Professional Business', volume: '150,000 EGP / month', city: 'Giza, Egypt',       website: 'gizalearning.edu',  status: 'new', assigned: '2026-09-06', mid: 'MID-11298-463',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-06 09:00', text: 'Lead referred by a Kashier reseller partner and assigned to Mostafa Khaled.' },
       ] },
-    'L-006': { biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',     role: 'Revenue Manager',   email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',     type: 'Registered Business', volume: '620,000 EGP / month', city: 'Cairo, Egypt',      website: 'zamalekhotel.com',  source: 'Referral',  status: 'onboarding-review', needsRateApproval: false, assigned: '2026-08-30', mid: 'MID-10874-556',
+    'L-006': { biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',     role: 'Revenue Manager',   email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',     type: 'Registered Business', volume: '620,000 EGP / month', city: 'Cairo, Egypt',      website: 'zamalekhotel.com',  status: 'onboarding-review', needsRateApproval: false, assigned: '2026-08-30', mid: 'MID-10874-556',
       activity: [
         { icon: 'flag', actor: 'System',         time: '2026-09-05 10:00', text: 'Application moved to Underwriting Review — no rate approval was needed.' },
         { icon: 'call', actor: 'Mostafa Khaled', time: '2026-09-04 13:45', text: 'Discussed booking-engine integration and installment plans with Dina. She is checking with finance before proceeding.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-02 09:30', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag', actor: 'System',         time: '2026-08-30 11:20', text: 'Lead referred by an existing Kashier merchant and assigned to Mostafa Khaled.' },
       ] },
-    'L-007': { biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',    role: 'Co-Founder',        email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',    type: 'Registered Business', volume: '95,000 EGP / month',  city: 'Mansoura, Egypt',   website: 'mansouratech.io',   source: 'Website',   status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-22', mid: 'MID-10651-689',
+    'L-007': { biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',    role: 'Co-Founder',        email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',    type: 'Registered Business', volume: '95,000 EGP / month',  city: 'Mansoura, Egypt',   website: 'mansouratech.io',   status: 'rate-approval', needsRateApproval: true, assigned: '2026-08-22', mid: 'MID-10651-689',
       activity: [
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-05 11:00', text: 'Submitted the application — the discounted rate Karim negotiated needs Manager approval before it can move to Underwriting Review.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-03 10:00', text: 'Started the merchant onboarding application — awaiting CR and tax card upload from Karim.' },
         { icon: 'call',  actor: 'Mostafa Khaled', time: '2026-08-25 14:00', text: 'Walkthrough call covering online checkout integration for their subscription product.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-22 09:10', text: 'Lead submitted a demo request on the Kashier website.' },
       ] },
-    'L-008': { biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',  role: 'Owner',              email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',     type: 'Individual Seller', volume: '60,000 EGP / month',  city: 'Sharm El-Sheikh, Egypt', website: 'sinaiadventure.com', source: 'Cold Call', status: 'lost', assigned: '2026-08-05', mid: 'MID-10412-792',
+    'L-008': { biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',  role: 'Owner',              email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',     type: 'Individual Seller', volume: '60,000 EGP / month',  city: 'Sharm El-Sheikh, Egypt', website: 'sinaiadventure.com', status: 'lost', assigned: '2026-08-05', mid: 'MID-10412-792',
       activity: [
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-08-19 09:00', text: 'Marked as Lost — business decided to stay with their current provider due to an existing contract.' },
         { icon: 'call',  actor: 'Mostafa Khaled', time: '2026-08-09 16:20', text: 'Introductory call — Mariam said pricing was competitive but timing was not right.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-05 08:00', text: 'Lead assigned to Mostafa Khaled from the Cold Call campaign.' },
       ] },
-    'L-009': { biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',    role: 'Founder',            email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',     type: 'Registered Business', volume: '380,000 EGP / month', city: 'Cairo, Egypt',      website: 'heliofashion.com',  source: 'Referral',  status: 'activated', needsRateApproval: false, assigned: '2026-08-01', mid: 'MID-33127-905',
+    'L-009': { biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',    role: 'Founder',            email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',     type: 'Registered Business', volume: '380,000 EGP / month', city: 'Cairo, Egypt',      website: 'heliofashion.com',  status: 'activated', needsRateApproval: false, assigned: '2026-08-01', mid: 'MID-33127-905',
       activity: [
         { icon: 'check', actor: 'System', time: '2026-08-25 10:00', text: 'Merchant application approved — account activated in live mode.' },
         { icon: 'flag',  actor: 'Mostafa Khaled', time: '2026-08-15 11:00', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag',  actor: 'System',         time: '2026-08-01 09:00', text: 'Lead referred by an existing Kashier merchant.' },
       ] },
-    'L-010': { biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',   role: 'Managing Partner',  email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',          type: 'Registered Business', volume: '2,100,000 EGP / month', city: 'Aswan, Egypt',      website: 'aswanrealty.com',   source: 'Event',     status: 'bank-submission', needsRateApproval: false, assigned: '2026-09-07', mid: 'MID-11605-018',
+    'L-010': { biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',   role: 'Managing Partner',  email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',          type: 'Registered Business', volume: '2,100,000 EGP / month', city: 'Aswan, Egypt',      website: 'aswanrealty.com',   status: 'bank-submission', needsRateApproval: false, assigned: '2026-09-07', mid: 'MID-11605-018',
       activity: [
         { icon: 'flag', actor: 'System',         time: '2026-09-12 09:00', text: 'Underwriting review passed — application submitted to the bank for final sign-off.' },
         { icon: 'flag', actor: 'Mostafa Khaled', time: '2026-09-09 14:00', text: 'Submitted the onboarding application with all required documents.' },
         { icon: 'flag', actor: 'System', time: '2026-09-07 15:00', text: 'Lead assigned to Mostafa Khaled after meeting at the Aswan Real Estate Forum.' },
       ] },
-    'L-011': { biz: 'Maadi Organic Grocers', contact: 'Laila Hamdy', role: 'Owner', email: 'laila@maadiorganic.com', phone: '+20 100 222 3344', industry: 'Retail & E-commerce', type: 'Registered Business', volume: '320,000 EGP / month', city: 'Cairo, Egypt', website: 'maadiorganic.com', source: 'Referral', status: 'new', assigned: '2026-09-14', mid: 'MID-11734-128',
+    'L-011': { biz: 'Maadi Organic Grocers', contact: 'Laila Hamdy', role: 'Owner', email: 'laila@maadiorganic.com', phone: '+20 100 222 3344', industry: 'Retail & E-commerce', type: 'Registered Business', volume: '320,000 EGP / month', city: 'Cairo, Egypt', website: 'maadiorganic.com', status: 'new', assigned: '2026-09-14', mid: 'MID-11734-128',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-14 09:00', text: 'Lead referred by an existing Kashier merchant and assigned to Mostafa Khaled.' },
       ] },
-    'L-012': { biz: 'Red Sea Dive Center', contact: 'Youssef Sami', role: 'Operations Manager', email: 'youssef@redseadive.com', phone: '+20 122 333 4455', industry: 'Travel & Tourism', type: 'Registered Business', volume: '480,000 EGP / month', city: 'Hurghada, Egypt', website: 'redseadive.com', source: 'Website', status: 'new', assigned: '2026-09-14', mid: 'MID-11756-243',
+    'L-012': { biz: 'Red Sea Dive Center', contact: 'Youssef Sami', role: 'Operations Manager', email: 'youssef@redseadive.com', phone: '+20 122 333 4455', industry: 'Travel & Tourism', type: 'Registered Business', volume: '480,000 EGP / month', city: 'Hurghada, Egypt', website: 'redseadive.com', status: 'new', assigned: '2026-09-14', mid: 'MID-11756-243',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-14 09:00', text: 'Lead submitted a demo request on the Kashier website and was routed to Mostafa Khaled.' },
       ] },
-    'L-013': { biz: 'Tanta Medical Clinics', contact: 'Dr. Hala Ezzat', role: 'Clinic Director', email: 'hala@tantamedical.eg', phone: '+20 111 444 5566', industry: 'Healthcare / Pharmacy', type: 'Professional Business', volume: '260,000 EGP / month', city: 'Tanta, Egypt', website: 'tantamedical.eg', source: 'Cold Call', status: 'new', assigned: '2026-09-15', mid: 'MID-11789-357',
+    'L-013': { biz: 'Tanta Medical Clinics', contact: 'Dr. Hala Ezzat', role: 'Clinic Director', email: 'hala@tantamedical.eg', phone: '+20 111 444 5566', industry: 'Healthcare / Pharmacy', type: 'Professional Business', volume: '260,000 EGP / month', city: 'Tanta, Egypt', website: 'tantamedical.eg', status: 'new', assigned: '2026-09-15', mid: 'MID-11789-357',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-15 09:00', text: 'Lead assigned to Mostafa Khaled from the Cold Call campaign.' },
       ] },
-    'L-014': { biz: 'Cairo Code Academy', contact: 'Mahmoud Fawzy', role: 'Founder', email: 'mahmoud@cairocode.academy', phone: '+20 155 555 6677', industry: 'Education', type: 'Registered Business', volume: '190,000 EGP / month', city: 'Cairo, Egypt', website: 'cairocode.academy', source: 'Partner', status: 'new', assigned: '2026-09-15', mid: 'MID-11802-461',
+    'L-014': { biz: 'Cairo Code Academy', contact: 'Mahmoud Fawzy', role: 'Founder', email: 'mahmoud@cairocode.academy', phone: '+20 155 555 6677', industry: 'Education', type: 'Registered Business', volume: '190,000 EGP / month', city: 'Cairo, Egypt', website: 'cairocode.academy', status: 'new', assigned: '2026-09-15', mid: 'MID-11802-461',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-15 09:00', text: 'Lead referred by a Kashier reseller partner and assigned to Mostafa Khaled.' },
       ] },
-    'L-015': { biz: 'Luxor Crafts Bazaar', contact: 'Samar Adly', role: 'Owner', email: 'samar@luxorcrafts.com', phone: '+20 106 666 7788', industry: 'Fashion & Beauty', type: 'Individual Seller', volume: '85,000 EGP / month', city: 'Luxor, Egypt', website: 'luxorcrafts.com', source: 'Event', status: 'new', assigned: '2026-09-16', mid: 'MID-11825-574',
+    'L-015': { biz: 'Luxor Crafts Bazaar', contact: 'Samar Adly', role: 'Owner', email: 'samar@luxorcrafts.com', phone: '+20 106 666 7788', industry: 'Fashion & Beauty', type: 'Individual Seller', volume: '85,000 EGP / month', city: 'Luxor, Egypt', website: 'luxorcrafts.com', status: 'new', assigned: '2026-09-16', mid: 'MID-11825-574',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-16 09:00', text: 'Lead assigned to Mostafa Khaled after meeting at the Luxor Handmade Expo.' },
       ] },
-    'L-016': { biz: 'Port Said Logistics', contact: 'Tamer Ragab', role: 'Finance Manager', email: 'tamer@psl-logistics.com', phone: '+20 128 777 8899', industry: 'Logistics & Delivery', type: 'Registered Business', volume: '1,650,000 EGP / month', city: 'Port Said, Egypt', website: 'psl-logistics.com', source: 'Referral', status: 'new', assigned: '2026-09-16', mid: 'MID-11848-689',
+    'L-016': { biz: 'Port Said Logistics', contact: 'Tamer Ragab', role: 'Finance Manager', email: 'tamer@psl-logistics.com', phone: '+20 128 777 8899', industry: 'Logistics & Delivery', type: 'Registered Business', volume: '1,650,000 EGP / month', city: 'Port Said, Egypt', website: 'psl-logistics.com', status: 'new', assigned: '2026-09-16', mid: 'MID-11848-689',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-16 09:00', text: 'Lead referred by a banking partner and assigned to Mostafa Khaled.' },
       ] },
-    'L-017': { biz: 'New Capital Fitness Club', contact: 'Rania Mourad', role: 'General Manager', email: 'rania@ncfitness.club', phone: '+20 114 888 9900', industry: 'Entertainment & Media', type: 'Registered Business', volume: '540,000 EGP / month', city: 'New Administrative Capital, Egypt', website: 'ncfitness.club', source: 'Website', status: 'new', assigned: '2026-09-17', mid: 'MID-11861-792',
+    'L-017': { biz: 'New Capital Fitness Club', contact: 'Rania Mourad', role: 'General Manager', email: 'rania@ncfitness.club', phone: '+20 114 888 9900', industry: 'Entertainment & Media', type: 'Registered Business', volume: '540,000 EGP / month', city: 'New Administrative Capital, Egypt', website: 'ncfitness.club', status: 'new', assigned: '2026-09-17', mid: 'MID-11861-792',
       activity: [
         { icon: 'flag', actor: 'System', time: '2026-09-17 09:00', text: 'Lead submitted a demo request on the Kashier website and was routed to Mostafa Khaled.' },
       ] },

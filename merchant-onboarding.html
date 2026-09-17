@@ -87,6 +87,23 @@
   .page-head { margin-bottom: 22px; }
   .page-head h1 { font-size: 30px; color: var(--primary); margin-bottom: 8px; }
   .page-head .sub { font-size: 14px; color: var(--cadet-base); max-width: 640px; line-height: 1.5; margin: 0; }
+
+  /* Opening an existing application */
+  .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
+  .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
+  .app-mode-banner .amb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13px; line-height: 1.5; }
+  .app-mode-banner .amb-text b { font-size: 14px; }
+  .app-mode-banner .amb-hint { font-weight: 600; }
+  .app-mode-banner .btn { flex-shrink: 0; }
+  .app-mode-banner.locked { background: var(--ocean-10); border-color: #C9D3E6; color: var(--primary); }
+  .app-mode-banner.returned { background: var(--destructive-bg); border-color: #FFBBC4; color: var(--destructive); }
+  .app-locked .content .card { opacity: .6; }
+  .app-locked .content .card-body * { pointer-events: none; }
+  .app-locked .content .setup-stepper, .app-locked .content .setup-stepper * { pointer-events: auto; }
+  .svc-table tr.row-rejected td:not([rowspan]) { background: var(--destructive-bg); }
+  .cell-rejected { display: block; font-size: 10.5px; font-weight: 700; color: var(--destructive); text-transform: uppercase; letter-spacing: .03em; }
+  @media (max-width: 640px) { .app-mode-banner { flex-wrap: wrap; } }
+
   .lead-source-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #006A66;
     background: var(--accent-10); border-radius: 999px; padding: 5px 12px; margin-bottom: 10px; }
 
@@ -476,7 +493,7 @@
       </div>
 
       <!-- STEP 4 — Submit -->
-      <div class="card">
+      <div class="card" id="submitCard">
         <div class="card-head">
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
           <div>
@@ -498,6 +515,7 @@
 
   <div class="toast" id="toast"></div>
 
+<script src="rate-decisions.js"></script>
 <script>
   const $ = id => document.getElementById(id);
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -520,7 +538,7 @@
     'Travel & Tourism', 'Professional Services', 'Technology / SaaS', 'Real Estate', 'Automotive',
     'Fashion & Beauty', 'Entertainment & Media', 'Non-profit / NGO', 'Government', 'Financial Services',
     'Insurance', 'Marketplace', 'Logistics & Delivery'];
-  const BANKS = ['Bank Misr', 'National Bank of Egypt', 'QNB'];
+  const BANKS = ['Bank Misr', 'National Bank of Egypt', 'QNB', 'CIB'];
   const MODULES = ['PF', 'PSP'];
   /* Service catalog — matches the Pricing Rules module's own service list: every
      method Pricing Rules can target, available both Online and POS. Channel is part
@@ -580,6 +598,9 @@
 
   const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '', website: '' };
   const hasAnyService = () => criteria.services.length > 0;
+  // 'edit' (not submitted), 'locked' (submitted — read-only) or 'returned' (feedback received).
+  let appMode = 'edit';
+  const rejectedLines = new Map();   // service::bank::rateKey -> the rejection on that rate
   const hasOnlineService = () => criteria.services.some(s => s.startsWith('Online '));
   const STORE_IMAGE_DOC = 'Store Image';
   const websiteValid = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
@@ -931,7 +952,7 @@
 
   const stepIssues = n => serviceStepIssues(n);
   const stepDone = n => stepIssues(n).length === 0;
-  const canOpenStep = n => { for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
+  const canOpenStep = n => { if (appMode === 'locked') return true; for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
 
   function renderSetupStepper() {
     const el = $('setupStepper');
@@ -995,11 +1016,12 @@
         const needsNote = tier === 'manager' || tier === 'head';
         const off = chosen ? '' : ' disabled';
         const attrs = chosen ? lineAttrs(s, k, t.key) : '';
-        return `<tr class="${i === 0 ? 'group-start' : ''}">
+        const rejection = chosen && appMode === 'returned' ? rejectedLines.get(`${s}::${k}::${t.key}`) : null;
+        return `<tr class="${i === 0 ? 'group-start' : ''}${rejection ? ' row-rejected' : ''}"${rejection ? ` title="Rejected by ${esc(rejection.by)}: ${esc(rejection.reason)}"` : ''}>
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceCellHTML(channelOf(s), stripChannel(s))}</td>
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
-          <td class="cell-type">${esc(t.label)}</td>
+          <td class="cell-type">${esc(t.label)}${rejection ? '<span class="cell-rejected">Rejected</span>' : ''}</td>
           <td><input class="cell-input rate-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
           <td><input class="cell-input fee-input" type="number" min="0" step="0.25" inputmode="decimal" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
           <td class="cell-approval">${approvalCellHTML(tier)}</td>
@@ -1064,14 +1086,14 @@
     renderSetupStepper();
 
     const body = [stepServicesTableHTML, stepDocumentsHTML, stepContractHTML][setupStep - 1]();
-    const issues = stepIssues(setupStep);
+    const issues = appMode === 'locked' ? [] : stepIssues(setupStep);
     const last = setupStep === SETUP_STEPS.length;
     wrap.innerHTML = `
       <div class="setup-title">Step ${setupStep} of ${SETUP_STEPS.length} — ${esc(SETUP_STEPS[setupStep - 1].label)}</div>
       ${body}
       <div class="whn-actions setup-nav">
         ${setupStep > 1 ? '<button type="button" class="btn btn-outline" id="setupBack">Back</button>' : ''}
-        <span class="setup-nav-status">${issues.length ? esc(issues[0]) + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '') : (last ? 'Service setup complete — create the application below.' : 'This step is complete.')}</span>
+        <span class="setup-nav-status">${issues.length ? esc(issues[0]) + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '') : (appMode === 'locked' ? 'View only — use the steps above to look through the setup.' : last ? 'Service setup complete — create the application below.' : 'This step is complete.')}</span>
         ${last ? '' : `<button type="button" class="btn btn-primary" id="setupNext"${issues.length ? ' disabled' : ''}>Continue to ${esc(SETUP_STEPS[setupStep].label)}</button>`}
       </div>`;
     wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
@@ -1354,6 +1376,155 @@
       head.insertBefore(pill, head.firstChild);
     }
   })();
+  /* ══════════ Opening an existing application ══════════
+     My Applications lands here for every application. What the salesperson can do depends on
+     where it stands:
+       edit      — not submitted yet: the form as usual
+       locked    — submitted (or viewed by anyone but the salesperson): filled in, dimmed, read-only
+       returned  — sent back with feedback: filled in from the last submission and editable again */
+  const K = window.KashierRates;
+  const SUBMITTED_STATUSES = ['submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+  let previousApp = null;   // the submitted version this form was filled in from
+
+  /* Rate lines were stored per rate type; a service with a single rate type takes any line. */
+  function tierKeyFor(service, key) {
+    const tiers = ratesForService(service);
+    if (tiers.some(t => t.key === key)) return key;
+    return tiers.length === 1 ? tiers[0].key : '';
+  }
+  const slug = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  /* Put a submitted application back into the form — services, institutions, models, fees,
+     website, terminals and the documents it went in with. */
+  function fillFromApplication(app) {
+    const s = app.summary || {};
+    if (app.biz) $('mBiz').value = app.biz;
+    if (s.email) $('mEmail').value = s.email;
+    if (s.phone) $('mPhone').value = s.phone;
+    if (ENTITIES.includes(s.entity)) criteria.entity = s.entity;
+    if (INDUSTRIES.includes(s.industry)) { criteria.industry = s.industry; $('critIndustry').value = s.industry; }
+    criteria.services = (s.services || []).filter(x => SERVICES.includes(x));
+    criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
+    criteria.posTerminals = s.posTerminals || '';
+    criteria.website = app.website || '';
+    syncServiceConfigs();
+
+    (s.serviceConfigs || []).forEach(sc => {
+      const cfg = serviceConfig[sc.service];
+      if (!cfg) return;
+      (sc.configs || []).forEach(c => {
+        const key = bankRequiredFor(sc.service) ? c.bank : '';
+        if (bankRequiredFor(sc.service)) {
+          if (!c.bank) return;
+          if (!BANKS.includes(c.bank)) BANKS.push(c.bank);
+          if (!cfg.banks.includes(c.bank)) cfg.banks.push(c.bank);
+        }
+        const bc = ensureBankConfig(cfg, key);
+        bc.module = c.module || '';
+        // Rates that needed no approval went in at the published pricing.
+        ratesForService(sc.service).forEach(t => bc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
+      });
+    });
+
+    const decisions = K.decisionsFor(app.id);
+    (app.requests || []).forEach(r => {
+      const cfg = serviceConfig[r.service];
+      if (!cfg) return;
+      const bankKey = bankRequiredFor(r.service) ? (r.bank || '') : '';
+      const key = tierKeyFor(r.service, String(r.id).split('::')[2]);
+      const t = ratesForService(r.service).find(x => x.key === key);
+      if (!t) return;
+      const sel = { rate: String(r.requested), fee: r.requestedFee != null ? String(r.requestedFee) : String(t.fixedFee), note: r.note || '' };
+      sel.tier = lineVerdict(t, sel).tier;
+      ensureBankConfig(cfg, bankKey).pricing.set(key, sel);
+      const d = decisions[r.id];
+      if (d && d.decision === 'rejected') rejectedLines.set(`${r.service}::${bankKey}::${key}`, d);
+    });
+
+    // Every document the setup requires was uploaded with the submission.
+    const sentWith = new Map((app.documents || []).map(d => [d.name, d.file]));
+    const required = [...computeAggregatedDocs().keys()]
+      .concat(criteria.posEnabled ? [STORE_IMAGE_DOC] : [], [CONTRACT_DOC]);
+    required.forEach(name => {
+      const file = sentWith.get(name) || `${slug(name)}.pdf`;
+      const slots = new Map();
+      docSlotDefs(name).forEach(def => slots.set(def.label, { name: def.label ? `${slug(name)}-${slug(def.label)}.pdf` : file, size: 240000 }));
+      docFiles.set(name, slots);
+    });
+  }
+
+  (function openApplication() {
+    if (!sourceLeadId) return;
+    const p = new URLSearchParams(location.search);
+    const overrides = K.readStore('kashierLeadStatusOverrides');
+    const status = overrides[sourceLeadId] || p.get('leadStatus') || 'new';
+    const note = K.readStore('kashierLeadReturnNote')[sourceLeadId] || null;
+    const app = K.loadApplications().filter(a => a.leadId === sourceLeadId && !a.superseded)[0] || null;
+    const isSales = K.getRole() === 'sales';
+
+    if (status === 'application' && note) appMode = 'returned';
+    else if (SUBMITTED_STATUSES.includes(status) || status === 'lost') appMode = 'locked';
+    if (!isSales) appMode = 'locked';
+
+    // Opening a new lead's application starts it.
+    if (appMode === 'edit' && status === 'new') {
+      overrides[sourceLeadId] = 'application';
+      K.writeStore('kashierLeadStatusOverrides', overrides);
+    }
+    if (appMode !== 'edit' && app) { previousApp = app; fillFromApplication(app); }
+
+    const trackURL = `lead-details.html?id=${encodeURIComponent(sourceLeadId)}&tab=tracking`;
+    const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>';
+    const FLAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>';
+    let banner = '';
+    if (appMode === 'locked') {
+      const title = status === 'lost' ? 'This lead was marked as Lost — view only.'
+        : !isSales ? 'View only — only the salesperson can edit this application.'
+        : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
+      const sub = status === 'lost' ? 'No application will be submitted for this merchant.'
+        : !isSales ? 'The salesperson fills in and submits the application.'
+        : 'You can edit this application once you receive feedback on it.';
+      banner = `<div class="app-mode-banner locked">${LOCK}
+        <div class="amb-text"><b>${esc(title)}</b><span>${esc(sub)}</span></div>
+        ${app || SUBMITTED_STATUSES.includes(status) ? `<a class="btn btn-outline btn-sm" href="${trackURL}">View Tracking</a>` : ''}
+      </div>`;
+    } else if (appMode === 'returned') {
+      const rejectedApp = K.rejectedApplicationFor(sourceLeadId);
+      banner = `<div class="app-mode-banner returned">${FLAG}
+        <div class="amb-text"><b>Returned application — action required</b><span>${esc(note.text)}</span>
+          <span class="amb-hint">Update the application below and resubmit it.${rejectedApp ? ' Rejected rates are highlighted in the pricing table.' : ''}</span></div>
+        ${rejectedApp ? `<a class="btn btn-outline btn-sm" href="${esc(K.revisionURL(rejectedApp.id))}">Only Modify Rejected Rates</a>` : ''}
+      </div>`;
+    }
+
+    const head = document.querySelector('.page-head');
+    if (appMode !== 'edit') {
+      const pill = head.querySelector('.lead-source-pill');
+      if (pill) pill.remove();
+      const h1 = head.querySelector('h1'), sub = head.querySelector('.sub');
+      h1.textContent = appMode === 'returned' ? 'Update Onboarding Application' : 'Onboarding Application';
+      sub.textContent = appMode === 'returned'
+        ? 'The application as it was last submitted. Make the requested changes, then resubmit it.'
+        : 'The application exactly as it was submitted.';
+      document.querySelector('.breadcrumb .current').textContent = $('mBiz').value || h1.textContent;
+      document.title = `Kashier | ${$('mBiz').value || h1.textContent}`;
+      head.insertAdjacentHTML('afterend', banner);
+    }
+    if (appMode === 'locked') {
+      document.body.classList.add('app-locked');
+      $('submitCard').hidden = true;
+      // Keep every control read-only, including the ones each re-render creates.
+      const lock = () => document.querySelectorAll('.content .card input, .content .card select, .content .card textarea, .content .card button:not(.setup-step)')
+        .forEach(el => { el.disabled = true; el.tabIndex = -1; });
+      new MutationObserver(lock).observe(document.querySelector('.content'), { childList: true, subtree: true });
+      lock();
+    }
+    if (appMode === 'returned') $('submitAppBtn').textContent = 'Resubmit Application';
+    renderCriteria();
+    renderServiceSetup();
+    renderSubmitSummary();
+  })();
+
   $('submitAppBtn').addEventListener('click', () => {
     const biz = $('mBiz').value.trim(), email = $('mEmail').value.trim(), phone = $('mPhone').value.trim();
     const remaining = readinessChecks().filter(c => !c.done);
@@ -1406,6 +1577,17 @@
         const rateApprovalStore = JSON.parse(localStorage.getItem('kashierLeadRateApproval') || '{}');
         rateApprovalStore[sourceLeadId] = !!needsApproval;
         localStorage.setItem('kashierLeadRateApproval', JSON.stringify(rateApprovalStore));
+        if (appMode === 'returned') {
+          // The feedback has been answered: the returned version is kept on record, replaced by this one.
+          if (previousApp) {
+            const superseded = K.readStore('kashierSupersededApplications');
+            superseded[previousApp.id] = { leadId: sourceLeadId, url: previousApp.url, by: qs.get('id'), ts: qs.get('ts') };
+            K.writeStore('kashierSupersededApplications', superseded);
+          }
+          const notes = K.readStore('kashierLeadReturnNote');
+          delete notes[sourceLeadId];
+          K.writeStore('kashierLeadReturnNote', notes);
+        }
       } catch (e) { /* storage unavailable */ }
     }
 

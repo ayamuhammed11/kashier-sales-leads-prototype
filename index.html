@@ -154,8 +154,6 @@
   .lead-industry { font-size: 12px; color: var(--cadet-05); margin-top: 2px; }
   .contact-name { color: var(--foreground); }
   .contact-sub { font-size: 12px; color: var(--cadet-05); margin-top: 2px; }
-  .source-pill { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; color: var(--pill-text);
-    background: var(--pill-bg); border-radius: 4px; padding: 3px 9px; }
   .mid-text { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; color: var(--foreground); }
   .mid-empty { font-size: 13px; color: var(--cadet-06); }
 
@@ -390,23 +388,23 @@
   };
 
   const LEADS = [
-    { id: 'L-001', biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',    email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',      source: 'Referral',    status: 'rate-approval',     assigned: '2026-08-28', lastActivity: '2026-09-06', mid: 'MID-10237-114' },
-    { id: 'L-002', biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',   email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy',    source: 'Cold Call',   status: 'application',       assigned: '2026-09-01', lastActivity: '2026-09-07', mid: 'MID-10589-227' },
-    { id: 'L-003', biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa',  email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',          source: 'Website',     status: 'new',                assigned: '2026-09-05', lastActivity: '2026-09-05', mid: 'MID-11042-350' },
-    { id: 'L-004', biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',      email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',               source: 'Event',       status: 'activated',         assigned: '2026-08-10', lastActivity: '2026-08-30', mid: 'MID-20458-771' },
-    { id: 'L-005', biz: 'Giza Learning Hub',       contact: 'Omar Khalil',     email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',                source: 'Partner',     status: 'new',                assigned: '2026-09-06', lastActivity: '2026-09-06', mid: 'MID-11298-463' },
-    { id: 'L-006', biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',      email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',         source: 'Referral',    status: 'onboarding-review', assigned: '2026-08-30', lastActivity: '2026-09-04', mid: 'MID-10874-556' },
-    { id: 'L-007', biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',     email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',        source: 'Website',     status: 'rate-approval',     assigned: '2026-08-22', lastActivity: '2026-09-03', mid: 'MID-10651-689' },
-    { id: 'L-008', biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',   email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',         source: 'Cold Call',   status: 'lost',               assigned: '2026-08-05', lastActivity: '2026-08-19', mid: 'MID-10412-792' },
-    { id: 'L-009', biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',     email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',         source: 'Referral',    status: 'activated',         assigned: '2026-08-01', lastActivity: '2026-08-25', mid: 'MID-33127-905' },
-    { id: 'L-010', biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',    email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',              source: 'Event',       status: 'bank-submission',   assigned: '2026-09-07', lastActivity: '2026-09-07', mid: 'MID-11605-018' },
-    { id: 'L-011', biz: 'Maadi Organic Grocers', contact: 'Laila Hamdy', email: 'laila@maadiorganic.com', phone: '+20 100 222 3344', industry: 'Retail & E-commerce', source: 'Referral', status: 'new', assigned: '2026-09-14', lastActivity: '2026-09-14', mid: 'MID-11734-128' },
-    { id: 'L-012', biz: 'Red Sea Dive Center', contact: 'Youssef Sami', email: 'youssef@redseadive.com', phone: '+20 122 333 4455', industry: 'Travel & Tourism', source: 'Website', status: 'new', assigned: '2026-09-14', lastActivity: '2026-09-14', mid: 'MID-11756-243' },
-    { id: 'L-013', biz: 'Tanta Medical Clinics', contact: 'Dr. Hala Ezzat', email: 'hala@tantamedical.eg', phone: '+20 111 444 5566', industry: 'Healthcare / Pharmacy', source: 'Cold Call', status: 'new', assigned: '2026-09-15', lastActivity: '2026-09-15', mid: 'MID-11789-357' },
-    { id: 'L-014', biz: 'Cairo Code Academy', contact: 'Mahmoud Fawzy', email: 'mahmoud@cairocode.academy', phone: '+20 155 555 6677', industry: 'Education', source: 'Partner', status: 'new', assigned: '2026-09-15', lastActivity: '2026-09-15', mid: 'MID-11802-461' },
-    { id: 'L-015', biz: 'Luxor Crafts Bazaar', contact: 'Samar Adly', email: 'samar@luxorcrafts.com', phone: '+20 106 666 7788', industry: 'Fashion & Beauty', source: 'Event', status: 'new', assigned: '2026-09-16', lastActivity: '2026-09-16', mid: 'MID-11825-574' },
-    { id: 'L-016', biz: 'Port Said Logistics', contact: 'Tamer Ragab', email: 'tamer@psl-logistics.com', phone: '+20 128 777 8899', industry: 'Logistics & Delivery', source: 'Referral', status: 'new', assigned: '2026-09-16', lastActivity: '2026-09-16', mid: 'MID-11848-689' },
-    { id: 'L-017', biz: 'New Capital Fitness Club', contact: 'Rania Mourad', email: 'rania@ncfitness.club', phone: '+20 114 888 9900', industry: 'Entertainment & Media', source: 'Website', status: 'new', assigned: '2026-09-17', lastActivity: '2026-09-17', mid: 'MID-11861-792' },
+    { id: 'L-001', type: 'Registered Business', biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',    email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',      status: 'rate-approval',     assigned: '2026-08-28', lastActivity: '2026-09-06', mid: 'MID-10237-114' },
+    { id: 'L-002', type: 'Registered Business', biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',   email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy',    status: 'application',       assigned: '2026-09-01', lastActivity: '2026-09-07', mid: 'MID-10589-227' },
+    { id: 'L-003', type: 'Registered Business', biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa',  email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',          status: 'new',                assigned: '2026-09-05', lastActivity: '2026-09-05', mid: 'MID-11042-350' },
+    { id: 'L-004', type: 'Registered Business', biz: 'Alexandria Auto Parts',   contact: 'Salma Reda',      email: 'salma@alexautoparts.com',   phone: '+20 155 456 7890', industry: 'Automotive',               status: 'activated',         assigned: '2026-08-10', lastActivity: '2026-08-30', mid: 'MID-20458-771' },
+    { id: 'L-005', type: 'Professional Business', biz: 'Giza Learning Hub',       contact: 'Omar Khalil',     email: 'omar@gizalearning.edu',     phone: '+20 106 567 8901', industry: 'Education',                status: 'new',                assigned: '2026-09-06', lastActivity: '2026-09-06', mid: 'MID-11298-463' },
+    { id: 'L-006', type: 'Registered Business', biz: 'Zamalek Boutique Hotel',  contact: 'Dina Fathy',      email: 'dina@zamalekhotel.com',     phone: '+20 128 678 9012', industry: 'Travel & Tourism',         status: 'onboarding-review', assigned: '2026-08-30', lastActivity: '2026-09-04', mid: 'MID-10874-556' },
+    { id: 'L-007', type: 'Registered Business', biz: 'Mansoura Tech Studio',    contact: 'Karim Nabil',     email: 'karim@mansouratech.io',     phone: '+20 114 789 0123', industry: 'Technology / SaaS',        status: 'rate-approval',     assigned: '2026-08-22', lastActivity: '2026-09-03', mid: 'MID-10651-689' },
+    { id: 'L-008', type: 'Individual Seller', biz: 'Sinai Adventure Tours',   contact: 'Mariam Yassin',   email: 'mariam@sinaiadventure.com', phone: '+20 100 890 1234', industry: 'Travel & Tourism',         status: 'lost',               assigned: '2026-08-05', lastActivity: '2026-08-19', mid: 'MID-10412-792' },
+    { id: 'L-009', type: 'Registered Business', biz: 'Heliopolis Fashion Co.',  contact: 'Ahmed Tarek',     email: 'ahmed@heliofashion.com',    phone: '+20 120 901 2345', industry: 'Fashion & Beauty',         status: 'activated',         assigned: '2026-08-01', lastActivity: '2026-08-25', mid: 'MID-33127-905' },
+    { id: 'L-010', type: 'Registered Business', biz: 'Aswan Realty Partners',   contact: 'Farida Gamal',    email: 'farida@aswanrealty.com',    phone: '+20 111 012 3456', industry: 'Real Estate',              status: 'bank-submission',   assigned: '2026-09-07', lastActivity: '2026-09-07', mid: 'MID-11605-018' },
+    { id: 'L-011', type: 'Registered Business', biz: 'Maadi Organic Grocers', contact: 'Laila Hamdy', email: 'laila@maadiorganic.com', phone: '+20 100 222 3344', industry: 'Retail & E-commerce', status: 'new', assigned: '2026-09-14', lastActivity: '2026-09-14', mid: 'MID-11734-128' },
+    { id: 'L-012', type: 'Registered Business', biz: 'Red Sea Dive Center', contact: 'Youssef Sami', email: 'youssef@redseadive.com', phone: '+20 122 333 4455', industry: 'Travel & Tourism', status: 'new', assigned: '2026-09-14', lastActivity: '2026-09-14', mid: 'MID-11756-243' },
+    { id: 'L-013', type: 'Professional Business', biz: 'Tanta Medical Clinics', contact: 'Dr. Hala Ezzat', email: 'hala@tantamedical.eg', phone: '+20 111 444 5566', industry: 'Healthcare / Pharmacy', status: 'new', assigned: '2026-09-15', lastActivity: '2026-09-15', mid: 'MID-11789-357' },
+    { id: 'L-014', type: 'Registered Business', biz: 'Cairo Code Academy', contact: 'Mahmoud Fawzy', email: 'mahmoud@cairocode.academy', phone: '+20 155 555 6677', industry: 'Education', status: 'new', assigned: '2026-09-15', lastActivity: '2026-09-15', mid: 'MID-11802-461' },
+    { id: 'L-015', type: 'Individual Seller', biz: 'Luxor Crafts Bazaar', contact: 'Samar Adly', email: 'samar@luxorcrafts.com', phone: '+20 106 666 7788', industry: 'Fashion & Beauty', status: 'new', assigned: '2026-09-16', lastActivity: '2026-09-16', mid: 'MID-11825-574' },
+    { id: 'L-016', type: 'Registered Business', biz: 'Port Said Logistics', contact: 'Tamer Ragab', email: 'tamer@psl-logistics.com', phone: '+20 128 777 8899', industry: 'Logistics & Delivery', status: 'new', assigned: '2026-09-16', lastActivity: '2026-09-16', mid: 'MID-11848-689' },
+    { id: 'L-017', type: 'Registered Business', biz: 'New Capital Fitness Club', contact: 'Rania Mourad', email: 'rania@ncfitness.club', phone: '+20 114 888 9900', industry: 'Entertainment & Media', status: 'new', assigned: '2026-09-17', lastActivity: '2026-09-17', mid: 'MID-11861-792' },
   ];
 
   // Status changes made on the lead detail page are saved to localStorage (no CRM
@@ -484,7 +482,7 @@
     });
   }
 
-  const LEAD_HEAD = `<tr><th>Merchant</th><th>MID</th><th>Contact</th><th>Source</th><th>Status</th>
+  const LEAD_HEAD = `<tr><th>Merchant</th><th>MID</th><th>Contact</th><th>Status</th>
     <th>Assigned</th><th>Last Activity</th><th></th></tr>`;
 
   function renderTable() {
@@ -510,10 +508,18 @@
     $('leadsBody').innerHTML = pageRows.map(leadRowHTML).join('');
   }
 
+  /* Every application opens on its onboarding form — editable until it is submitted. */
+  function applicationURL(l) {
+    return 'merchant-onboarding.html?' + new URLSearchParams({
+      leadId: l.id, leadBiz: l.biz, leadEmail: l.email, leadPhone: l.phone,
+      leadType: l.type, leadIndustry: l.industry, leadMid: l.mid || '', leadStatus: l.status,
+    }).toString();
+  }
+
   function leadRowHTML(l) {
     const meta = STATUS_META[statusOf(l)];
     const mine = l.status === 'rate-approval' ? waitingOnMe(l) : null;
-    const href = mine ? window.KashierRates.requestURL(mine.app.id, mine.tier) : `lead-details.html?id=${encodeURIComponent(l.id)}`;
+    const href = mine ? window.KashierRates.requestURL(mine.app.id, mine.tier) : applicationURL(l);
     return `
       <tr onclick="location.href='${href}'">
         <td>
@@ -530,7 +536,6 @@
           <div class="contact-name">${esc(l.contact)}</div>
           <div class="contact-sub">${esc(l.email)}</div>
         </td>
-        <td><span class="source-pill">${esc(l.source)}</span></td>
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
           ${statusOf(l) === 'returned' ? `<div class="cell-sub wait-sub returned-sub">Action required — ${returnedLeads[l.id].kind === 'onboarding' ? 'update &amp; resubmit' : 'modify rejected rates'}</div>` : ''}
@@ -538,7 +543,7 @@
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>
         <td>
-          <button class="view-btn" title="${mine ? 'Review requested rates' : 'View application'}" onclick="event.stopPropagation(); location.href='${href}'">
+          <button class="view-btn" title="${mine ? 'Review requested rates' : 'Open application'}" onclick="event.stopPropagation(); location.href='${href}'">
             <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
           </button>
         </td>

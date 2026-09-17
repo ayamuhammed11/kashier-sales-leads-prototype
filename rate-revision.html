@@ -354,7 +354,7 @@
           <label for="roleSelect">Viewing as</label>
           <select id="roleSelect">
             <option value="sales">Salesperson</option>
-            <option value="manager">Pricing Manager</option>
+            <option value="manager">Sales Manager</option>
             <option value="head">Head of Sales</option>
             <option value="onboarding">Onboarding Team</option>
           </select>
@@ -549,14 +549,14 @@
     const row = (label, n) => `<div class="outcome-row"><span>${esc(label)}</span><b>${n}</b></div>`;
     $('outcomeList').innerHTML = [
       row('Head of Sales approval', counts.head),
-      row('Pricing Manager approval', counts.manager),
+      row('Sales Manager approval', counts.manager),
       row('No approval needed', counts.auto),
       plan.approved.length ? row('Already approved', plan.approved.length) : '',
     ].join('');
     $('outcomeSummary').textContent = counts.blank
       ? `${counts.blank} rate${counts.blank === 1 ? '' : 's'} still need a rate and fixed fee.`
       : (counts.head || counts.manager)
-        ? `Resubmitting sends ${[counts.head ? `${counts.head} to the Head of Sales` : '', counts.manager ? `${counts.manager} to the Pricing Manager` : ''].filter(Boolean).join(' and ')} as a new request.`
+        ? `Resubmitting sends ${[counts.head ? `${counts.head} to the Head of Sales` : '', counts.manager ? `${counts.manager} to the Sales Manager` : ''].filter(Boolean).join(' and ')} as a new request.`
         : 'No rate needs approval — the application goes straight to Underwriting Review.';
   }
 

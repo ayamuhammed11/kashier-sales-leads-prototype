@@ -572,7 +572,7 @@
   }
   if (resubmitted) {
     const to = [resubmitted.head ? `${resubmitted.head} to the Head of Sales` : '',
-                resubmitted.manager ? `${resubmitted.manager} to the Pricing Manager` : ''].filter(Boolean).join(' and ');
+                resubmitted.manager ? `${resubmitted.manager} to the Sales Manager` : ''].filter(Boolean).join(' and ');
     approvalEvents.push({
       icon: 'check', actor: resubmitted.by || 'Salesperson', time: resubmitted.ts.slice(0, 16).replace('T', ' '),
       text: to

@@ -292,7 +292,7 @@
           <label for="roleSelect">Viewing as</label>
           <select id="roleSelect">
             <option value="sales">Salesperson</option>
-            <option value="manager">Pricing Manager</option>
+            <option value="manager">Sales Manager</option>
             <option value="head">Head of Sales</option>
             <option value="onboarding">Onboarding Team</option>
           </select>
@@ -430,7 +430,7 @@
     const counts = { all: LEADS.length };
     Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => l.status === k).length);
     let tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
-    // A Pricing Manager or Head of Sales counts only the applications waiting on their own level.
+    // A Sales Manager or Head of Sales counts only the applications waiting on their own level.
     if (isApprover()) counts['rate-approval'] = LEADS.filter(l => l.status === 'rate-approval' && waitingOnMe(l)).length;
     $('statusTabs').innerHTML = tabs.map(([key, label]) => `
       <button class="tab-btn ${key === activeStatus ? 'active' : ''}" data-status="${key}">
@@ -476,7 +476,7 @@
     $('emptyTitle').textContent = activeStatus === 'rate-approval' && isApprover()
       ? 'Nothing to review here.' : 'No applications match this filter.';
     $('emptySub').textContent = activeStatus === 'rate-approval' && isApprover()
-      ? `No applications are waiting on ${role === 'head' ? 'Head of Sales' : 'Pricing Manager'} approval right now.`
+      ? `No applications are waiting on ${role === 'head' ? 'Head of Sales' : 'Sales Manager'} approval right now.`
       : 'Try a different status tab or clear your search to see all your applications.';
 
     const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
@@ -554,7 +554,7 @@
   }
 
   /* ══════════ Roles & rate approvals ══════════
-     A Pricing Manager or Head of Sales reviews rate requests from the Waiting Rate Approval
+     A Sales Manager or Head of Sales reviews rate requests from the Waiting Rate Approval
      tab of My Applications: it lists only the applications waiting on their level. The rules and what a decision does live in rate-decisions.js,
      shared with the application tracking page so both surfaces agree. */
   const { ROLES, TIER_LABEL, TIER_OWNER, readStore } = window.KashierRates;

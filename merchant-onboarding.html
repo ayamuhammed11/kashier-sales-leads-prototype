@@ -676,7 +676,7 @@
     // The verdict says who has to approve — never the thresholds behind it.
     if (!rateTier || !feeTier) return { tier: '', text: 'Enter the rate and fixed fee' };
     if (rateTier === 'head') return { tier: 'head', text: 'Needs Head of Sales approval' };
-    if (rateTier === 'manager' || feeTier === 'manager') return { tier: 'manager', text: 'Needs Pricing Manager approval' };
+    if (rateTier === 'manager' || feeTier === 'manager') return { tier: 'manager', text: 'Needs Sales Manager approval' };
     return { tier: 'auto', text: 'No approval needed' };
   }
   function lineAttrs(service, bankKey, key) {
@@ -948,7 +948,7 @@
   }
 
   /* ── Services & Pricing table ── */
-  const APPROVAL_SHORT = { auto: 'No approval', manager: 'Pricing Manager', head: 'Head of Sales' };
+  const APPROVAL_SHORT = { auto: 'No approval', manager: 'Sales Manager', head: 'Head of Sales' };
   function approvalCellHTML(tier) {
     return tier ? `<span class="appr-chip ${tier}">${APPROVAL_SHORT[tier]}</span>` : '<span class="appr-chip empty">—</span>';
   }

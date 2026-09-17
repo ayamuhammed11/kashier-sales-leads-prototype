@@ -326,6 +326,43 @@
   .appr-chip.empty { color: var(--cadet-06); }
   .svc-table-hint { font-size: 12px; color: var(--cadet-05); margin-top: 8px; }
 
+  /* Services & Pricing table — activating a service and the tier/terminal rows */
+  .cell-toggle { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+  .cell-toggle input { margin-top: 3px; width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+  .svc-row-inactive td { opacity: .7; }
+  .svc-tier-row td, .svc-terminals-row td { padding: 9px 10px; }
+  .svc-tier-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-04);
+    background: var(--muted); }
+  .svc-terminals-row td { background: #FAFBFB; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .svc-terminals-row .lbl { font-size: 12.5px; font-weight: 600; color: var(--foreground); white-space: nowrap; }
+  .svc-terminals-input { width: 120px; height: 30px; }
+
+  /* Approval justification pop-up */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2,10,34,.45); display: none;
+    align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,20,60,.25); }
+  .modal.appr-modal { max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px;
+    border-bottom: 1px solid var(--border-subtle); }
+  .modal-header h3 { margin: 0 0 4px; font-size: 16px; color: var(--foreground); }
+  .appr-modal-sub { margin: 0; font-size: 12.5px; color: var(--cadet-05); line-height: 1.5; }
+  .btn-icon { background: none; border: none; padding: 4px; cursor: pointer; color: var(--cadet-05); border-radius: 6px; flex-shrink: 0; }
+  .btn-icon:hover { background: var(--muted); color: var(--foreground); }
+  .modal-body { padding: 16px 22px; overflow-y: auto; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--border-subtle); }
+  .appr-line { padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+  .appr-line:first-child { padding-top: 0; }
+  .appr-line:last-child { border-bottom: none; padding-bottom: 0; }
+  .appr-line-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .appr-line-bank { font-size: 12px; color: var(--cadet-05); font-weight: 400; }
+  .appr-line-meta { font-size: 12.5px; color: var(--cadet-base); margin-bottom: 8px; }
+  .appr-line-note { width: 100%; min-height: 60px; border: 1.5px solid var(--border); border-radius: var(--radius);
+    font-family: inherit; font-size: 13px; padding: 8px 10px; resize: vertical; color-scheme: light; }
+  .appr-line-note:focus { outline: none; border-color: var(--primary); }
+  .appr-line-note.invalid { border-color: var(--destructive); }
+
   /* What still stands between the salesperson and a created application */
   .submit-checklist { background: var(--muted); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
   .checklist-title { font-size: 12.5px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
@@ -361,7 +398,7 @@
     <div class="brand">kashier</div>
 
     <a class="nav-link" href="home.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>Home</a>
-    <a class="nav-link active" href="index.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Applications</a>
+    <a class="nav-link active" href="sales-leads.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg>My Applications</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>BIN Management</a>
     <a class="nav-link" href="#"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>Financial Institutions</a>
     <a class="nav-link" href="merchants.html"><svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/></svg>Merchant</a>
@@ -412,7 +449,7 @@
     </div>
 
     <div class="content">
-      <div class="breadcrumb"><a href="index.html">My Applications</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
+      <div class="breadcrumb"><a href="sales-leads.html">My Applications</a> <span class="sep">/</span> <span class="current">Complete Onboarding Application</span></div>
 
       <div class="page-head">
         <h1>Complete Onboarding Application</h1>
@@ -452,7 +489,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
           <div>
             <h2>2. Criteria &amp; Services</h2>
-            <p class="ch-sub">Pick the merchant type, industry, and every service this merchant needs. You'll set up the financial institution, settlement type, pricing, and required documents for each service next.</p>
+            <p class="ch-sub">Pick the merchant type, industry, and business owner nationality if relevant. You'll choose services and set up their pricing next.</p>
           </div>
         </div>
         <div class="card-body">
@@ -469,10 +506,6 @@
               <div class="crit-label">Business Owner Nationality<span class="opt">(optional)</span></div>
               <div class="crit-chips" id="critOwner"></div>
             </div>
-            <div class="crit-group full">
-              <div class="crit-label">Services<span class="opt">(select all that apply)</span></div>
-              <div id="critService"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -483,7 +516,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
           <div>
             <h2>3. Service Setup</h2>
-            <p class="ch-sub">Set up every selected service in three steps: its institution, model and fees in one table, then the documents it all requires, and finally the signed Kashier contract.</p>
+            <p class="ch-sub">Choose which services to activate and set up their institution, model and fees in one table, then the documents it all requires, and finally the signed Kashier contract.</p>
           </div>
         </div>
         <div class="card-body">
@@ -514,6 +547,25 @@
   </main>
 
   <div class="toast" id="toast"></div>
+
+  <!-- Rates priced below the published rate need sign-off — this asks for the justification
+       that used to sit in an inline Comment column, once the salesperson is done pricing. -->
+  <div class="modal-overlay" id="approvalModal">
+    <div class="modal appr-modal">
+      <div class="modal-header">
+        <div>
+          <h3>These rates need approval</h3>
+          <p class="appr-modal-sub">Add a short justification for each one before continuing — it's what the Sales Manager or Head of Sales will see.</p>
+        </div>
+        <button class="btn-icon" id="approvalModalClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body appr-modal-body" id="approvalModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="approvalModalCancel">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="approvalModalSave">Save &amp; Continue</button>
+      </div>
+    </div>
+  </div>
 
 <script src="rate-decisions.js"></script>
 <script>
@@ -782,84 +834,21 @@
      the method name — the stored value keeps the full "Online Card" / "POS Card" form. */
   const stripChannel = name => name.replace(/^(Online|POS) /, '');
   const channelOf = name => name.startsWith('POS ') ? 'POS' : 'Online';
-  function toggleServiceChip(name) {
-    const i = criteria.services.indexOf(name);
-    if (i >= 0) criteria.services.splice(i, 1); else criteria.services.push(name);
+  /* Activating or deactivating a service straight from the Services & Pricing table — there
+     is no separate services picker any more. Activating any POS service switches POS on. */
+  function setServiceActive(service, active) {
+    const i = criteria.services.indexOf(service);
+    if (active && i === -1) criteria.services.push(service);
+    if (!active && i !== -1) criteria.services.splice(i, 1);
     syncServiceConfigs();
-    renderCriteria();
-    refreshAll();
-  }
-  function renderServiceCatalogChips() {
-    const c = $('critService'); c.innerHTML = '';
-    SERVICE_CATALOG.forEach(tier => {
-      const group = document.createElement('div');
-      group.className = 'svc-group';
-      const label = document.createElement('div');
-      label.className = 'svc-group-label';
-      label.textContent = tier.tier;
-      group.appendChild(label);
-
-      if (tier.tier === 'POS') {
-        const activate = document.createElement('div');
-        activate.className = 'pos-activate';
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'crit-chip' + (criteria.posEnabled ? ' on' : '');
-        toggle.textContent = 'Activate POS for this merchant';
-        toggle.addEventListener('click', () => {
-          criteria.posEnabled = !criteria.posEnabled;
-          if (!criteria.posEnabled) {
-            criteria.services = criteria.services.filter(s => !s.startsWith('POS '));
-            syncServiceConfigs();
-          }
-          renderCriteria();
-          refreshAll();
-        });
-        activate.appendChild(toggle);
-        if (criteria.posEnabled) {
-          const field = document.createElement('div');
-          field.className = 'pos-terminals-field';
-          field.innerHTML = `<label class="lbl" for="posTerminals">Number of Terminals<span class="req">*</span></label>
-            <input type="number" min="1" step="1" class="inp" id="posTerminals" placeholder="e.g. 2" value="${esc(criteria.posTerminals)}">`;
-          activate.appendChild(field);
-        }
-        group.appendChild(activate);
-
-        if (!criteria.posEnabled) {
-          const empty = document.createElement('div');
-          empty.className = 'svc-empty';
-          empty.textContent = 'Activate POS above to choose which POS services this merchant needs.';
-          group.appendChild(empty);
-          c.appendChild(group);
-          return;
-        }
-      }
-
-      const row = document.createElement('div');
-      row.className = 'crit-chips';
-      tier.services.forEach(name => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'crit-chip' + (criteria.services.includes(name) ? ' on' : '');
-        b.textContent = stripChannel(name);
-        b.addEventListener('click', () => toggleServiceChip(name));
-        row.appendChild(b);
-      });
-      group.appendChild(row);
-      c.appendChild(group);
-    });
-
-    c.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
-    if (criteria.posEnabled) {
-      const input = $('posTerminals');
-      if (input) input.addEventListener('input', e => { criteria.posTerminals = e.target.value; renderSubmitSummary(); });
-    }
+    criteria.posEnabled = criteria.services.some(x => x.startsWith('POS '));
+    if (!criteria.posEnabled) criteria.posTerminals = '';
+    onSetupChanged();
   }
 
   function renderCriteria() {
     renderSingleChips('critEntity', ENTITIES, 'entity');
     renderSingleChips('critOwner', OWNERS, 'owner');
-    renderServiceCatalogChips();
   }
   function fillSelect(id, options) {
     const s = $(id);
@@ -930,11 +919,70 @@
     });
     return out;
   }
+  /* Every entered rate that needs sign-off, and the ones among them still missing the
+     justification the approval pop-up asks for. */
+  function approvalNeededLines() {
+    return pricingLines().filter(l => l.sel && lineVerdict(l.t, l.sel).tier && lineVerdict(l.t, l.sel).tier !== 'auto');
+  }
+  function needsJustificationLines() {
+    return approvalNeededLines().filter(l => !(l.sel.note || '').trim());
+  }
+
+  /* The approval pop-up: every rate needing sign-off, with a justification textarea for each
+     one still missing it. Saving writes the justification back onto its rate line, the same
+     place the old inline Comment column wrote to, then runs whatever the caller was trying
+     to do (continue to Documents, or create the application). */
+  let approvalModalCallback = null;
+  function openApprovalModal(onSaved) {
+    approvalModalCallback = onSaved;
+    const lines = approvalNeededLines();
+    $('approvalModalBody').innerHTML = lines.map(l => {
+      const tier = lineVerdict(l.t, l.sel).tier;
+      const bank = l.bankKey ? ` &middot; ${esc(l.bankKey)}` : '';
+      return `<div class="appr-line">
+        <div class="appr-line-head">
+          <div>${serviceCellHTML(channelOf(l.service), stripChannel(l.service))}<span class="appr-line-bank">${bank}</span></div>
+          <span class="appr-chip ${tier}">${esc(APPROVAL_SHORT[tier])}</span>
+        </div>
+        <div class="appr-line-meta">${esc(l.t.label)} — ${esc(l.sel.rate)}% + ${esc(l.sel.fee)} EGP</div>
+        <textarea class="appr-line-note" data-service="${esc(l.service)}" data-bank="${esc(l.bankKey)}" data-key="${esc(l.t.key)}"
+          placeholder="Why does this merchant need this rate?">${esc(l.sel.note || '')}</textarea>
+      </div>`;
+    }).join('');
+    $('approvalModal').classList.add('open');
+  }
+  function closeApprovalModal() {
+    $('approvalModal').classList.remove('open');
+    approvalModalCallback = null;
+  }
+  $('approvalModalSave').addEventListener('click', () => {
+    const areas = [...$('approvalModalBody').querySelectorAll('.appr-line-note')];
+    const empty = areas.filter(a => !a.value.trim());
+    if (empty.length) {
+      empty.forEach(a => a.classList.add('invalid'));
+      toast('Add a justification for every rate listed.');
+      return;
+    }
+    areas.forEach(a => {
+      const bc = ensureBankConfig(serviceConfig[a.dataset.service], a.dataset.bank);
+      const cur = bc.pricing.get(a.dataset.key) || { rate: '', fee: '', tier: '' };
+      cur.note = a.value.trim();
+      bc.pricing.set(a.dataset.key, cur);
+    });
+    const cb = approvalModalCallback;
+    closeApprovalModal();
+    onSetupChanged();
+    if (cb) cb();
+  });
+  $('approvalModalCancel').addEventListener('click', closeApprovalModal);
+  $('approvalModalClose').addEventListener('click', closeApprovalModal);
+  $('approvalModal').addEventListener('click', e => { if (e.target === $('approvalModal')) closeApprovalModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeApprovalModal(); });
 
   /* What still stops each step from being complete — empty means done. */
   function serviceStepIssues(n) {
-    if (!hasAnyService()) return ['Select at least one service in Step 2'];
     if (n === 1) {
+      if (!hasAnyService()) return ['Select at least one service in the table below'];
       const issues = [];
       orderedServices().forEach(s => {
         const cfg = serviceConfig[s];
@@ -946,16 +994,13 @@
       });
       const lines = pricingLines();
       const blank = lines.filter(l => !l.sel || !lineVerdict(l.t, l.sel).tier).length;
-      const unjustified = lines.filter(l => {
-        const tier = l.sel ? lineVerdict(l.t, l.sel).tier : '';
-        return (tier === 'manager' || tier === 'head') && !(l.sel.note || '').trim();
-      }).length;
       if (blank) issues.push(`${blank} rate type${blank === 1 ? '' : 's'} still need fees (%) and flat fees`);
-      if (unjustified) issues.push(`${unjustified} rate type${unjustified === 1 ? '' : 's'} needing approval still need a comment`);
+      if (criteria.posEnabled && !(Number(criteria.posTerminals) > 0)) issues.push('Number of Terminals for POS');
       const unchanged = unchangedRejectedLines().length;
       if (unchanged) issues.push(`${unchanged} rejected rate${unchanged === 1 ? '' : 's'} still ${unchanged === 1 ? 'needs' : 'need'} to be changed before resubmitting`);
       return issues;
     }
+    if (!hasAnyService()) return ['Select at least one service in the Services & Pricing table'];
     if (n === 2) {
       // Choosing an Online service asks for the website here; activating POS asks for the store image.
       const issues = [];
@@ -972,7 +1017,6 @@
 
   function renderSetupStepper() {
     const el = $('setupStepper');
-    if (!hasAnyService()) { el.innerHTML = ''; return; }
     el.innerHTML = SETUP_STEPS.map((s, i) => {
       const n = i + 1;
       const done = stepDone(n) && canOpenStep(n);
@@ -986,9 +1030,6 @@
 
   /* ── Services & Pricing table ── */
   const APPROVAL_SHORT = { auto: 'No approval', manager: 'Sales Manager', head: 'Head of Sales' };
-  function approvalCellHTML(tier) {
-    return tier ? `<span class="appr-chip ${tier}">${APPROVAL_SHORT[tier]}</span>` : '<span class="appr-chip empty">—</span>';
-  }
   /* options: plain values, or [value, label] pairs. */
   function cellSelectHTML(attrs, value, options, placeholder, disabled) {
     return `<select class="cell-select${value ? '' : ' empty'}" ${attrs}${disabled ? ' disabled' : ''}>
@@ -1003,7 +1044,21 @@
     return `<span class="cell-channel ${cls || ''}">${esc(channel)}</span><span class="cell-service-name">${esc(name)}</span>`;
   }
 
+  function serviceToggleHTML(s, active) {
+    return `<label class="cell-toggle">
+      <input type="checkbox" data-service-toggle="${esc(s)}"${active ? ' checked' : ''}${appMode === 'locked' ? ' disabled' : ''}>
+      <span>${serviceCellHTML(channelOf(s), stripChannel(s))}</span>
+    </label>`;
+  }
+
   function serviceRowsHTML(s) {
+    const active = criteria.services.includes(s);
+    if (!active) {
+      return `<tr class="svc-row-inactive">
+        <td class="cell-service">${serviceToggleHTML(s, false)}</td>
+        <td class="cell-muted" colspan="5">Not activated — check the box to add its pricing</td>
+      </tr>`;
+    }
     const cfg = serviceConfig[s];
     const needsBank = bankRequiredFor(s);
     const multi = needsBank && bankMultiFor(s);
@@ -1028,37 +1083,42 @@
         bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !chosen);
       return rates.map((t, i) => {
         const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
-        const tier = bc ? lineVerdict(t, sel).tier : '';
-        const needsNote = tier === 'manager' || tier === 'head';
         const off = chosen ? '' : ' disabled';
         const attrs = chosen ? lineAttrs(s, k, t.key) : '';
         const rejUnchanged = new Set(unchangedRejectedLines().map(u => u.id));
         const rejection = chosen && appMode === 'returned' ? rejectedLines.get(`${s}::${k}::${t.key}`) : null;
         const stillUnchanged = rejection && rejUnchanged.has(`${s}::${k}::${t.key}`);
         return `<tr class="${i === 0 ? 'group-start' : ''}${rejection ? ' row-rejected' : ''}"${rejection ? ` title="Rejected by ${esc(rejection.by)}: ${esc(rejection.reason)}"` : ''}>
-          ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceCellHTML(channelOf(s), stripChannel(s))}</td>
+          ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>` : ''}</td>
           <td><input class="cell-input rate-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
           <td><input class="cell-input fee-input" type="number" min="0" step="0.25" inputmode="decimal" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
-          <td class="cell-approval">${approvalCellHTML(tier)}</td>
-          <td><input class="cell-input line-note${needsNote && !(sel.note || '').trim() ? ' invalid' : ''}" type="text"
-            placeholder="${needsNote ? 'Comment required' : 'Optional'}" value="${esc(sel.note || '')}" ${attrs}${off}></td>
         </tr>`;
       }).join('');
     }).join('');
   }
 
   function stepServicesTableHTML() {
-    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees', 'Approval', 'Comment'];
+    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'];
+    const body = SERVICE_CATALOG.map(tier => {
+      const header = `<tr class="svc-tier-row"><td colspan="${heads.length}" class="svc-tier-head">${esc(tier.tier)} Services</td></tr>`;
+      const terminals = tier.tier === 'POS' && criteria.posEnabled
+        ? `<tr class="svc-terminals-row"><td colspan="${heads.length}">
+             <label class="lbl" for="posTerminalsInput">Number of Terminals<span class="req">*</span></label>
+             <input type="number" min="1" step="1" class="inp svc-terminals-input" id="posTerminalsInput" placeholder="e.g. 2" value="${esc(criteria.posTerminals)}"${appMode === 'locked' ? ' disabled' : ''}>
+           </td></tr>`
+        : '';
+      return header + terminals + tier.services.map(serviceRowsHTML).join('');
+    }).join('');
     return `<div class="svc-table-wrap">
         <table class="svc-table">
           <thead><tr>${heads.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
-          <tbody>${orderedServices().map(serviceRowsHTML).join('')}</tbody>
+          <tbody>${body}</tbody>
         </table>
       </div>
-      <div class="svc-table-hint">Choose each service's financial institution and model, then enter its fees. Approval shows who has to sign off — a comment is required whenever approval is needed.</div>`;
+      <div class="svc-table-hint">Check a service to activate it, then choose its financial institution, model and fees. Any rate below the published rate needs approval — you'll be asked for a justification before you can continue.</div>`;
   }
 
   function stepDocumentsHTML() {
@@ -1094,11 +1154,6 @@
 
   function renderServiceSetup() {
     const wrap = $('serviceSetupBody');
-    if (!hasAnyService()) {
-      renderSetupStepper();
-      wrap.innerHTML = '<div class="svc-empty">Select at least one service in Step 2 to start setting it up here.</div>';
-      return;
-    }
     // Never leave the salesperson on a step whose earlier steps have since become incomplete.
     while (setupStep > 1 && !canOpenStep(setupStep)) setupStep--;
     renderSetupStepper();
@@ -1123,19 +1178,28 @@
     renderSubmitSummary();
   }
 
+  /* Leaving the pricing step forward — Continue or a stepper tab — is blocked until every
+     rate that needs sign-off has a justification, asked for in the approval pop-up. */
+  function goToSetupStep(n, scroll) {
+    const land = () => {
+      setupStep = n;
+      renderServiceSetup();
+      if (scroll) $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    if (setupStep === 1 && n > 1 && needsJustificationLines().length) { openApprovalModal(land); return; }
+    land();
+  }
+
   $('setupStepper').addEventListener('click', e => {
     const b = e.target.closest('[data-step]');
     if (!b || b.disabled) return;
-    setupStep = Number(b.dataset.step);
-    renderServiceSetup();
+    goToSetupStep(Number(b.dataset.step));
   });
 
   $('serviceSetupBody').addEventListener('click', e => {
     if (e.target.closest('#setupNext')) {
       if (!stepDone(setupStep)) { toast(stepIssues(setupStep)[0]); return; }
-      setupStep++;
-      renderServiceSetup();
-      $('serviceSetupCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      goToSetupStep(setupStep + 1, true);
       return;
     }
     if (e.target.closest('#setupBack')) { setupStep--; renderServiceSetup(); return; }
@@ -1158,6 +1222,8 @@
   });
 
   $('serviceSetupBody').addEventListener('change', e => {
+    const svcToggle = e.target.closest('[data-service-toggle]');
+    if (svcToggle) { setServiceActive(svcToggle.dataset.serviceToggle, svcToggle.checked); return; }
     const bankSel = e.target.closest('[data-bank-select]');
     if (bankSel) {
       const s = bankSel.dataset.service, cfg = serviceConfig[s];
@@ -1207,7 +1273,12 @@
       refreshStepChrome();
       return;
     }
-    const input = e.target.closest('.rate-input, .fee-input, .line-note');
+    if (e.target.id === 'posTerminalsInput') {
+      criteria.posTerminals = e.target.value;
+      refreshStepChrome();
+      return;
+    }
+    const input = e.target.closest('.rate-input, .fee-input');
     if (!input || !input.dataset.key) return;
     const s = input.dataset.service, bankKey = input.dataset.bank, key = input.dataset.key;
     const t = ratesForService(s).find(x => x.key === key);
@@ -1216,16 +1287,11 @@
     const next = {
       rate: input.classList.contains('rate-input') ? input.value : cur.rate,
       fee: input.classList.contains('fee-input') ? input.value : cur.fee,
-      note: input.classList.contains('line-note') ? input.value : (cur.note || ''),
+      note: cur.note || '',
     };
     next.tier = lineVerdict(t, next).tier;
     bc.pricing.set(key, next);
     const row = input.closest('tr');
-    row.querySelector('.cell-approval').innerHTML = approvalCellHTML(next.tier);
-    const needsNote = next.tier === 'manager' || next.tier === 'head';
-    const note = row.querySelector('.line-note');
-    note.placeholder = needsNote ? 'Comment required' : 'Optional';
-    note.classList.toggle('invalid', needsNote && !next.note.trim());
     // A rejected rate's own label reflects whether it has actually been changed yet.
     const rejected = appMode === 'returned' ? rejectedLines.get(`${s}::${bankKey}::${key}`) : null;
     const rejLabel = row.querySelector('.cell-rejected');
@@ -1341,6 +1407,7 @@
     SETUP_STEPS.forEach((step, i) => {
       checks.push({ label: `Service setup — ${step.label}`, done: hasAnyService() && stepDone(i + 1) && canOpenStep(i + 1) });
     });
+    checks.push({ label: 'Add a justification for every rate needing approval', done: needsJustificationLines().length === 0 });
     return checks;
   }
 
@@ -1544,7 +1611,8 @@
     renderSubmitSummary();
   })();
 
-  $('submitAppBtn').addEventListener('click', () => {
+  function attemptSubmit() {
+    if (needsJustificationLines().length) { openApprovalModal(attemptSubmit); return; }
     const biz = $('mBiz').value.trim(), email = $('mEmail').value.trim(), phone = $('mPhone').value.trim();
     const remaining = readinessChecks().filter(c => !c.done);
     if (remaining.length) {
@@ -1614,7 +1682,8 @@
       ? ` — sent for ${needsApproval} rate approval${needsApproval === 1 ? '' : 's'} before the Onboarding team reviews it`
       : ' — sent to the Onboarding team for review'));
     location.href = trackURL;
-  });
+  }
+  $('submitAppBtn').addEventListener('click', attemptSubmit);
 
   /* ══════════ Chrome ══════════ */
   $('hamburger').addEventListener('click', () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); });

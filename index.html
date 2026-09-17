@@ -193,18 +193,6 @@
   .role-switch label { font-size: 12px; color: var(--cadet-04); }
   .role-switch select { height: 34px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff;
     color: var(--foreground); font-family: inherit; font-size: 13px; padding: 0 10px; color-scheme: light; cursor: pointer; }
-  /* Approval-level switcher — one queue per band, so nobody scans past rates that
-     are not theirs to decide. */
-  .rate-views { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
-  .rate-view { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px;
-    border: 1.5px solid var(--border); border-radius: 999px; background: #fff; cursor: pointer;
-    font-family: inherit; font-size: 13px; font-weight: 600; color: var(--cadet-base);
-    transition: border-color .12s ease, background .12s ease, color .12s ease; }
-  .rate-view:hover { border-color: var(--cadet-05); color: var(--foreground); }
-  .rate-view.on { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
-  .rate-view-count { font-size: 11.5px; font-weight: 700; background: var(--muted); color: var(--cadet-02);
-    border-radius: 999px; padding: 1px 8px; }
-  .rate-view.on .rate-view-count { background: #fff; color: var(--primary); }
   .wait-sub { margin-top: 5px; }
   .returned-sub { color: var(--destructive); font-weight: 600; }
   /* Four columns, so the rate queue needs far less width than the leads table. */
@@ -389,9 +377,6 @@
 
       <div class="tabs" id="statusTabs"></div>
 
-      <!-- On the Waiting Rate Approval tab: whose sign-off each application is stuck on. -->
-      <div class="rate-views" id="waitViews" hidden></div>
-
       <div class="toolbar">
         <div class="search-wrap">
           <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
@@ -519,7 +504,6 @@
     $('statusTabs').querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         activeStatus = btn.dataset.status;
-        waitFilter = 'all';
         currentPage = 1;
         renderRole(); renderTabs(); renderTable();
       });
@@ -534,7 +518,6 @@
 
   /* Whose sign-off a lead's application is still waiting on — 'manager', 'head', or both
      when it carries undecided requests in each band. */
-  let waitFilter = 'all';
   function waitingOn(lead) {
     const tiers = [];
     allRequests().forEach(r => {
@@ -553,26 +536,12 @@
     if (t[0] === 'manager') return 'Waiting on Manager';
     return '';
   }
-  function renderWaitViews() {
-    const base = LEADS.filter(l => l.status === 'rate-approval');
-    const views = [
-      ['all', 'All', base.length],
-      ['manager', 'Waiting on Manager', base.filter(l => waitingOn(l).indexOf('manager') !== -1).length],
-      ['head', 'Waiting on Head', base.filter(l => waitingOn(l).indexOf('head') !== -1).length],
-    ];
-    $('waitViews').innerHTML = views.map(([key, label, n]) =>
-      `<button class="rate-view${key === waitFilter ? ' on' : ''}" data-wait="${key}">
-        ${esc(label)}<span class="rate-view-count">${n}</span>
-      </button>`).join('');
-  }
 
   function filteredLeads() {
     const term = searchTerm.trim().toLowerCase();
     return LEADS.filter(l => {
       if (activeStatus !== 'all' && l.status !== activeStatus) return false;
       if (activeStatus === 'rate-approval' && isApprover() && !waitingOnMe(l)) return false;
-      if (activeStatus === 'rate-approval' && !isApprover() && waitFilter !== 'all' &&
-          waitingOn(l).indexOf(waitFilter) === -1) return false;
       if (industryTerm && l.industry !== industryTerm) return false;
       if (term && !(l.biz.toLowerCase().includes(term) || l.contact.toLowerCase().includes(term) || l.email.toLowerCase().includes(term))) return false;
       return true;
@@ -585,10 +554,6 @@
   function renderTable() {
     const rows = filteredLeads();
     $('tableHead').innerHTML = LEAD_HEAD;
-    // The Manager / Head sub-filter is the salesperson's; an approver only sees their own level.
-    const waitMode = activeStatus === 'rate-approval' && !isApprover();
-    $('waitViews').hidden = !waitMode;
-    if (waitMode) renderWaitViews();
     $('resultCount').textContent = `${rows.length} of ${LEADS.length} applications`;
     $('emptyState').classList.toggle('show', rows.length === 0);
     $('emptyTitle').textContent = activeStatus === 'rate-approval' && isApprover()
@@ -661,14 +626,6 @@
     if (prev) prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
     if (next) next.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; renderTable(); } });
   }
-
-  $('waitViews').addEventListener('click', e => {
-    const btn = e.target.closest('[data-wait]');
-    if (!btn) return;
-    waitFilter = btn.dataset.wait;
-    currentPage = 1;
-    renderTable();
-  });
 
   $('searchInput').addEventListener('input', e => { searchTerm = e.target.value; currentPage = 1; renderTable(); });
   $('industryFilter').addEventListener('change', e => { industryTerm = e.target.value; currentPage = 1; renderTable(); });
@@ -748,7 +705,6 @@
   $('roleSelect').addEventListener('change', e => {
     role = e.target.value;
     window.KashierRates.setRole(role);
-    waitFilter = 'all';
     currentPage = 1;
     renderRole(); renderTabs(); renderTable();
   });

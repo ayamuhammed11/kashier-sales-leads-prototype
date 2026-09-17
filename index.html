@@ -516,26 +516,8 @@
       industries.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
   }
 
-  /* Whose sign-off a lead's application is still waiting on — 'manager', 'head', or both
-     when it carries undecided requests in each band. */
-  function waitingOn(lead) {
-    const tiers = [];
-    allRequests().forEach(r => {
-      if (r.app.leadId !== lead.id || r.decision) return;
-      if (tiers.indexOf(r.req.tier) === -1) tiers.push(r.req.tier);
-    });
-    return tiers;
-  }
   /* Leads whose application came back with rejected rates, waiting on a resubmission. */
   const returnedLeads = window.KashierRates.readStore('kashierLeadReturnNote');
-
-  function waitingLabel(lead) {
-    const t = waitingOn(lead);
-    if (t.length === 2) return 'Waiting on Manager & Head';
-    if (t[0] === 'head') return 'Waiting on Head';
-    if (t[0] === 'manager') return 'Waiting on Manager';
-    return '';
-  }
 
   function filteredLeads() {
     const term = searchTerm.trim().toLowerCase();
@@ -580,7 +562,7 @@
     const href = mine ? window.KashierRates.requestURL(mine.app.id, mine.tier) : `lead-details.html?id=${encodeURIComponent(l.id)}`;
     const waitSub = mine
       ? `${mine.pendingLines.length} rate${mine.pendingLines.length === 1 ? '' : 's'} to review`
-      : waitingLabel(l);
+      : '';
     return `
       <tr onclick="location.href='${href}'">
         <td>
@@ -676,17 +658,6 @@
 
   function fmtDateISO(iso) {
     return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-
-  /* One row per request, carrying whatever decision has been recorded against it. */
-  function allRequests() {
-    const decisions = readStore('kashierRateDecisions');
-    const rows = [];
-    APPS.forEach(app => {
-      const appDecisions = decisions[app.id] || {};
-      app.requests.forEach(req => rows.push({ app, req, decision: appDecisions[req.id] || null }));
-    });
-    return rows.sort((a, b) => new Date(a.app.ts) - new Date(b.app.ts));
   }
 
   function myBands() { return ROLES[role].approves; }

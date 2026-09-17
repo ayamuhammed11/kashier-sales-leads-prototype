@@ -495,9 +495,6 @@
     const meta = STATUS_META[l.status];
     const mine = l.status === 'rate-approval' ? waitingOnMe(l) : null;
     const href = mine ? window.KashierRates.requestURL(mine.app.id, mine.tier) : `lead-details.html?id=${encodeURIComponent(l.id)}`;
-    const waitSub = mine
-      ? `${mine.pendingLines.length} rate${mine.pendingLines.length === 1 ? '' : 's'} to review`
-      : '';
     return `
       <tr onclick="location.href='${href}'">
         <td>
@@ -517,7 +514,6 @@
         <td><span class="source-pill">${esc(l.source)}</span></td>
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
-          ${l.status === 'rate-approval' && waitSub ? `<div class="cell-sub wait-sub">${esc(waitSub)}</div>` : ''}
           ${l.status === 'application' && returnedLeads[l.id] ? `<div class="cell-sub wait-sub returned-sub">${returnedLeads[l.id].kind === 'onboarding' ? 'Rejected by Onboarding — update &amp; resubmit' : 'Rates rejected — modify &amp; resubmit'}</div>` : ''}
         </td>
         <td>${fmtDate(l.assigned)}</td>

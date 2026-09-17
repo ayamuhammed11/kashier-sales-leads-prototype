@@ -351,14 +351,14 @@
     <div class="content">
       <div class="breadcrumb">
         <a href="index.html">My Applications</a> <span class="sep">/</span>
-        <a href="index.html?view=rates">Rate Approvals</a> <span class="sep">/</span>
+        <a href="index.html?view=rates">Waiting Rate Approval</a> <span class="sep">/</span>
         <span class="current" id="crumbRate">Rate Request</span>
       </div>
 
       <div id="requestView" hidden>
         <div class="page-head">
           <div class="page-head-left">
-            <a class="back-btn" href="index.html?view=rates" title="Back to Rate Approvals">
+            <a class="back-btn" href="index.html?view=rates" title="Back to Waiting Rate Approval">
               <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
             </a>
             <div>
@@ -418,7 +418,7 @@
       <div class="card not-found" id="notFound" hidden>
         <h2>Rate request not found</h2>
         <p>This link doesn't match a rate approval request. It may have been resubmitted under a new application.</p>
-        <a class="btn btn-primary" href="index.html?view=rates">Back to Rate Approvals</a>
+        <a class="btn btn-primary" href="index.html?view=rates">Back to Waiting Rate Approval</a>
       </div>
     </div>
   </main>
@@ -557,7 +557,7 @@
       const next = nextPending();
       $('reqActions').innerHTML = next
         ? `<a class="btn btn-primary" href="${window.KashierRates.requestURL(next.app.id, next.tier)}">Next Request &rarr;</a>`
-        : `<a class="btn btn-outline" href="index.html?view=rates">Back to Rate Approvals</a>`;
+        : `<a class="btn btn-outline" href="index.html?view=rates">Back to Waiting Rate Approval</a>`;
     } else {
       $('reqActions').innerHTML = !ROLES[role].approves.length
         ? `<div class="actions-note">Waiting on the ${esc(TIER_OWNER[tier])} to review these rates.</div>`

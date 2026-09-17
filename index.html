@@ -412,9 +412,12 @@
   applyStoredStatuses();
 
   /* An application sent back to the salesperson — rates rejected, or rejected by Onboarding —
-     is its own status, apart from one still being filled in for the first time. */
+     is its own status for the salesperson, apart from one still being filled in for the first
+     time. It is the salesperson's work, so a Sales Manager or Head of Sales never sees it. */
   const returnedLeads = window.KashierRates.readStore('kashierLeadReturnNote');
-  LEADS.forEach(l => { if (l.status === 'application' && returnedLeads[l.id]) l.status = 'returned'; });
+  function statusOf(l) {
+    return l.status === 'application' && returnedLeads[l.id] && !isApprover() ? 'returned' : l.status;
+  }
 
   let activeStatus = 'all';
   let searchTerm = '';
@@ -435,8 +438,12 @@
 
   function renderTabs() {
     const counts = { all: LEADS.length };
-    Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => l.status === k).length);
+    Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => statusOf(l) === k).length);
     let tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
+    if (isApprover()) {
+      tabs = tabs.filter(([k]) => k !== 'returned');
+      if (activeStatus === 'returned') activeStatus = 'all';
+    }
     // A Sales Manager or Head of Sales counts only the applications waiting on their own level.
     if (isApprover()) counts['rate-approval'] = LEADS.filter(l => l.status === 'rate-approval' && waitingOnMe(l)).length;
     $('statusTabs').innerHTML = tabs.map(([key, label]) => `
@@ -462,7 +469,7 @@
   function filteredLeads() {
     const term = searchTerm.trim().toLowerCase();
     return LEADS.filter(l => {
-      if (activeStatus !== 'all' && l.status !== activeStatus) return false;
+      if (activeStatus !== 'all' && statusOf(l) !== activeStatus) return false;
       if (activeStatus === 'rate-approval' && isApprover() && !waitingOnMe(l)) return false;
       if (industryTerm && l.industry !== industryTerm) return false;
       if (term && !(l.biz.toLowerCase().includes(term) || l.contact.toLowerCase().includes(term) || l.email.toLowerCase().includes(term))) return false;
@@ -497,7 +504,7 @@
   }
 
   function leadRowHTML(l) {
-    const meta = STATUS_META[l.status];
+    const meta = STATUS_META[statusOf(l)];
     const mine = l.status === 'rate-approval' ? waitingOnMe(l) : null;
     const href = mine ? window.KashierRates.requestURL(mine.app.id, mine.tier) : `lead-details.html?id=${encodeURIComponent(l.id)}`;
     return `
@@ -519,7 +526,7 @@
         <td><span class="source-pill">${esc(l.source)}</span></td>
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
-          ${l.status === 'returned' ? `<div class="cell-sub wait-sub returned-sub">Action required — ${returnedLeads[l.id].kind === 'onboarding' ? 'update &amp; resubmit' : 'modify rejected rates'}</div>` : ''}
+          ${statusOf(l) === 'returned' ? `<div class="cell-sub wait-sub returned-sub">Action required — ${returnedLeads[l.id].kind === 'onboarding' ? 'update &amp; resubmit' : 'modify rejected rates'}</div>` : ''}
         </td>
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>

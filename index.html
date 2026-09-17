@@ -170,6 +170,7 @@
   .badge-bank-submission { background: #FDF2E9; color: #8A4B08; }
   .badge-activated { background: var(--success-bg); color: var(--success-text); }
   .badge-lost { background: var(--destructive-bg); color: var(--destructive); }
+  .badge-returned { background: var(--destructive-bg); color: var(--destructive); }
 
   /* Rate approvals queue */
   .role-switch { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -379,6 +380,7 @@
   const STATUS_META = {
     new:                 { label: 'New',                     cls: 'badge-new' },
     application:         { label: 'Application in Progress', cls: 'badge-application' },
+    returned:            { label: 'Returned Application',    cls: 'badge-returned' },
     submitted:           { label: 'Application Submitted',   cls: 'badge-submitted' },
     'rate-approval':     { label: 'Waiting Rate Approval',   cls: 'badge-rate-approval' },
     'onboarding-review': { label: 'Underwriting Review',       cls: 'badge-onboarding-review' },
@@ -408,6 +410,11 @@
     LEADS.forEach(l => { if (store[l.id] && STATUS_META[store[l.id]]) l.status = store[l.id]; });
   }
   applyStoredStatuses();
+
+  /* An application sent back to the salesperson — rates rejected, or rejected by Onboarding —
+     is its own status, apart from one still being filled in for the first time. */
+  const returnedLeads = window.KashierRates.readStore('kashierLeadReturnNote');
+  LEADS.forEach(l => { if (l.status === 'application' && returnedLeads[l.id]) l.status = 'returned'; });
 
   let activeStatus = 'all';
   let searchTerm = '';
@@ -451,8 +458,6 @@
       industries.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
   }
 
-  /* Leads whose application came back with rejected rates, waiting on a resubmission. */
-  const returnedLeads = window.KashierRates.readStore('kashierLeadReturnNote');
 
   function filteredLeads() {
     const term = searchTerm.trim().toLowerCase();
@@ -514,7 +519,7 @@
         <td><span class="source-pill">${esc(l.source)}</span></td>
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
-          ${l.status === 'application' && returnedLeads[l.id] ? `<div class="cell-sub wait-sub returned-sub">${returnedLeads[l.id].kind === 'onboarding' ? 'Rejected by Onboarding — update &amp; resubmit' : 'Rates rejected — modify &amp; resubmit'}</div>` : ''}
+          ${l.status === 'returned' ? `<div class="cell-sub wait-sub returned-sub">Action required — ${returnedLeads[l.id].kind === 'onboarding' ? 'update &amp; resubmit' : 'modify rejected rates'}</div>` : ''}
         </td>
         <td>${fmtDate(l.assigned)}</td>
         <td>${fmtDate(l.lastActivity)}</td>

@@ -125,6 +125,7 @@
   .badge-bank-submission { background: #FDF2E9; color: #8A4B08; }
   .badge-activated { background: var(--success-bg); color: var(--success-text); }
   .badge-lost { background: var(--destructive-bg); color: var(--destructive); }
+  .badge-returned { background: var(--destructive-bg); color: var(--destructive); }
 
   /* Layout grid */
   .layout-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
@@ -449,6 +450,7 @@
   const STATUS_META = {
     new:                 { label: 'New',                       cls: 'badge-new' },
     application:         { label: 'Application in Progress',   cls: 'badge-application' },
+    returned:            { label: 'Returned Application',      cls: 'badge-returned' },
     submitted:           { label: 'Application Submitted',     cls: 'badge-submitted' },
     'rate-approval':     { label: 'Waiting Rate Approval',     cls: 'badge-rate-approval' },
     'onboarding-review': { label: 'Underwriting Review',          cls: 'badge-onboarding-review' },
@@ -633,9 +635,14 @@
   $('industryLabel').textContent = lead.industry;
   $('assignedLabel').textContent = fmtDate(lead.assigned);
 
-  const meta = STATUS_META[lead.status];
-  $('statusBadge').className = `badge ${meta.cls}`;
-  $('statusBadge').innerHTML = `<span class="badge-dot"></span>${esc(meta.label)}`;
+  // Returned is shown as its own status; underneath, the application is back in progress.
+  const shownStatus = () => lead.status === 'application' && returnedNote ? 'returned' : lead.status;
+  function renderStatusBadge() {
+    const meta = STATUS_META[shownStatus()];
+    $('statusBadge').className = `badge ${meta.cls}`;
+    $('statusBadge').innerHTML = `<span class="badge-dot"></span>${esc(meta.label)}`;
+  }
+  renderStatusBadge();
 
   $('crmSyncPill').innerHTML = '<svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>' +
     `Synced from ZOHO CRM &middot; Record <a class="crm-record-link" href="${crmURL}" target="_blank" rel="noopener" title="Open this lead in Zoho CRM">${esc(crmId)}</a>`;
@@ -689,8 +696,7 @@
     writeLeadStatus(id, newStatus);
     lead.activity.unshift({ icon: newStatus === 'lost' ? 'flag' : 'check', actor: 'Mostafa Khaled', time: nowStamp(), text: activityText });
     const meta = STATUS_META[newStatus];
-    $('statusBadge').className = `badge ${meta.cls}`;
-    $('statusBadge').innerHTML = `<span class="badge-dot"></span>${esc(meta.label)}`;
+    renderStatusBadge();
     renderStepper();
     renderStatusActions();
     renderPageActions();
@@ -811,7 +817,7 @@
     } else {
       // Not submitted yet (or returned): the application is still the salesperson's to work on.
       const returned = returnedNote ? `<div class="returned-callout">
-          <b>Returned for changes</b>
+          <b>Returned application — action required</b>
           <span>${esc(returnedNote.text)}</span>
         </div>` : '';
       const started = lead.status === 'application';
@@ -829,8 +835,8 @@
            ${field('Contact Phone', lead.phone)}
          </div>`) +
         (app ? cardHTML('Last Submitted Version', 'For reference while you make the requested changes.', submittedApplicationHTML(app).replace(/<div class="card">/g, '<div class="card nested">')) : '');
-      side = `<div class="app-side-state ${returnedNote ? 'returned' : started ? 'progress' : 'new'}">${returnedNote ? 'Returned for changes' : started ? 'In progress' : 'Not started'}</div>
-        <div class="app-side-hint">${rejectedApp ? 'Use Modify Rejected Rates above to resubmit.' : 'Use Complete Onboarding Application above to continue.'}</div>`;
+      side = `<div class="app-side-state ${returnedNote ? 'returned' : started ? 'progress' : 'new'}">${returnedNote ? 'Returned — action required' : started ? 'In progress' : 'Not started'}</div>
+        <div class="app-side-hint">${rejectedApp ? 'Use Modify Rejected Rates above to fix the rejected rates and resubmit.' : returnedNote ? 'Use Complete Onboarding Application above to make the changes and resubmit.' : 'Use Complete Onboarding Application above to continue.'}</div>`;
     }
     $('applicationMain').innerHTML = main;
     $('applicationSide').innerHTML = side;
@@ -842,7 +848,7 @@
     const rows = [];
     const row = (label, value, tone) =>
       rows.push(`<div class="track-row"><span class="track-label">${esc(label)}</span><span class="track-val ${tone || ''}">${value}</span></div>`);
-    row('Current status', `<span class="badge ${STATUS_META[lead.status].cls}"><span class="badge-dot"></span>${esc(STATUS_META[lead.status].label)}</span>`);
+    row('Current status', `<span class="badge ${STATUS_META[shownStatus()].cls}"><span class="badge-dot"></span>${esc(STATUS_META[shownStatus()].label)}</span>`);
     if (app) {
       row('Application', esc(app.id));
       row('Submitted', `${esc(fmtIsoDate(app.ts))} by ${esc(app.actor)}`);

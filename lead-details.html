@@ -622,7 +622,7 @@
     return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  const crmId = 'SFDC-' + id.replace('L-', '00');
+  const crmId = 'ZOHO-' + id.replace('L-', '00');
   // The lead's record in Zoho CRM (demo org).
   const crmURL = `https://crm.zoho.com/crm/org-kashier/tab/Leads/${encodeURIComponent(crmId)}`;
 

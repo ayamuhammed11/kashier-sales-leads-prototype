@@ -450,7 +450,7 @@
   const STATUS_META = {
     new:                 { label: 'New',                       cls: 'badge-new' },
     application:         { label: 'Application in Progress',   cls: 'badge-application' },
-    returned:            { label: 'Returned Application',      cls: 'badge-returned' },
+    returned:            { label: 'Rejected Rates',             cls: 'badge-returned' },
     submitted:           { label: 'Application Submitted',     cls: 'badge-submitted' },
     'rate-approval':     { label: 'Waiting Rate Approval',     cls: 'badge-rate-approval' },
     'onboarding-review': { label: 'Underwriting Review',          cls: 'badge-onboarding-review' },
@@ -847,7 +847,7 @@
     } else {
       // Not submitted yet (or returned): the application is still the salesperson's to work on.
       const returned = returnedNote ? `<div class="returned-callout">
-          <b>${shownStatus() === 'returned' ? 'Returned application — action required' : 'Returned to the salesperson for changes'}</b>
+          <b>${shownStatus() === 'returned' ? 'Rejected rates — action required' : 'Returned to the salesperson for changes'}</b>
           <span>${esc(returnedNote.text)}</span>
         </div>` : '';
       const started = lead.status === 'application';
@@ -865,7 +865,7 @@
            ${field('Contact Phone', lead.phone)}
          </div>`) +
         (app ? cardHTML('Last Submitted Version', 'For reference while you make the requested changes.', submittedApplicationHTML(app).replace(/<div class="card">/g, '<div class="card nested">')) : '');
-      side = `<div class="app-side-state ${returnedNote ? 'returned' : started ? 'progress' : 'new'}">${returnedNote ? (shownStatus() === 'returned' ? 'Returned — action required' : 'With the salesperson') : started ? 'In progress' : 'Not started'}</div>
+      side = `<div class="app-side-state ${returnedNote ? 'returned' : started ? 'progress' : 'new'}">${returnedNote ? (shownStatus() === 'returned' ? 'Rejected rates — action required' : 'With the salesperson') : started ? 'In progress' : 'Not started'}</div>
         <div class="app-side-hint">${rejectedApp ? 'Use Modify Rejected Rates above to fix the rejected rates and resubmit.' : returnedNote ? 'Use Complete Onboarding Application above to make the changes and resubmit.' : 'Use Complete Onboarding Application above to continue.'}</div>`;
     }
     $('applicationMain').innerHTML = main;

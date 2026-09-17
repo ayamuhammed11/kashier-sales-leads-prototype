@@ -941,7 +941,7 @@
       const bank = l.bankKey ? ` &middot; ${esc(l.bankKey)}` : '';
       return `<div class="appr-line">
         <div class="appr-line-head">
-          <div>${serviceCellHTML(channelOf(l.service), stripChannel(l.service))}<span class="appr-line-bank">${bank}</span></div>
+          <div><span class="cell-channel">${esc(channelOf(l.service))}</span><span class="cell-service-name">${esc(stripChannel(l.service))}</span><span class="appr-line-bank">${bank}</span></div>
           <span class="appr-chip ${tier}">${esc(APPROVAL_SHORT[tier])}</span>
         </div>
         <div class="appr-line-meta">${esc(l.t.label)} — ${esc(l.sel.rate)}% + ${esc(l.sel.fee)} EGP</div>
@@ -1040,8 +1040,10 @@
       }).join('')}
     </select>`;
   }
+  // The channel badge is redundant now that services sit under their own Online / POS
+  // section header, so the cell shows only the service name.
   function serviceCellHTML(channel, name, cls) {
-    return `<span class="cell-channel ${cls || ''}">${esc(channel)}</span><span class="cell-service-name">${esc(name)}</span>`;
+    return `<span class="cell-service-name">${esc(name)}</span>`;
   }
 
   function serviceToggleHTML(s, active) {

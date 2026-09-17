@@ -1080,7 +1080,7 @@
                ? `<button type="button" class="cell-link" data-add-bank="${esc(s)}">+ Add institution</button>` : ''}
              ${multi && gi > 0 ? `<button type="button" class="cell-link danger" data-remove-bank="${esc(s)}" data-bank="${esc(k)}">Remove</button>` : ''}
            </div>`
-        : '<span class="cell-muted">Not required</span>';
+        : '';
       const modelCell = cellSelectHTML(`data-model-select data-service="${esc(s)}" data-bank="${esc(k || '')}"`,
         bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !chosen);
       return rates.map((t, i) => {

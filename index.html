@@ -383,11 +383,10 @@
     'rate-approval':     { label: 'Waiting Rate Approval',   cls: 'badge-rate-approval' },
     'onboarding-review': { label: 'Underwriting Review',       cls: 'badge-onboarding-review' },
     'bank-submission':   { label: 'Bank Submission',         cls: 'badge-bank-submission' },
-    activated:           { label: 'Live',                    cls: 'badge-activated' },
     lost:                { label: 'Lost',                    cls: 'badge-lost' },
   };
 
-  const LEADS = [
+  let LEADS = [
     { id: 'L-001', type: 'Registered Business', biz: 'Cairo Fresh Market',      contact: 'Youssef Adel',    email: 'youssef@cairofresh.com',    phone: '+20 100 123 4567', industry: 'Retail & E-commerce',      status: 'rate-approval',     assigned: '2026-08-28', lastActivity: '2026-09-06', mid: 'MID-10237-114' },
     { id: 'L-002', type: 'Registered Business', biz: 'Delta Pharma Group',      contact: 'Nourhan Samir',   email: 'nourhan@deltapharma.eg',    phone: '+20 111 234 5678', industry: 'Healthcare / Pharmacy',    status: 'application',       assigned: '2026-09-01', lastActivity: '2026-09-07', mid: 'MID-10589-227' },
     { id: 'L-003', type: 'Registered Business', biz: 'Nile Bites Restaurants',  contact: 'Hassan Mostafa',  email: 'hassan@nilebites.com',      phone: '+20 122 345 6789', industry: 'Food & Beverage',          status: 'new',                assigned: '2026-09-05', lastActivity: '2026-09-05', mid: 'MID-11042-350' },
@@ -415,6 +414,8 @@
     LEADS.forEach(l => { if (store[l.id] && STATUS_META[store[l.id]]) l.status = store[l.id]; });
   }
   applyStoredStatuses();
+  // A live merchant has moved on from Sales — it's worked from the Merchant module from here.
+  LEADS = LEADS.filter(l => l.status !== 'activated');
 
   /* An application sent back to the salesperson — rates rejected, or rejected by Onboarding —
      is its own status for the salesperson, apart from one still being filled in for the first

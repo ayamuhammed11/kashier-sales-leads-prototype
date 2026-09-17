@@ -102,29 +102,12 @@
   .btn-sm { height: 34px; padding: 0 14px; font-size: 13px; }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-  /* CRM sync status */
-  .crm-sync { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--border-subtle);
-    border-radius: 8px; padding: 10px 10px 10px 14px; flex-shrink: 0; }
-  .crm-sync-status { display: flex; align-items: center; gap: 10px; }
-  .crm-sync-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--accent-10); color: #006A66;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .crm-sync-label { font-size: 12.5px; font-weight: 600; color: var(--foreground); }
-  .crm-sync-time { font-size: 11.5px; color: var(--cadet-05); margin-top: 1px; }
-  #crmSyncBtn svg.spinning { animation: crm-spin .8s linear infinite; }
-  @keyframes crm-spin { to { transform: rotate(360deg); } }
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--foreground);
     color: #fff; font-size: 13px; font-weight: 600; padding: 12px 20px; border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.2);
     opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 60; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* KPI bar */
-  .kpi-bar { display: flex; border-radius: 8px; overflow: hidden; margin-bottom: 24px; border: 1px solid var(--border-subtle); }
-  .kpi { flex: 1; background: #fff; display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; }
-  .kpi + .kpi { border-left: 1px solid var(--border-subtle); }
-  .kpi .kpi-label { font-size: 12px; font-weight: 600; color: var(--cadet-base); text-transform: uppercase; letter-spacing: .04em; }
-  .kpi .kpi-value { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; color: var(--foreground); }
-  .kpi .kpi-desc { font-size: 12px; color: var(--cadet-06); }
 
   /* Tabs */
   .tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border-subtle); margin-bottom: 18px; flex-wrap: wrap; }
@@ -253,9 +236,6 @@
     .sidebar.open { transform: translateX(0); }
     .hamburger { display: flex; }
     .page-head h1 { font-size: 26px; }
-    .kpi-bar { flex-wrap: wrap; }
-    .kpi { min-width: 50%; }
-    .kpi:nth-child(2) { border-left: none; }
   }
   @media (max-width: 620px) { .user .name { display: none; } }
 </style>
@@ -334,44 +314,6 @@
         <div>
           <h1>My Applications</h1>
           <p class="sub">Onboarding applications for the merchants assigned to you. Open one to work on its application or track it once it has been submitted.</p>
-        </div>
-        <div class="crm-sync">
-          <div class="crm-sync-status">
-            <div class="crm-sync-icon">
-              <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
-            </div>
-            <div>
-              <div class="crm-sync-label">Synced from Salesforce CRM</div>
-              <div class="crm-sync-time" id="crmSyncTime">Last synced just now</div>
-            </div>
-          </div>
-          <button class="btn btn-outline btn-sm" id="crmSyncBtn" title="Pull the latest leads assigned to you from Salesforce">
-            <svg class="hi-sm" id="crmSyncIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-            Sync Now
-          </button>
-        </div>
-      </div>
-
-      <div class="kpi-bar">
-        <div class="kpi">
-          <div class="kpi-label">My Applications</div>
-          <div class="kpi-value" id="kpiTotal">0</div>
-          <div class="kpi-desc">Applications currently assigned to you</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">New This Week</div>
-          <div class="kpi-value" id="kpiNew">0</div>
-          <div class="kpi-desc">Leads that landed in the last 7 days</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">In Onboarding</div>
-          <div class="kpi-value" id="kpiApp">0</div>
-          <div class="kpi-desc">Leads mid-way through onboarding</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Live This Month</div>
-          <div class="kpi-value" id="kpiActivated">0</div>
-          <div class="kpi-desc">Leads converted to live merchants</div>
         </div>
       </div>
 
@@ -480,14 +422,7 @@
     return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  function renderKpis() {
-    const now = new Date('2026-09-08T00:00:00');
-    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    $('kpiTotal').textContent = LEADS.length;
-    $('kpiNew').textContent = LEADS.filter(l => new Date(l.assigned + 'T00:00:00') >= weekAgo).length;
-    $('kpiApp').textContent = LEADS.filter(l => ['application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(l.status)).length;
-    $('kpiActivated').textContent = LEADS.filter(l => l.status === 'activated' && new Date(l.lastActivity + 'T00:00:00') >= monthStart).length;
+  function renderNavCount() {
     $('navLeadCount').textContent = LEADS.length;
   }
 
@@ -616,31 +551,11 @@
   renderIndustryFilter();
   // The first paint happens after the role block below, which the tabs read from.
 
-  // CRM sync status
   let toastTimer;
   function toast(msg) {
     const t = $('toast'); t.textContent = msg; t.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
   }
-  let lastSync = Date.now() - 4 * 60 * 1000;
-  function renderSyncTime() {
-    const mins = Math.max(0, Math.round((Date.now() - lastSync) / 60000));
-    $('crmSyncTime').textContent = mins < 1 ? 'Last synced just now' : `Last synced ${mins} minute${mins === 1 ? '' : 's'} ago`;
-  }
-  renderSyncTime();
-  setInterval(renderSyncTime, 30000);
-  $('crmSyncBtn').addEventListener('click', () => {
-    const btn = $('crmSyncBtn'), icon = $('crmSyncIcon');
-    btn.disabled = true;
-    icon.classList.add('spinning');
-    setTimeout(() => {
-      lastSync = Date.now();
-      renderSyncTime();
-      icon.classList.remove('spinning');
-      btn.disabled = false;
-      toast(`Synced ${LEADS.length} leads from Salesforce CRM.`);
-    }, 900);
-  });
 
   /* ══════════ Roles & rate approvals ══════════
      A Pricing Manager or Head of Sales reviews rate requests from the Waiting Rate Approval
@@ -690,7 +605,7 @@
   })();
 
   renderRole();
-  renderKpis();
+  renderNavCount();
   renderTabs();
   renderTable();
 

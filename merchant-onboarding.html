@@ -76,7 +76,7 @@
   .user .name { font-weight: 600; font-size: 14px; color: var(--foreground); }
   .user .gear { color: var(--cadet-04); display: flex; }
 
-  .content { padding: 28px 34px 60px; max-width: 1000px; width: 100%; }
+  .content { padding: 28px 34px 60px; max-width: 1120px; width: 100%; }
 
   .breadcrumb { font-size: 13px; color: var(--cadet-04); margin-bottom: 12px; }
   .breadcrumb a { color: var(--link); }
@@ -192,45 +192,9 @@
   .price-service { padding: 16px 4px; border-bottom: 1px solid var(--border-subtle); }
   .price-service:last-child { border-bottom: none; }
   .price-service-name { font-weight: 700; font-size: 14px; color: var(--foreground); margin-bottom: 10px; }
-  .price-tier { border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px; margin-bottom: 10px; background: #FAFBFC; }
-  .price-tier:last-child { margin-bottom: 0; }
-  .price-tier-label { font-weight: 700; font-size: 13px; color: var(--foreground); }
-  .price-tier-desc { font-size: 12px; color: var(--cadet-05); margin: 2px 0 10px; }
   /* Sales rate entry — the salesperson types the rate, the verdict beside it says whether
      it clears without sign-off */
-  .rate-entry { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-  .rate-field { display: flex; flex-direction: column; gap: 5px; }
-  .rate-entry-label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); display: flex; align-items: center; gap: 4px; }
-  .rate-entry-label .req { color: var(--destructive); }
-  .rate-input-wrap { position: relative; display: inline-flex; align-items: center; }
-  .rate-input { width: 110px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius);
-    background: #fff; color: var(--foreground); font-family: inherit; font-size: 14px; font-weight: 600;
-    padding: 0 28px 0 12px; color-scheme: light; }
-  .rate-input:focus { outline: none; border-color: var(--primary); }
-  .rate-input.empty { border-color: var(--warning); }
-  .rate-input-suffix { position: absolute; right: 10px; font-size: 13px; font-weight: 600; color: var(--cadet-05); pointer-events: none; }
-  .rate-verdict { align-self: center; }
-  .rate-verdict { font-size: 12.5px; font-weight: 600; border-radius: 6px; padding: 6px 10px; }
-  .rate-verdict.empty { background: var(--muted); color: var(--cadet-05); font-weight: 400; font-style: italic; }
-  .rate-verdict.auto { background: var(--success-bg); color: var(--success-text); }
-  .rate-verdict.manager { background: var(--warning-bg); color: var(--warning-text); }
-  .rate-verdict.head { background: var(--destructive-bg); color: var(--destructive); }
 
-  .rate-tier-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-  .rate-tier-chip { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 700;
-    font-family: inherit; color: var(--cadet-base); background: #fff; cursor: pointer; display: flex; flex-direction: column;
-    align-items: flex-start; gap: 1px; transition: border-color .12s ease, background .12s ease, color .12s ease; }
-  .rate-tier-chip .rtc-sub { font-weight: 400; font-size: 11px; color: var(--cadet-05); }
-  .rate-tier-chip:hover { border-color: var(--cadet-05); }
-  .rate-tier-chip.auto.on { border-color: var(--success); background: var(--success-bg); color: var(--success-80); }
-  .rate-tier-chip.auto.on .rtc-sub { color: var(--success-80); }
-  .rate-tier-chip.manager.on { border-color: var(--warning); background: var(--warning-bg); color: var(--warning-text); }
-  .rate-tier-chip.manager.on .rtc-sub { color: var(--warning-text); }
-  .rate-tier-chip.head.on { border-color: var(--destructive); background: var(--destructive-bg); color: var(--destructive); }
-  .rate-tier-chip.head.on .rtc-sub { color: var(--destructive); }
-  .price-note { margin-top: 10px; }
-  .price-note textarea.inp { height: auto; min-height: 60px; padding: 10px 12px; resize: vertical; }
-  .price-note-hint { font-size: 11px; color: var(--cadet-05); margin-top: 4px; }
   .price-empty { font-size: 13px; color: var(--cadet-05); padding: 8px 4px; }
 
   /* Required documents — one compact row per document, upload controls inline (no full-size dropzone) */
@@ -301,59 +265,53 @@
   .setup-step.done .setup-step-dot { background: var(--success); color: #fff; }
   .setup-step-line { width: 18px; height: 1.5px; background: var(--border); }
   .setup-title { font-size: 15px; font-weight: 700; color: var(--foreground); margin-bottom: 16px; }
-  .setup-svc { padding: 16px 18px; border: 1px solid var(--border-subtle); border-radius: 10px; background: #FAFBFC; margin-bottom: 14px; }
-  .setup-svc-head { display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700;
-    color: var(--foreground); margin-bottom: 12px; }
-  .setup-svc-channel { font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-    color: var(--primary); background: var(--ocean-10); border-radius: 999px; padding: 2px 8px; }
-  .setup-svc-sub { font-size: 12.5px; color: var(--cadet-05); margin: -6px 0 12px; }
-  .setup-settle-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
-  .setup-settle-label { font-size: 12.5px; font-weight: 700; color: var(--cadet-base); min-width: 200px; }
-  .setup-settle-label .req { color: var(--destructive); }
   .setup-progress { font-size: 13px; color: var(--cadet-base); margin-bottom: 10px; }
   .setup-contract-intro { font-size: 13px; color: var(--cadet-base); margin-bottom: 12px; line-height: 1.5; }
   .setup-nav { align-items: center; }
   .setup-nav-status { flex: 1; font-size: 12.5px; color: var(--cadet-05); }
-  .fee-input { width: 124px; height: 38px; border: 1.5px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--foreground);
-    font-family: inherit; font-size: 14px; font-weight: 600; padding: 0 44px 0 12px; color-scheme: light; }
-  .fee-input:focus { outline: none; border-color: var(--primary); }
-  .fee-input.empty { border-color: var(--warning); }
 
 
   /* Transfers */
-  .setup-svc-channel.transfers { color: #006A66; background: var(--accent-10); }
-  .tf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
-  .tf-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .tf-label { font-size: 13px; font-weight: 700; color: var(--cadet-base); }
-  .tf-label .req { color: var(--destructive); }
-  .tf-fees-title { font-size: 13px; font-weight: 700; color: var(--cadet-base); margin-bottom: 8px; }
-  .tf-fees { border: 1px solid var(--border); border-radius: 10px; background: #F6F7F7; padding: 4px 18px; }
-  .tf-fee-block { padding: 16px 0; }
-  .tf-fee-block + .tf-fee-block { border-top: 1px solid var(--border); }
-  .tf-fee-name { font-size: 14px; font-weight: 700; color: var(--cadet-base); margin-bottom: 12px; }
-  .tf-input-wrap { display: flex; }
-  .tf-input-wrap .inp { width: 100%; background: #fff; }
-  .tf-input-wrap.has-suffix .inp { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-  .tf-suffix { display: flex; align-items: center; justify-content: center; min-width: 64px; border: 1.5px solid var(--border); border-left: none;
-    border-radius: 0 var(--radius) var(--radius) 0; background: #FAFBFB; font-size: 14px; color: var(--foreground); }
-  .tf-error { margin-top: 8px; }
-  .combo { position: relative; }
-  .combo-btn { width: 100%; height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px;
-    border: 1.5px solid var(--border); border-radius: 6px; background: #fff; font-family: inherit; font-size: 14px; color: var(--foreground); cursor: pointer; }
-  .combo-btn.empty .combo-val { color: var(--cadet-05); }
-  .combo-btn svg { color: var(--cadet-base); flex-shrink: 0; }
-  .combo-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; background: #fff; border: 1px solid var(--border);
-    border-radius: 6px; box-shadow: 0 10px 28px rgba(0,20,60,.14); padding: 6px 0; }
-  .combo-search { width: calc(100% - 16px); margin: 2px 8px 6px; height: 40px; border: 1.5px solid var(--border); border-radius: 6px; padding: 0 12px;
-    font-family: inherit; font-size: 14px; color: var(--foreground); background: #fff; color-scheme: light; }
-  .combo-search:focus { outline: none; border-color: var(--primary); }
-  .combo-list { max-height: 240px; overflow-y: auto; }
-  .combo-opt { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; background: #fff; font-family: inherit;
-    font-size: 14px; color: var(--cadet-base); cursor: pointer; }
-  .combo-opt:hover { background: var(--muted); }
-  .combo-opt.on { background: #D6DADA; color: var(--foreground); }
-  .combo-none { padding: 10px 16px; font-size: 13px; color: var(--cadet-05); }
-  @media (max-width: 700px) { .tf-grid { grid-template-columns: 1fr; } }
+
+
+  /* Services & Pricing table */
+  .svc-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+  .svc-table { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 12.5px; }
+  .svc-table th { text-align: left; font-weight: 600; color: var(--foreground); background: #FAFBFB; padding: 9px 10px;
+    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border-subtle); white-space: nowrap; }
+  .svc-table th:last-child { border-right: none; }
+  .svc-table td { padding: 5px 8px; border-bottom: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle);
+    vertical-align: middle; color: var(--foreground); }
+  .svc-table td:last-child { border-right: none; }
+  .svc-table tr.group-start td { border-top: 1px solid var(--border); }
+  .svc-table tbody tr:first-child td { border-top: none; }
+  .svc-table .cell-service { vertical-align: top; padding-top: 9px; min-width: 104px; }
+  .svc-table .cell-bank, .svc-table .cell-model { vertical-align: top; padding-top: 7px; min-width: 128px; }
+  .cell-channel { display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--primary); background: var(--ocean-10); border-radius: 999px; padding: 1px 7px; margin-bottom: 3px; }
+  .cell-channel.transfers { color: #006A66; background: var(--accent-10); }
+  .cell-service-name { display: block; font-weight: 600; font-size: 13px; }
+  .cell-type { white-space: nowrap; color: var(--cadet-base); }
+  .cell-muted { color: var(--cadet-06); }
+  .svc-table .cell-select { width: 100%; height: 30px; border: 1px solid var(--border); border-radius: 4px; background: #fff;
+    font-family: inherit; font-size: 12.5px; color: var(--foreground); padding: 0 6px; color-scheme: light; cursor: pointer; }
+  .svc-table .cell-select.empty { color: var(--cadet-05); }
+  .svc-table .cell-select:disabled { background: var(--muted); cursor: not-allowed; }
+  .svc-table .cell-input { width: 100%; min-width: 58px; height: 30px; border: 1px solid var(--border); border-radius: 4px;
+    background: #fff; font-family: inherit; font-size: 12.5px; font-weight: 400; color: var(--foreground); padding: 0 8px; color-scheme: light; }
+  .svc-table .cell-input.line-note { min-width: 130px; }
+  .svc-table .cell-input:focus, .svc-table .cell-select:focus { outline: none; border-color: var(--primary); }
+  .svc-table .cell-input:disabled { background: var(--muted); cursor: not-allowed; }
+  .svc-table .cell-input.invalid { border-color: var(--destructive); }
+  .cell-links { display: flex; gap: 10px; margin-top: 4px; }
+  .cell-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 11.5px; font-weight: 600; color: var(--link); cursor: pointer; }
+  .cell-link.danger { color: var(--destructive); }
+  .appr-chip { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .appr-chip.auto { background: var(--success-bg); color: var(--success-text); }
+  .appr-chip.manager { background: var(--warning-bg); color: var(--warning-text); }
+  .appr-chip.head { background: var(--destructive-bg); color: var(--destructive); }
+  .appr-chip.empty { color: var(--cadet-06); }
+  .svc-table-hint { font-size: 12px; color: var(--cadet-05); margin-top: 8px; }
 
   /* What still stands between the salesperson and a created application */
   .submit-checklist { background: var(--muted); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
@@ -512,7 +470,7 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
           <div>
             <h2>3. Service Setup</h2>
-            <p class="ch-sub">Set up every selected service in four steps: financial institution and settlement type, then rates and fixed fees, then the documents it all requires, and finally the signed Kashier contract.</p>
+            <p class="ch-sub">Set up every selected service in three steps: its institution, model and fees in one table, then the documents it all requires, and finally the signed Kashier contract.</p>
           </div>
         </div>
         <div class="card-body">
@@ -734,43 +692,6 @@
   function lineAttrs(service, bankKey, key) {
     return `data-service="${esc(service)}" data-bank="${esc(bankKey)}" data-key="${esc(key)}"`;
   }
-  function noteBlockHTML(t, tier, note, service, bankKey, key) {
-    const who = tier === 'manager' ? 'Manager' : 'Head';
-    return `<div class="price-note">
-      <textarea class="inp${note.trim() ? '' : ' invalid'}" placeholder="Why does this merchant need a ${who}-approved rate?" ${lineAttrs(service, bankKey, key)}>${esc(note)}</textarea>
-      <div class="price-note-hint">Required — this pricing needs ${who} sign-off before you can continue.</div>
-    </div>`;
-  }
-  function priceTierHTML(service, t, pricingMap, bankKey) {
-    const sel = pricingMap.get(t.key) || { rate: '', fee: '', tier: '', note: '' };
-    const { tier, text } = lineVerdict(t, sel);
-    const needsNote = tier === 'manager' || tier === 'head';
-    const id = `${service}-${bankKey}-${t.key}`.replace(/[^A-Za-z0-9-]/g, '_');
-    return `<div class="price-tier">
-      <div class="price-tier-label">${esc(t.label)}</div>
-      <div class="price-tier-desc">${esc(t.desc)}</div>
-      <div class="rate-entry">
-        <div class="rate-field">
-          <label class="rate-entry-label" for="rate-${id}">Your rate<span class="req">*</span></label>
-          <div class="rate-input-wrap">
-            <input class="rate-input${tierForRate(t, sel.rate) ? '' : ' empty'}" id="rate-${id}" type="number"
-              inputmode="decimal" step="0.01" min="0" placeholder="0.00" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.rate)}">
-            <span class="rate-input-suffix">%</span>
-          </div>
-        </div>
-        <div class="rate-field">
-          <label class="rate-entry-label" for="fee-${id}">Fixed fee<span class="req">*</span></label>
-          <div class="rate-input-wrap">
-            <input class="fee-input${tierForFee(t, sel.fee) ? '' : ' empty'}" id="fee-${id}" type="number"
-              inputmode="decimal" step="0.25" min="0" placeholder="0.00" ${lineAttrs(service, bankKey, t.key)} value="${esc(sel.fee)}">
-            <span class="rate-input-suffix">EGP</span>
-          </div>
-        </div>
-        <span class="rate-verdict ${tier || 'empty'}">${text}</span>
-      </div>
-      ${needsNote ? noteBlockHTML(t, tier, sel.note || '', service, bankKey, t.key) : ''}
-    </div>`;
-  }
   /* total = rate lines that need a rate typed in, missing = still blank,
      needsApproval = priced below standard, unresolved = those still missing a justification. */
   function aggregatePricingStats() {
@@ -973,17 +894,16 @@
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
   }
-  /* ══════════ Step 3 — Service Setup, as a four-step flow across every selected service:
-       1. Financial institution and settlement type
-       2. Rate and fixed fee for every pricing line, per the pricing rules
-       3. The documents all of it requires (each uploaded once)
-       4. The signed Kashier contract
+  /* ══════════ Step 3 — Service Setup, as a three-step flow across every selected service:
+       1. Services & Pricing — one compact table: each service's financial institution and
+          model, then the fees for every rate type, with who needs to approve them
+       2. The documents all of it requires (each uploaded once)
+       3. The signed Kashier contract
      A step can only be opened once every step before it is complete. ══════════ */
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
   const CONTRACT_DOC = 'Kashier Signed Contract';
   const SETUP_STEPS = [
-    { label: 'Institution & Settlement', hint: 'Where each service settles' },
-    { label: 'Rates & Fixed Fees', hint: 'Pricing for every line' },
+    { label: 'Services & Pricing', hint: 'Institution, model and fees' },
     { label: 'Documents', hint: 'Everything the setup requires' },
     { label: 'Signed Contract', hint: 'Kashier agreement' },
   ];
@@ -993,7 +913,7 @@
     .map(ch => criteria.services.filter(s => channelOf(s) === ch))
     .reduce((a, b) => a.concat(b), []);
 
-  /* Every pricing line on a configured institution/settlement, in display order. */
+  /* Every pricing line on a chosen institution and model, in display order. */
   function pricingLines() {
     const out = [];
     orderedServices().forEach(s => {
@@ -1017,24 +937,20 @@
         const keys = bankKeysFor(cfg, s);
         if (bankRequiredFor(s) && !keys.length) { issues.push(`Financial Institution for ${s}`); return; }
         keys.forEach(k => {
-          if (!cfg.bankConfigs[k] || !cfg.bankConfigs[k].module) issues.push(`Settlement type for ${s}${k ? ' — ' + k : ''}`);
+          if (!cfg.bankConfigs[k] || !cfg.bankConfigs[k].module) issues.push(`Model for ${s}${k ? ' — ' + k : ''}`);
         });
       });
-      return issues;
-    }
-    if (n === 2) {
       const lines = pricingLines();
       const blank = lines.filter(l => !l.sel || !lineVerdict(l.t, l.sel).tier).length;
       const unjustified = lines.filter(l => {
         const tier = l.sel ? lineVerdict(l.t, l.sel).tier : '';
         return (tier === 'manager' || tier === 'head') && !(l.sel.note || '').trim();
       }).length;
-      const issues = [];
-      if (blank) issues.push(`${blank} pricing line${blank === 1 ? '' : 's'} still need a rate and fixed fee`);
-      if (unjustified) issues.push(`${unjustified} line${unjustified === 1 ? '' : 's'} needing approval still need a justification`);
+      if (blank) issues.push(`${blank} rate type${blank === 1 ? '' : 's'} still need fees (%) and flat fees`);
+      if (unjustified) issues.push(`${unjustified} rate type${unjustified === 1 ? '' : 's'} needing approval still need a comment`);
       return issues;
     }
-    if (n === 3) {
+    if (n === 2) {
       // Choosing an Online service asks for the website here; activating POS asks for the store image.
       const issues = [];
       if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website');
@@ -1043,7 +959,22 @@
     }
     return isDocDone(CONTRACT_DOC) ? [] : [`Upload the ${CONTRACT_DOC}`];
   }
-  function stepIssues(n) { return serviceStepIssues(n).concat(n <= 2 && hasAnyService() ? transferIssues(n) : []); }
+
+  /* What still stops the Transfers rows of the table. */
+  function transferIssues() {
+    if (!criteria.transfersEnabled) return [];
+    const issues = [];
+    if (!transferConfig.bank) issues.push('Financial Institution for Transfers');
+    if (!transferConfig.version) issues.push('Version for Transfers');
+    TRANSFER_FEE_TYPES.forEach(([type, label]) => {
+      const f = transferConfig.fees[type];
+      if (f.percentage === '' || f.flat === '') issues.push(`Transfers ${label} selling fee — fees (%) and flat fees`);
+      else if (f.min !== '' && f.max !== '' && Number(f.min) > Number(f.max)) issues.push(`Transfers ${label} selling fee — Min is higher than Max`);
+    });
+    return issues;
+  }
+
+  function stepIssues(n) { return serviceStepIssues(n).concat(n === 1 && hasAnyService() ? transferIssues() : []); }
   const stepDone = n => stepIssues(n).length === 0;
   const canOpenStep = n => { for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
 
@@ -1061,49 +992,103 @@
     }).join('<span class="setup-step-line"></span>');
   }
 
-  function serviceHeadHTML(s) {
-    return `<div class="setup-svc-head"><span class="setup-svc-channel">${esc(channelOf(s))}</span>${esc(stripChannel(s))}</div>`;
+  /* ── Services & Pricing table ── */
+  const APPROVAL_SHORT = { auto: 'No approval', manager: 'Pricing Manager', head: 'Head of Sales' };
+  function approvalCellHTML(tier) {
+    return tier ? `<span class="appr-chip ${tier}">${APPROVAL_SHORT[tier]}</span>` : '<span class="appr-chip empty">—</span>';
+  }
+  /* options: plain values, or [value, label] pairs. */
+  function cellSelectHTML(attrs, value, options, placeholder, disabled) {
+    return `<select class="cell-select${value ? '' : ' empty'}" ${attrs}${disabled ? ' disabled' : ''}>
+      <option value="">${esc(placeholder)}</option>
+      ${options.map(o => {
+        const [v, label] = Array.isArray(o) ? o : [o, o];
+        return `<option value="${esc(v)}"${v === value ? ' selected' : ''}>${esc(label)}</option>`;
+      }).join('')}
+    </select>`;
+  }
+  function serviceCellHTML(channel, name, cls) {
+    return `<span class="cell-channel ${cls || ''}">${esc(channel)}</span><span class="cell-service-name">${esc(name)}</span>`;
   }
 
-  function stepConfigureHTML() {
-    return orderedServices().map(s => {
-      const cfg = serviceConfig[s];
-      const needsBank = bankRequiredFor(s);
-      const multi = needsBank && bankMultiFor(s);
-      const keys = bankKeysFor(cfg, s);
-      const settlement = keys.length
-        ? keys.map(k => {
-            const bc = ensureBankConfig(cfg, k);
-            return `<div class="setup-settle-row">
-              <span class="setup-settle-label">Settlement type${k ? ` — ${esc(k)}` : ''}<span class="req">*</span></span>
-              <div class="crit-chips">${MODULES.map(m =>
-                `<button type="button" class="crit-chip${bc.module === m ? ' on' : ''}" data-module="${esc(m)}" data-service="${esc(s)}" data-bank="${esc(k)}">${esc(m)}</button>`).join('')}</div>
-            </div>`;
-          }).join('')
-        : '<div class="svc-empty">Select a Financial Institution to choose its settlement type.</div>';
-      return `<div class="setup-svc">
-        ${serviceHeadHTML(s)}
-        ${needsBank ? `<div class="crit-label">Financial Institution<span class="req">*</span>${multi ? '<span class="opt">(select all that apply)</span>' : ''}</div>
-          <div class="crit-chips" style="margin-bottom:14px">${BANKS.map(b =>
-            `<button type="button" class="crit-chip${cfg.banks.includes(b) ? ' on' : ''}" data-bank-chip="${esc(b)}" data-service="${esc(s)}">${esc(b)}</button>`).join('')}</div>` : ''}
-        ${settlement}
-      </div>`;
-    }).join('');
-  }
-
-  function stepPricingHTML() {
-    return orderedServices().map(s => {
-      const cfg = serviceConfig[s];
-      return bankKeysFor(cfg, s).map(k => {
-        const bc = cfg.bankConfigs[k];
-        if (!bc || !bc.module) return '';
-        return `<div class="setup-svc">
-          ${serviceHeadHTML(s)}
-          <div class="setup-svc-sub">${[k, 'Settlement: ' + bc.module].filter(Boolean).map(esc).join(' · ')}</div>
-          ${ratesForService(s).map(t => priceTierHTML(s, t, bc.pricing, k)).join('')}
-        </div>`;
+  function serviceRowsHTML(s, showMinMax) {
+    const cfg = serviceConfig[s];
+    const needsBank = bankRequiredFor(s);
+    const multi = needsBank && bankMultiFor(s);
+    const rates = ratesForService(s);
+    // One group of rows per institution — or a single group while none is chosen, or when the
+    // service settles without one.
+    const groups = needsBank ? (cfg.banks.length ? cfg.banks : [null]) : [''];
+    return groups.map((k, gi) => {
+      const chosen = k !== null;
+      const bc = chosen ? ensureBankConfig(cfg, k) : null;
+      const others = cfg.banks.filter(b => b !== k);
+      const bankCell = needsBank
+        ? `${cellSelectHTML(`data-bank-select data-service="${esc(s)}" data-current="${esc(k || '')}"`, k || '',
+              BANKS.filter(b => !others.includes(b)), 'Select institution')}
+           <div class="cell-links">
+             ${multi && chosen && gi === groups.length - 1 && cfg.banks.length < BANKS.length
+               ? `<button type="button" class="cell-link" data-add-bank="${esc(s)}">+ Add institution</button>` : ''}
+             ${multi && gi > 0 ? `<button type="button" class="cell-link danger" data-remove-bank="${esc(s)}" data-bank="${esc(k)}">Remove</button>` : ''}
+           </div>`
+        : '<span class="cell-muted">Not required</span>';
+      const modelCell = cellSelectHTML(`data-model-select data-service="${esc(s)}" data-bank="${esc(k || '')}"`,
+        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !chosen);
+      return rates.map((t, i) => {
+        const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
+        const tier = bc ? lineVerdict(t, sel).tier : '';
+        const needsNote = tier === 'manager' || tier === 'head';
+        const off = chosen ? '' : ' disabled';
+        const attrs = chosen ? lineAttrs(s, k, t.key) : '';
+        return `<tr class="${i === 0 ? 'group-start' : ''}">
+          ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceCellHTML(channelOf(s), stripChannel(s))}</td>
+            <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
+            <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
+          <td class="cell-type">${esc(t.label)}</td>
+          <td><input class="cell-input rate-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
+          <td><input class="cell-input fee-input" type="number" min="0" step="0.25" inputmode="decimal" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
+          ${showMinMax ? '<td class="cell-muted">—</td><td class="cell-muted">—</td>' : ''}
+          <td class="cell-approval">${approvalCellHTML(tier)}</td>
+          <td><input class="cell-input line-note${needsNote && !(sel.note || '').trim() ? ' invalid' : ''}" type="text"
+            placeholder="${needsNote ? 'Comment required' : 'Optional'}" value="${esc(sel.note || '')}" ${attrs}${off}></td>
+        </tr>`;
       }).join('');
     }).join('');
+  }
+
+  function transferRowsHTML() {
+    if (!criteria.transfersEnabled) return '';
+    return TRANSFER_FEE_TYPES.map(([type, label], i) => {
+      const f = transferConfig.fees[type];
+      const bad = f.min !== '' && f.max !== '' && Number(f.min) > Number(f.max);
+      const input = (field, invalid) => `<input class="cell-input tf-input${invalid ? ' invalid' : ''}" type="number" min="0" step="0.01" inputmode="decimal"
+        placeholder="0.00" data-fee="${esc(type)}" data-field="${esc(field)}" value="${esc(f[field])}">`;
+      return `<tr class="${i === 0 ? 'group-start' : ''}">
+        ${i === 0 ? `<td rowspan="${TRANSFER_FEE_TYPES.length}" class="cell-service">${serviceCellHTML('Transfers', 'Transfers', 'transfers')}</td>
+          <td rowspan="${TRANSFER_FEE_TYPES.length}" class="cell-bank">${cellSelectHTML('data-transfer-field="bank"', transferConfig.bank, TRANSFER_INSTITUTIONS, 'Select institution')}</td>
+          <td rowspan="${TRANSFER_FEE_TYPES.length}" class="cell-model">${cellSelectHTML('data-transfer-field="version"', transferConfig.version, TRANSFER_VERSIONS, 'Select version')}</td>` : ''}
+        <td class="cell-type">${esc(label)} selling fee</td>
+        <td>${input('percentage')}</td>
+        <td>${input('flat')}</td>
+        <td>${input('min', bad)}</td>
+        <td>${input('max', bad)}</td>
+        <td class="cell-approval"><span class="appr-chip empty">—</span></td>
+        <td class="cell-muted">—</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function stepServicesTableHTML() {
+    const showMinMax = criteria.transfersEnabled;
+    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees']
+      .concat(showMinMax ? ['Min', 'Max'] : [], ['Approval', 'Comment']);
+    return `<div class="svc-table-wrap">
+        <table class="svc-table">
+          <thead><tr>${heads.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+          <tbody>${orderedServices().map(s => serviceRowsHTML(s, showMinMax)).join('')}${transferRowsHTML()}</tbody>
+        </table>
+      </div>
+      <div class="svc-table-hint">Choose each service's financial institution and model, then enter its fees. Approval shows who has to sign off — a comment is required whenever approval is needed.</div>`;
   }
 
   function stepDocumentsHTML() {
@@ -1132,16 +1117,6 @@
     return channel + (channel ? '<div class="setup-docs-gap"></div>' : '') + list;
   }
 
-  // Typing the website updates in place, so the field keeps focus.
-  $('serviceSetupBody').addEventListener('input', e => {
-    if (e.target.id !== 'mWebsite') return;
-    criteria.website = e.target.value;
-    const bad = e.target.value.trim() && !websiteValid(e.target.value);
-    e.target.classList.toggle('invalid', !!bad);
-    $('websiteHint').hidden = !bad;
-    refreshStepChrome();
-  });
-
   function stepContractHTML() {
     return `<div class="setup-contract-intro">Upload the Kashier merchant contract, signed and stamped by the merchant. This is the last step before you can create the application.</div>
       ${reqItemHTML(CONTRACT_DOC, ['Required for every merchant'])}`;
@@ -1158,11 +1133,7 @@
     while (setupStep > 1 && !canOpenStep(setupStep)) setupStep--;
     renderSetupStepper();
 
-    const body = [
-      () => stepConfigureHTML() + transferConfigureHTML(),
-      () => stepPricingHTML() + transferPricingHTML(),
-      stepDocumentsHTML, stepContractHTML,
-    ][setupStep - 1]();
+    const body = [stepServicesTableHTML, stepDocumentsHTML, stepContractHTML][setupStep - 1]();
     const issues = stepIssues(setupStep);
     const last = setupStep === SETUP_STEPS.length;
     wrap.innerHTML = `
@@ -1199,30 +1170,58 @@
     }
     if (e.target.closest('#setupBack')) { setupStep--; renderServiceSetup(); return; }
 
-    const bankChip = e.target.closest('[data-bank-chip]');
-    if (bankChip) {
-      const s = bankChip.dataset.service, bank = bankChip.dataset.bankChip, cfg = serviceConfig[s];
-      if (bankMultiFor(s)) {
-        const i = cfg.banks.indexOf(bank);
-        if (i >= 0) cfg.banks.splice(i, 1); else { cfg.banks.push(bank); ensureBankConfig(cfg, bank); }
-      } else {
-        cfg.banks = cfg.banks[0] === bank ? [] : [bank];
-        if (cfg.banks.length) ensureBankConfig(cfg, bank);
-      }
-      onSetupChanged();
+    // Bank Installments can run with several institutions — each gets its own rows.
+    const add = e.target.closest('[data-add-bank]');
+    if (add) {
+      const cfg = serviceConfig[add.dataset.addBank];
+      const next = BANKS.find(b => !cfg.banks.includes(b));
+      if (next) { cfg.banks.push(next); ensureBankConfig(cfg, next); onSetupChanged(); }
       return;
     }
-    const moduleChip = e.target.closest('[data-module]');
-    if (moduleChip) {
-      const cfg = serviceConfig[moduleChip.dataset.service];
-      const bc = ensureBankConfig(cfg, moduleChip.dataset.bank);
-      bc.module = bc.module === moduleChip.dataset.module ? '' : moduleChip.dataset.module;
+    const remove = e.target.closest('[data-remove-bank]');
+    if (remove) {
+      const cfg = serviceConfig[remove.dataset.removeBank];
+      cfg.banks = cfg.banks.filter(b => b !== remove.dataset.bank);
+      delete cfg.bankConfigs[remove.dataset.bank];
       onSetupChanged();
     }
   });
 
-  /* Typing a rate or fee re-decides whether the line needs sign-off. The verdict and the
-     justification box are swapped in place rather than re-rendering, so the field keeps focus. */
+  $('serviceSetupBody').addEventListener('change', e => {
+    const bankSel = e.target.closest('[data-bank-select]');
+    if (bankSel) {
+      const s = bankSel.dataset.service, cfg = serviceConfig[s];
+      const cur = bankSel.dataset.current, val = bankSel.value;
+      if (cur) {
+        const i = cfg.banks.indexOf(cur);
+        if (!val) { cfg.banks.splice(i, 1); delete cfg.bankConfigs[cur]; }
+        else {
+          // Switching institution keeps the model and fees already entered on that row group.
+          cfg.banks[i] = val;
+          cfg.bankConfigs[val] = cfg.bankConfigs[cur] || { module: '', pricing: new Map() };
+          delete cfg.bankConfigs[cur];
+        }
+      } else if (val) {
+        cfg.banks.push(val);
+        ensureBankConfig(cfg, val);
+      }
+      onSetupChanged();
+      return;
+    }
+    const modelSel = e.target.closest('[data-model-select]');
+    if (modelSel) {
+      ensureBankConfig(serviceConfig[modelSel.dataset.service], modelSel.dataset.bank).module = modelSel.value;
+      onSetupChanged();
+      return;
+    }
+    const tSel = e.target.closest('[data-transfer-field]');
+    if (tSel) {
+      transferConfig[tSel.dataset.transferField] = tSel.value;
+      onSetupChanged();
+    }
+  });
+
+  /* Typing fees or a comment updates the row in place, so the cell keeps focus. */
   function refreshStepChrome() {
     renderSetupStepper();
     const issues = stepIssues(setupStep);
@@ -1235,177 +1234,42 @@
     renderSubmitSummary();
   }
   $('serviceSetupBody').addEventListener('input', e => {
-    const input = e.target.closest('.rate-input, .fee-input');
-    if (input) {
-      const s = input.dataset.service, bankKey = input.dataset.bank, key = input.dataset.key;
-      const t = ratesForService(s).find(x => x.key === key);
-      const bc = ensureBankConfig(serviceConfig[s], bankKey);
-      const cur = bc.pricing.get(key) || { rate: '', fee: '', tier: '', note: '' };
-      const next = {
-        rate: input.classList.contains('rate-input') ? input.value : cur.rate,
-        fee: input.classList.contains('fee-input') ? input.value : cur.fee,
-        note: cur.note || '',
-      };
-      const { tier, text } = lineVerdict(t, next);
-      next.tier = tier;
-      bc.pricing.set(key, next);
-
-      const block = input.closest('.price-tier');
-      const verdictEl = block.querySelector('.rate-verdict');
-      verdictEl.className = `rate-verdict ${tier || 'empty'}`;
-      verdictEl.innerHTML = text;
-      block.querySelector('.rate-input').classList.toggle('empty', !tierForRate(t, next.rate));
-      block.querySelector('.fee-input').classList.toggle('empty', !tierForFee(t, next.fee));
-
-      const noteEl = block.querySelector('.price-note');
-      const needsNote = tier === 'manager' || tier === 'head';
-      if (needsNote && !noteEl) block.insertAdjacentHTML('beforeend', noteBlockHTML(t, tier, next.note, s, bankKey, key));
-      else if (needsNote && noteEl) {
-        const who = tier === 'manager' ? 'Manager' : 'Head';
-        noteEl.querySelector('textarea').placeholder = `Why does this merchant need a ${who}-approved rate?`;
-        noteEl.querySelector('.price-note-hint').textContent = `Required — this pricing needs ${who} sign-off before you can continue.`;
-      } else if (!needsNote && noteEl) noteEl.remove();
+    if (e.target.id === 'mWebsite') {
+      criteria.website = e.target.value;
+      const bad = e.target.value.trim() && !websiteValid(e.target.value);
+      e.target.classList.toggle('invalid', !!bad);
+      $('websiteHint').hidden = !bad;
       refreshStepChrome();
       return;
     }
-    const ta = e.target.closest('textarea[data-key]');
-    if (!ta) return;
-    const bc = ensureBankConfig(serviceConfig[ta.dataset.service], ta.dataset.bank);
-    const cur = bc.pricing.get(ta.dataset.key) || { rate: '', fee: '', tier: '', note: '' };
-    bc.pricing.set(ta.dataset.key, Object.assign({}, cur, { note: ta.value }));
-    ta.classList.toggle('invalid', !ta.value.trim());
-    refreshStepChrome();
-  });
-
-
-  /* ══════════ Transfers — the third service type, next to Online and POS. It is not picked
-     from a list of methods: once activated it needs a version, a financial institution and its
-     own selling fees for each transfer destination (wallet, bank, card). ══════════ */
-  const CHEVRON_SVG = '<svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
-
-  /* A searchable dropdown: the button shows the value, the panel filters as you type. */
-  function comboHTML(field, value, options, placeholder) {
-    return `<div class="combo" data-combo="${esc(field)}">
-      <button type="button" class="combo-btn${value ? '' : ' empty'}"><span class="combo-val">${esc(value || placeholder)}</span>${CHEVRON_SVG}</button>
-      <div class="combo-panel" hidden>
-        <input type="text" class="combo-search" placeholder="Search" autocomplete="off">
-        <div class="combo-list">${options.map(o =>
-          `<button type="button" class="combo-opt${o === value ? ' on' : ''}" data-value="${esc(o)}">${esc(o)}</button>`).join('')}
-          <div class="combo-none" hidden>No matches</div>
-        </div>
-      </div>
-    </div>`;
-  }
-  function closeCombos(except) {
-    document.querySelectorAll('.combo-panel').forEach(p => { if (p !== except) p.hidden = true; });
-  }
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('.combo-btn');
-    if (btn) {
-      const panel = btn.parentElement.querySelector('.combo-panel');
-      closeCombos(panel);
-      panel.hidden = !panel.hidden;
-      if (!panel.hidden) { const s = panel.querySelector('.combo-search'); s.value = ''; filterCombo(s); s.focus(); }
+    const tf = e.target.closest('.tf-input');
+    if (tf) {
+      const fee = transferConfig.fees[tf.dataset.fee];
+      fee[tf.dataset.field] = tf.value;
+      const bad = fee.min !== '' && fee.max !== '' && Number(fee.min) > Number(fee.max);
+      tf.closest('tr').querySelectorAll('[data-field="min"], [data-field="max"]').forEach(x => x.classList.toggle('invalid', bad));
+      refreshStepChrome();
       return;
     }
-    const opt = e.target.closest('.combo-opt');
-    if (opt) {
-      transferConfig[opt.closest('.combo').dataset.combo] = opt.dataset.value;
-      closeCombos();
-      onSetupChanged();
-      return;
-    }
-    if (!e.target.closest('.combo-panel')) closeCombos();
-  });
-  function filterCombo(input) {
-    const term = input.value.trim().toLowerCase();
-    let shown = 0;
-    input.closest('.combo-panel').querySelectorAll('.combo-opt').forEach(o => {
-      const match = !term || o.dataset.value.toLowerCase().includes(term);
-      o.hidden = !match;
-      if (match) shown++;
-    });
-    input.closest('.combo-panel').querySelector('.combo-none').hidden = shown > 0;
-  }
-  document.addEventListener('input', e => { if (e.target.classList.contains('combo-search')) filterCombo(e.target); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCombos(); });
-
-  function transferHeadHTML() {
-    return `<div class="setup-svc-head"><span class="setup-svc-channel transfers">Transfers</span>Transfers</div>`;
-  }
-
-  function transferConfigureHTML() {
-    if (!criteria.transfersEnabled) return '';
-    return `<div class="setup-svc">
-      ${transferHeadHTML()}
-      <div class="tf-grid">
-        <div class="tf-field">
-          <div class="tf-label">Version<span class="req">*</span></div>
-          ${comboHTML('version', transferConfig.version, TRANSFER_VERSIONS, 'Select version')}
-        </div>
-        <div class="tf-field">
-          <div class="tf-label">Financial Institution<span class="req">*</span></div>
-          ${comboHTML('bank', transferConfig.bank, TRANSFER_INSTITUTIONS, 'Select financial institution')}
-        </div>
-      </div>
-    </div>`;
-  }
-
-  function transferPricingHTML() {
-    if (!criteria.transfersEnabled) return '';
-    const input = (type, field, placeholder, suffix) => {
-      const v = transferConfig.fees[type][field];
-      return `<div class="tf-input-wrap${suffix ? ' has-suffix' : ''}">
-        <input class="inp tf-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="${esc(placeholder)}"
-          data-fee="${esc(type)}" data-field="${esc(field)}" value="${esc(v)}">
-        ${suffix ? `<span class="tf-suffix">${suffix}</span>` : ''}
-      </div>`;
+    const input = e.target.closest('.rate-input, .fee-input, .line-note');
+    if (!input || !input.dataset.key) return;
+    const s = input.dataset.service, bankKey = input.dataset.bank, key = input.dataset.key;
+    const t = ratesForService(s).find(x => x.key === key);
+    const bc = ensureBankConfig(serviceConfig[s], bankKey);
+    const cur = bc.pricing.get(key) || { rate: '', fee: '', tier: '', note: '' };
+    const next = {
+      rate: input.classList.contains('rate-input') ? input.value : cur.rate,
+      fee: input.classList.contains('fee-input') ? input.value : cur.fee,
+      note: input.classList.contains('line-note') ? input.value : (cur.note || ''),
     };
-    return `<div class="setup-svc">
-      ${transferHeadHTML()}
-      <div class="setup-svc-sub">${esc([transferConfig.bank, transferConfig.version].filter(Boolean).join(' · '))}</div>
-      <div class="tf-fees-title">Selling Fees</div>
-      <div class="tf-fees">
-        ${TRANSFER_FEE_TYPES.map(([type, label]) => `<div class="tf-fee-block">
-          <div class="tf-fee-name">${esc(label)}</div>
-          <div class="tf-grid">
-            <div class="tf-field"><div class="tf-label">Percentage<span class="req">*</span></div>${input(type, 'percentage', 'percentage', '%')}</div>
-            <div class="tf-field"><div class="tf-label">Flat<span class="req">*</span></div>${input(type, 'flat', 'flat')}</div>
-            <div class="tf-field"><div class="tf-label">Min</div>${input(type, 'min', 'min')}</div>
-            <div class="tf-field"><div class="tf-label">Max</div>${input(type, 'max', 'max')}</div>
-          </div>
-          <div class="field-hint tf-error" data-fee-error="${esc(type)}" hidden>Min can't be higher than Max.</div>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  }
-
-  /* What still stops the Transfers setup at each step. */
-  function transferIssues(n) {
-    if (!criteria.transfersEnabled) return [];
-    const issues = [];
-    if (n === 1) {
-      if (!transferConfig.version) issues.push('Version for Transfers');
-      if (!transferConfig.bank) issues.push('Financial Institution for Transfers');
-    }
-    if (n === 2) {
-      TRANSFER_FEE_TYPES.forEach(([type, label]) => {
-        const f = transferConfig.fees[type];
-        if (f.percentage === '' || f.flat === '') issues.push(`Transfers ${label} selling fee — percentage and flat`);
-        else if (f.min !== '' && f.max !== '' && Number(f.min) > Number(f.max)) issues.push(`Transfers ${label} selling fee — Min is higher than Max`);
-      });
-    }
-    return issues;
-  }
-
-  // Typing a selling fee updates in place, so the field keeps focus.
-  $('serviceSetupBody').addEventListener('input', e => {
-    const input = e.target.closest('.tf-input');
-    if (!input) return;
-    const fee = transferConfig.fees[input.dataset.fee];
-    fee[input.dataset.field] = input.value;
-    const err = $('serviceSetupBody').querySelector(`[data-fee-error="${input.dataset.fee}"]`);
-    if (err) err.hidden = !(fee.min !== '' && fee.max !== '' && Number(fee.min) > Number(fee.max));
+    next.tier = lineVerdict(t, next).tier;
+    bc.pricing.set(key, next);
+    const row = input.closest('tr');
+    row.querySelector('.cell-approval').innerHTML = approvalCellHTML(next.tier);
+    const needsNote = next.tier === 'manager' || next.tier === 'head';
+    const note = row.querySelector('.line-note');
+    note.placeholder = needsNote ? 'Comment required' : 'Optional';
+    note.classList.toggle('invalid', needsNote && !next.note.trim());
     refreshStepChrome();
   });
 

@@ -206,6 +206,44 @@ window.KashierRates = (function () {
           note: 'Half their volume is international clients paying in USD.' },
       ],
     },
+    // Returned to the salesperson: reviewed, with rates rejected — waiting on a resubmission.
+    {
+      id: 'APP-00000005', leadId: 'L-005', biz: 'Giza Learning Hub', actor: 'Mostafa Khaled',
+      ts: '2026-09-07T09:10:00.000Z',
+      summary: {
+        email: 'omar@gizalearning.edu', phone: '+20 106 567 8901',
+        entity: 'Professional Business', industry: 'Education',
+        services: ['Online Card', 'Online Bank Installments'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'CIB', module: 'PSP' }] },
+          { service: 'Online Bank Installments', configs: [{ bank: 'CIB', module: 'PSP' }] },
+        ],
+        posTerminals: '', docsDone: '5', docsTotal: '5',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'giza-learning-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'omar-khalil-id.pdf' },
+        { name: 'Bank Account Letter', file: 'cib-account-letter.pdf' },
+        { name: 'Signed Merchant Agreement', file: 'agreement-signed.pdf' },
+      ],
+      requests: [
+        { id: 'Online Card::CIB::national-onus', service: 'Online Card', bank: 'CIB',
+          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.25, standard: 1.5, requestedFee: 1.5, standardFee: 2,
+          note: 'Tuition payments peak at the start of each term — a partner referral with steady volume.' },
+        { id: 'Online Card::CIB::national-offus', service: 'Online Card', bank: 'CIB',
+          rate: 'National — Off-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.1, standard: 1.5, requestedFee: 1, standardFee: 2,
+          note: 'Most parents pay with cards from other banks.' },
+        { id: 'Online Bank Installments::CIB::12-month', service: 'Online Bank Installments', bank: 'CIB',
+          rate: '12-month plan', tier: 'head', from: 3, to: 4, requested: 2.5, standard: 4.5, requestedFee: 2, standardFee: 2,
+          note: 'Parents split yearly tuition into 12 installments — the partner asked for this rate.' },
+      ],
+      seedDecisions: {
+        'Online Card::CIB::national-onus': { decision: 'approved', reason: '', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-07T13:00:00.000Z' },
+        'Online Card::CIB::national-offus': { decision: 'rejected', reason: 'Off-us at 1.1% is below cost for this volume — 1.35% is the lowest we can offer.', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-07T13:05:00.000Z' },
+        'Online Bank Installments::CIB::12-month': { decision: 'rejected', reason: 'A 12-month plan under 3% is not viable — resubmit at 3% or above.', by: 'Tarek Fahmy', roleLabel: 'Head of Sales', ts: '2026-09-08T10:30:00.000Z' },
+      },
+    },
     // Applications already past rate approval, one at each onboarding stage.
     {
       id: 'APP-00000006', leadId: 'L-006', biz: 'Zamalek Boutique Hotel', actor: 'Mostafa Khaled',
@@ -277,6 +315,38 @@ window.KashierRates = (function () {
       requests: [],
     },
   ];
+
+
+  /* A seeded application that arrives already reviewed writes its decisions once, the same
+     way a real decision would, so the lead shows up as returned. Nothing is written again
+     once the application has decisions of its own (or was resubmitted). */
+  (function seedReviewedApplications() {
+    const all = readStore('kashierRateDecisions');
+    SEEDED.forEach(app => {
+      if (!app.seedDecisions || all[app.id]) return;
+      all[app.id] = app.seedDecisions;
+      const status = statusFor(app.requests, app.seedDecisions);
+      const statuses = readStore('kashierAppStatus');
+      statuses[app.id] = status;
+      writeStore('kashierAppStatus', statuses);
+      const leadStatuses = readStore('kashierLeadStatusOverrides');
+      leadStatuses[app.leadId] = LEAD_STATUS[status];
+      writeStore('kashierLeadStatusOverrides', leadStatuses);
+      if (status === 'returned-to-sales') {
+        const notes = readStore('kashierLeadReturnNote');
+        const rejected = app.requests.filter(r => app.seedDecisions[r.id] && app.seedDecisions[r.id].decision === 'rejected');
+        notes[app.leadId] = {
+          ts: rejected.map(r => app.seedDecisions[r.id].ts).sort().pop(),
+          text: rejected.map(r => {
+            const d = app.seedDecisions[r.id];
+            return [r.service, r.bank].filter(Boolean).join(' · ') + ' — ' + r.rate + ' rejected by ' + d.by + ': ' + d.reason;
+          }).join(' | '),
+        };
+        writeStore('kashierLeadReturnNote', notes);
+      }
+    });
+    writeStore('kashierRateDecisions', all);
+  })();
 
   /* Kashier MIDs are issued with the lead in CRM; applications carry the lead's MID. */
   const LEAD_MIDS = {

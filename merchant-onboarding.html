@@ -271,9 +271,6 @@
   .setup-nav-status { flex: 1; font-size: 12.5px; color: var(--cadet-05); }
 
 
-  /* Transfers */
-
-
   /* Services & Pricing table */
   .svc-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
   .svc-table { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 12.5px; }
@@ -289,7 +286,6 @@
   .svc-table .cell-bank, .svc-table .cell-model { vertical-align: top; padding-top: 7px; min-width: 128px; }
   .cell-channel { display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
     color: var(--primary); background: var(--ocean-10); border-radius: 999px; padding: 1px 7px; margin-bottom: 3px; }
-  .cell-channel.transfers { color: #006A66; background: var(--accent-10); }
   .cell-service-name { display: block; font-weight: 600; font-size: 13px; }
   .cell-type { white-space: nowrap; color: var(--cadet-base); }
   .cell-muted { color: var(--cadet-06); }
@@ -579,17 +575,11 @@
     { name: 'Foreign owner KYC',       docs: ["Owner's Passport", "Owner's Residence Card"],                  entities: [], owners: ['Foreign Owner'], industries: [], banks: [], modules: [], services: [] },
     { name: 'Bank Misr PSP annex',     docs: ['BM PSP Agreement Annex'],                                      entities: [], owners: [], industries: [], banks: ['Bank Misr'], modules: ['PSP'], services: [] },
     { name: 'Online services',         docs: ['Brand Authorization Letter'],                                  entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('Online ')) },
-    { name: 'Transfers',               docs: ['Disbursement Authorization Letter'],                           entities: [], owners: [], industries: [], banks: [], modules: [], services: ['Transfers'] },
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '', website: '', transfersEnabled: false };
-  const TRANSFER_VERSIONS = ['Ebc_v1', 'Ebc_instant_wallet_v1', 'Axis_pay_v1', 'Kashier_account_v1', 'Octo_payout_v1'];
-  const TRANSFER_INSTITUTIONS = ['Bdc', 'Nbe', 'Bm'];
-  const TRANSFER_FEE_TYPES = [['wallet', 'Wallet'], ['bank', 'Bank'], ['card', 'Card']];
-  const blankFee = () => ({ percentage: '', flat: '', min: '', max: '' });
-  const transferConfig = { version: '', bank: '', fees: { wallet: blankFee(), bank: blankFee(), card: blankFee() } };
-  const hasAnyService = () => criteria.services.length > 0 || criteria.transfersEnabled;
+  const criteria = { entity: '', owner: '', industry: '', services: [], posEnabled: false, posTerminals: '', website: '' };
+  const hasAnyService = () => criteria.services.length > 0;
   const hasOnlineService = () => criteria.services.some(s => s.startsWith('Online '));
   const STORE_IMAGE_DOC = 'Store Image';
   const websiteValid = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
@@ -824,23 +814,6 @@
       c.appendChild(group);
     });
 
-    // Transfers — its own service type, activated rather than picked from methods.
-    const tGroup = document.createElement('div');
-    tGroup.className = 'svc-group';
-    tGroup.innerHTML = `<div class="svc-group-label">Transfers</div>
-      <div class="pos-activate">
-        <button type="button" class="crit-chip${criteria.transfersEnabled ? ' on' : ''}" id="transfersToggle">Activate Transfers for this merchant</button>
-      </div>
-      <div class="svc-empty">${criteria.transfersEnabled
-        ? 'Set the Transfers version, financial institution and selling fees in Service Setup below.'
-        : 'Activate Transfers to set up payouts with their own version, financial institution and selling fees.'}</div>`;
-    c.appendChild(tGroup);
-    $('transfersToggle').addEventListener('click', () => {
-      criteria.transfersEnabled = !criteria.transfersEnabled;
-      renderCriteria();
-      refreshAll();
-    });
-
     c.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
     if (criteria.posEnabled) {
       const input = $('posTerminals');
@@ -886,10 +859,6 @@
       via.forEach(v => merged.get(name).add(v));
     };
     criteria.services.forEach(s => docsForService(s).forEach(add));
-    if (criteria.transfersEnabled) {
-      computeRequiredDocs({ entity: criteria.entity, owner: criteria.owner, industry: criteria.industry,
-        bank: transferConfig.bank, module: '', services: ['Transfers'] }).forEach(add);
-    }
     const out = new Map();
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
@@ -960,21 +929,7 @@
     return isDocDone(CONTRACT_DOC) ? [] : [`Upload the ${CONTRACT_DOC}`];
   }
 
-  /* What still stops the Transfers rows of the table. */
-  function transferIssues() {
-    if (!criteria.transfersEnabled) return [];
-    const issues = [];
-    if (!transferConfig.bank) issues.push('Financial Institution for Transfers');
-    if (!transferConfig.version) issues.push('Version for Transfers');
-    TRANSFER_FEE_TYPES.forEach(([type, label]) => {
-      const f = transferConfig.fees[type];
-      if (f.percentage === '' || f.flat === '') issues.push(`Transfers ${label} selling fee — fees (%) and flat fees`);
-      else if (f.min !== '' && f.max !== '' && Number(f.min) > Number(f.max)) issues.push(`Transfers ${label} selling fee — Min is higher than Max`);
-    });
-    return issues;
-  }
-
-  function stepIssues(n) { return serviceStepIssues(n).concat(n === 1 && hasAnyService() ? transferIssues() : []); }
+  const stepIssues = n => serviceStepIssues(n);
   const stepDone = n => stepIssues(n).length === 0;
   const canOpenStep = n => { for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
 
@@ -1011,7 +966,7 @@
     return `<span class="cell-channel ${cls || ''}">${esc(channel)}</span><span class="cell-service-name">${esc(name)}</span>`;
   }
 
-  function serviceRowsHTML(s, showMinMax) {
+  function serviceRowsHTML(s) {
     const cfg = serviceConfig[s];
     const needsBank = bankRequiredFor(s);
     const multi = needsBank && bankMultiFor(s);
@@ -1047,7 +1002,6 @@
           <td class="cell-type">${esc(t.label)}</td>
           <td><input class="cell-input rate-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
           <td><input class="cell-input fee-input" type="number" min="0" step="0.25" inputmode="decimal" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
-          ${showMinMax ? '<td class="cell-muted">—</td><td class="cell-muted">—</td>' : ''}
           <td class="cell-approval">${approvalCellHTML(tier)}</td>
           <td><input class="cell-input line-note${needsNote && !(sel.note || '').trim() ? ' invalid' : ''}" type="text"
             placeholder="${needsNote ? 'Comment required' : 'Optional'}" value="${esc(sel.note || '')}" ${attrs}${off}></td>
@@ -1056,36 +1010,12 @@
     }).join('');
   }
 
-  function transferRowsHTML() {
-    if (!criteria.transfersEnabled) return '';
-    return TRANSFER_FEE_TYPES.map(([type, label], i) => {
-      const f = transferConfig.fees[type];
-      const bad = f.min !== '' && f.max !== '' && Number(f.min) > Number(f.max);
-      const input = (field, invalid) => `<input class="cell-input tf-input${invalid ? ' invalid' : ''}" type="number" min="0" step="0.01" inputmode="decimal"
-        placeholder="0.00" data-fee="${esc(type)}" data-field="${esc(field)}" value="${esc(f[field])}">`;
-      return `<tr class="${i === 0 ? 'group-start' : ''}">
-        ${i === 0 ? `<td rowspan="${TRANSFER_FEE_TYPES.length}" class="cell-service">${serviceCellHTML('Transfers', 'Transfers', 'transfers')}</td>
-          <td rowspan="${TRANSFER_FEE_TYPES.length}" class="cell-bank">${cellSelectHTML('data-transfer-field="bank"', transferConfig.bank, TRANSFER_INSTITUTIONS, 'Select institution')}</td>
-          <td rowspan="${TRANSFER_FEE_TYPES.length}" class="cell-model">${cellSelectHTML('data-transfer-field="version"', transferConfig.version, TRANSFER_VERSIONS, 'Select version')}</td>` : ''}
-        <td class="cell-type">${esc(label)} selling fee</td>
-        <td>${input('percentage')}</td>
-        <td>${input('flat')}</td>
-        <td>${input('min', bad)}</td>
-        <td>${input('max', bad)}</td>
-        <td class="cell-approval"><span class="appr-chip empty">—</span></td>
-        <td class="cell-muted">—</td>
-      </tr>`;
-    }).join('');
-  }
-
   function stepServicesTableHTML() {
-    const showMinMax = criteria.transfersEnabled;
-    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees']
-      .concat(showMinMax ? ['Min', 'Max'] : [], ['Approval', 'Comment']);
+    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees', 'Approval', 'Comment'];
     return `<div class="svc-table-wrap">
         <table class="svc-table">
           <thead><tr>${heads.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
-          <tbody>${orderedServices().map(s => serviceRowsHTML(s, showMinMax)).join('')}${transferRowsHTML()}</tbody>
+          <tbody>${orderedServices().map(serviceRowsHTML).join('')}</tbody>
         </table>
       </div>
       <div class="svc-table-hint">Choose each service's financial institution and model, then enter its fees. Approval shows who has to sign off — a comment is required whenever approval is needed.</div>`;
@@ -1214,11 +1144,6 @@
       onSetupChanged();
       return;
     }
-    const tSel = e.target.closest('[data-transfer-field]');
-    if (tSel) {
-      transferConfig[tSel.dataset.transferField] = tSel.value;
-      onSetupChanged();
-    }
   });
 
   /* Typing fees or a comment updates the row in place, so the cell keeps focus. */
@@ -1239,15 +1164,6 @@
       const bad = e.target.value.trim() && !websiteValid(e.target.value);
       e.target.classList.toggle('invalid', !!bad);
       $('websiteHint').hidden = !bad;
-      refreshStepChrome();
-      return;
-    }
-    const tf = e.target.closest('.tf-input');
-    if (tf) {
-      const fee = transferConfig.fees[tf.dataset.fee];
-      fee[tf.dataset.field] = tf.value;
-      const bad = fee.min !== '' && fee.max !== '' && Number(fee.min) > Number(fee.max);
-      tf.closest('tr').querySelectorAll('[data-field="min"], [data-field="max"]').forEach(x => x.classList.toggle('invalid', bad));
       refreshStepChrome();
       return;
     }
@@ -1453,14 +1369,11 @@
       const configs = bankKeysFor(cfg, s).map(k => ({ bank: k, module: (cfg.bankConfigs[k] && cfg.bankConfigs[k].module) || '' }));
       return { service: s, configs };
     });
-    if (criteria.transfersEnabled) {
-      serviceConfigsPayload.push({ service: 'Transfers', configs: [{ bank: transferConfig.bank, module: transferConfig.version }] });
-    }
     const qs = new URLSearchParams({
       id: 'APP-' + Date.now().toString().slice(-8),
       biz, email, phone,
       entity: criteria.entity, industry: criteria.industry,
-      services: criteria.services.concat(criteria.transfersEnabled ? ['Transfers'] : []).join(','),
+      services: criteria.services.join(','),
       serviceConfigs: JSON.stringify(serviceConfigsPayload),
       pricingRequests: JSON.stringify(pricingRequests()),
       total, done, needsApproval, status,
@@ -1468,7 +1381,6 @@
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
     if (hasOnlineService()) qs.set('website', criteria.website.trim());
-    if (criteria.transfersEnabled) qs.set('transfers', JSON.stringify(transferConfig));
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
     if (sourceLeadMid) qs.set('mid', sourceLeadMid);
     // The Onboarding team reviews the uploaded documents on the merchant account.

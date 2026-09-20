@@ -139,6 +139,30 @@
   .btn-reject { background: #fff; color: var(--destructive); border: 1.5px solid var(--destructive); }
   .btn-approve { background: var(--success); color: #fff; border: 1.5px solid var(--success); }
 
+
+  /* Tracking pipeline */
+  .pipe { display: flex; gap: 0; margin-top: 14px; }
+  .pipe-step { flex: 1; position: relative; text-align: center; padding: 0 6px; }
+  .pipe-step::before { content: ''; position: absolute; top: 15px; left: -50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+  .pipe-step:first-child::before { display: none; }
+  .pipe-step.done::before, .pipe-step.current::before, .pipe-step.bad::before { background: var(--success); }
+  .pipe-dot { position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; background: #fff; border: 2px solid var(--border); color: var(--cadet-05); }
+  .pipe-dot svg { width: 15px; height: 15px; }
+  .pipe-step.done .pipe-dot { background: var(--success); border-color: var(--success); color: #fff; }
+  .pipe-step.current .pipe-dot { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 4px var(--ocean-10); }
+  .pipe-step.bad .pipe-dot { background: var(--destructive); border-color: var(--destructive); color: #fff; }
+  .pipe-label { font-size: 13px; font-weight: 700; color: var(--foreground); }
+  .pipe-step.todo .pipe-label { color: var(--cadet-05); font-weight: 600; }
+  .pipe-step.bad .pipe-label { color: var(--destructive); }
+  .pipe-sub { font-size: 11.5px; color: var(--cadet-05); margin-top: 3px; line-height: 1.4; }
+  @media (max-width: 720px) {
+    .pipe { flex-direction: column; gap: 14px; }
+    .pipe-step { display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; text-align: left; padding: 0; }
+    .pipe-step::before { display: none; }
+    .pipe-dot { grid-row: 1 / span 2; margin: 0; }
+  }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -1699,29 +1723,40 @@
     }
 
     // Tracking, on the same page: where the submitted application stands.
+    /* Tracking as a pipeline: Submitted -> Rate Approval (only when rates needed it) ->
+       Underwriting Review -> Bank Submission -> Live, with where the application stands now. */
     const trackingHTML = () => {
       if (!(app && status !== 'new')) return '';
       const fmt = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-      const rows = [];
-      const row = (label, value, tone) => rows.push(`<div class="track-row"><span class="track-label">${esc(label)}</span><span class="track-val ${tone || ''}">${value}</span></div>`);
-      row('Application', esc(app.id));
-      row('Submitted', `${esc(fmt(app.ts))} by ${esc(app.actor)}`);
+      const cur = K.readStore('kashierLeadStatusOverrides')[sourceLeadId] || status;
       const decisions = K.decisionsFor(app.id);
       const total = app.requests.length;
-      if (!total) {
-        row('Rate approval', 'Not needed — every rate was at no-approval pricing', 'ok');
-      } else {
-        const approved = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'approved').length;
-        const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected').length;
-        const open = total - approved - rejected;
-        const levels = K.approvalRequests().filter(r => r.app.id === app.id)
-          .map(r => `${K.TIER_OWNER[r.tier]}: ${r.state === 'pending' ? `${r.pendingLines.length} to review` : r.state}`).join(' · ');
-        row('Rate approval', `${approved} approved · ${rejected} rejected · ${open} to review${levels ? `<div class="track-sub">${esc(levels)}</div>` : ''}`,
-          open ? 'warn' : rejected ? 'bad' : 'ok');
-      }
+      const approved = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'approved').length;
+      const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected').length;
+      const open = total - approved - rejected;
       const acct = K.findAccount(app.id);
-      if (acct) row('Underwriting', esc(acct.meta.label), acct.meta.tone === 'success' ? 'ok' : acct.meta.tone === 'danger' ? 'bad' : 'warn');
-      return `<div class="status-panel"><h2>Application Tracking</h2>${rows.join('')}</div>`;
+      const order = ['rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+      // 'application' after a review means the rates came back rejected — the pipeline stalls at rate approval.
+      const at = cur === 'application' ? 0 : order.indexOf(cur);
+      const stateOf = i => at === -1 ? 'todo' : i < at ? 'done' : i === at ? 'current' : 'todo';
+      const steps = [{ label: 'Submitted', state: 'done', sub: `${fmt(app.ts)} by ${app.actor}<br>${app.id}` }];
+      if (total) {
+        const st = rejected && !open ? 'bad' : open ? (at === 0 ? 'current' : stateOf(0)) : 'done';
+        steps.push({ label: 'Rate Approval', state: st,
+          sub: `${approved} approved${rejected ? ` · ${rejected} rejected` : ''}${open ? ` · ${open} to review` : ''}` });
+      }
+      steps.push({ label: 'Underwriting Review', state: at >= 1 ? stateOf(1) : 'todo',
+        sub: at >= 1 && acct ? acct.meta.label : '' });
+      steps.push({ label: 'Bank Submission', state: at >= 2 ? stateOf(2) : 'todo', sub: '' });
+      steps.push({ label: 'Live', state: cur === 'activated' ? 'done' : 'todo', sub: cur === 'activated' ? 'Merchant is live' : '' });
+      const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+      const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
+      return `<div class="status-panel"><h2>Application Tracking</h2><div class="pipe">${steps.map((st, i) => `
+        <div class="pipe-step ${st.state}">
+          <div class="pipe-dot">${st.state === 'done' ? CHECK : st.state === 'bad' ? CROSS : i + 1}</div>
+          <div class="pipe-label">${esc(st.label)}</div>
+          <div class="pipe-sub">${st.sub}</div>
+        </div>`).join('')}</div></div>`;
     };
 
     // Approvers review the rates at their own level right here, on the application.

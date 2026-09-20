@@ -188,6 +188,18 @@
   .drawer .log-item { grid-template-columns: 1fr; gap: 2px; padding: 13px 0; }
   .drawer .log-time { font-size: 11.5px; }
 
+
+  /* Approver actions beside each requested rate */
+  .approver-view.app-locked .content .card { opacity: 1; }
+  .approver-view.app-locked .content .card-body .rp-actions, .approver-view.app-locked .content .card-body .rp-actions * { pointer-events: auto; }
+  .cell-approval-actions { min-width: 190px; vertical-align: middle; }
+  .cell-approval-actions .rp-actions { justify-content: flex-start; }
+  .rate-just { margin-top: 4px; white-space: normal; max-width: 260px; }
+  .rate-just-pub { font-size: 12px; color: var(--cadet-05); }
+  .rate-just-note { font-size: 12px; color: var(--cadet-base); background: var(--muted); border-radius: 6px; padding: 6px 8px; margin-top: 4px; line-height: 1.4; }
+  .rate-just-note.empty { color: var(--cadet-06); font-style: italic; }
+  .rp-by { font-size: 12px; color: var(--cadet-05); margin-top: 3px; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -1174,6 +1186,28 @@
     return `<span class="cell-service-name">${esc(name)}</span>`;
   }
 
+  /* What the approver needs beside a requested rate: the published rate to compare with and the
+     salesperson's justification; then Approve / Reject, or the decision already taken. */
+  function approvalNoteHTML(line) {
+    const pub = [line.standard != null ? line.standard + '%' : '', line.standardFee != null ? line.standardFee + ' EGP' : ''].filter(Boolean).join(' + ');
+    return `<div class="rate-just"><div class="rate-just-pub">Published ${esc(pub || '\u2014')}</div>` +
+      `<div class="rate-just-note${line.note ? '' : ' empty'}">${line.note ? esc(line.note) : 'No justification recorded'}</div></div>`;
+  }
+  function approvalActionsHTML(line) {
+    if (!line) return '<span class="cell-muted">No approval needed</span>';
+    const K2 = window.KashierRates;
+    const d = K2.decisionsFor(currentAppId)[line.id];
+    if (d) {
+      const ok = d.decision === 'approved';
+      return `<div class="rp-outcome"><span class="pill ${d.decision}">${ok ? 'Approved' : 'Rejected'}</span>` +
+        `<div class="rp-by">${esc(d.by)}</div>${!ok && d.reason ? `<div class="why">${esc(d.reason)}</div>` : ''}</div>`;
+    }
+    if (!K2.canRoleAct(approverRole, line.tier)) return `<span class="cell-muted">With the ${esc(K2.TIER_OWNER[line.tier])}</span>`;
+    return `<div class="rp-actions"><button type="button" class="btn btn-sm btn-reject rp-act" data-rp-reject="${esc(line.id)}">Reject</button>` +
+      `<button type="button" class="btn btn-sm btn-approve rp-act" data-rp-approve="${esc(line.id)}">Approve</button></div>`;
+  }
+  let currentAppId = '';
+
   function serviceToggleHTML(s, active) {
     return `<label class="cell-toggle">
       <input type="checkbox" data-service-toggle="${esc(s)}"${active ? ' checked' : ''}${appMode === 'locked' ? ' disabled' : ''}>
@@ -1186,7 +1220,7 @@
     if (!active) {
       return `<tr class="svc-row-inactive">
         <td class="cell-service">${serviceToggleHTML(s, false)}</td>
-        <td class="cell-muted" colspan="5">Not activated — check the box to add its pricing</td>
+        <td class="cell-muted" colspan="${approverView ? 6 : 5}">Not activated — check the box to add its pricing</td>
       </tr>`;
     }
     const cfg = serviceConfig[s];
@@ -1222,16 +1256,17 @@
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
-          <td class="cell-type">${esc(t.label)}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>` : ''}</td>
+          <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>` : ''}</td>
           <td><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
           <td><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
+          ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
         </tr>`;
       }).join('');
     }).join('');
   }
 
   function stepServicesTableHTML() {
-    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'];
+    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'].concat(approverView ? ['Rate approval'] : []);
     const body = SERVICE_CATALOG.map(tier => {
       const header = `<tr class="svc-tier-row"><td colspan="${heads.length}" class="svc-tier-head">${esc(tier.tier)} Services</td></tr>`;
       const terminals = tier.tier === 'POS' && criteria.posEnabled
@@ -1662,6 +1697,7 @@
       const sel = { rate: String(r.requested), fee: r.requestedFee != null ? String(r.requestedFee) : String(t.fixedFee), note: r.note || '' };
       sel.tier = lineVerdict(t, sel).tier;
       ensureBankConfig(cfg, bankKey).pricing.set(key, sel);
+      approvalLineMap.set(`${r.service}::${bankKey}::${key}`, r);
       const d = decisions[r.id];
       // The rejected rate and fee, so a resubmission can be blocked until they actually change.
       if (d && d.decision === 'rejected') rejectedLines.set(`${r.service}::${bankKey}::${key}`, Object.assign({}, d, { origRate: sel.rate, origFee: sel.fee }));
@@ -1684,6 +1720,10 @@
      sent, and each difference is written to the activity log (a rate 1.2% -> 1.6%, a service
      added, an institution or model switched, a justification, a document). */
   let editBaseline = null;
+  /* An approver sees Approve / Reject beside each requested rate in the table itself. */
+  let approverView = false;
+  let approverRole = '';
+  const approvalLineMap = new Map();   // service::bank::rateKey -> the requested rate line
   const normNum = v => (v === '' || v == null || isNaN(Number(v))) ? '' : String(Number(v));
   function snapshot() {
     const services = {};
@@ -1869,37 +1909,10 @@
     // Approvers review the rates at their own level right here, on the application.
     const myRole = K.getRole();
     const isApprover = K.ROLES[myRole].approves.length > 0;
+    approverView = isApprover && appMode === 'locked' && !!app && app.requests.some(r => K.canRoleAct(myRole, r.tier));
+    approverRole = myRole; currentAppId = app ? app.id : '';
     const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
     const dateOf = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    function ratePanelHTML() {
-      if (!isApprover || !app) return '';
-      const mine = K.approvalRequests().filter(r => r.app.id === app.id && K.canRoleAct(myRole, r.tier));
-      if (!mine.length) return '';
-      const decisions = K.decisionsFor(app.id);
-      const lines = mine.reduce((a, r) => a.concat(r.lines), []);
-      const open = lines.filter(l => !decisions[l.id]).length;
-      const groups = [];
-      lines.forEach(l => {
-        const key = l.service + '|' + (l.bank || '');
-        let g = groups.filter(x => x.key === key)[0];
-        if (!g) { g = { key, service: l.service, bank: l.bank, lines: [] }; groups.push(g); }
-        g.lines.push(l);
-      });
-      const canAct = !app.superseded;
-      return `<div class="status-panel rate-panel"><h2>Rate Approval — ${esc(K.TIER_OWNER[mine[0].tier])}</h2>
-        <p class="rp-sub">${open ? `${open} of ${lines.length} rate${lines.length === 1 ? '' : 's'} still to review — approve or reject each one.` : 'Every rate at your level has been reviewed.'}</p>
-        ${groups.map(g => `<div class="rp-group"><div class="rp-group-head">${esc(g.service)}${g.bank ? `<span>${esc(g.bank)}</span>` : ''}</div>
-          ${g.lines.map(l => {
-            const d = decisions[l.id];
-            return `<div class="rp-line"><div class="rp-line-top"><div class="rp-line-name">${esc(l.rate)}</div>
-              <div class="rp-figs"><div class="rp-fig asking">Asking<b>${esc(money(l.requested, l.requestedFee))}</b></div><div class="rp-fig">Published<b>${esc(money(l.standard, l.standardFee))}</b></div></div></div>
-              <div class="rp-note${l.note ? '' : ' empty'}">${l.note ? esc(l.note) : 'No justification was recorded for this rate.'}</div>
-              ${d ? `<div class="rp-outcome"><span class="pill ${d.decision}">${d.decision === 'approved' ? 'Approved' : 'Rejected'}</span>${esc(d.by)} &middot; ${esc(dateOf(d.ts))}${d.decision === 'rejected' && d.reason ? `<div class="why">${esc(d.reason)}</div>` : ''}</div>`
-                : canAct ? `<div class="rp-actions"><button type="button" class="btn btn-sm btn-reject" data-rp-reject="${esc(l.id)}">Reject</button><button type="button" class="btn btn-sm btn-approve" data-rp-approve="${esc(l.id)}">Approve</button></div>` : ''}
-            </div>`;
-          }).join('')}</div>`).join('')}
-      </div>`;
-    }
     const renderLog = () => {
       const fmtT = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
       const events = K.applicationLog(sourceLeadId);
@@ -1909,11 +1922,10 @@
         : '<div class="log-empty">No activity has been recorded yet.</div>';
     };
     const renderHosts = () => {
-      $('ratePanelHost').innerHTML = ratePanelHTML();
       $('trackingHost').innerHTML = trackingHTML();
       renderLog();
     };
-    const hosts = '<div id="ratePanelHost"></div><div id="trackingHost"></div>';
+    const hosts = '<div id="trackingHost"></div>';
     function decideRate(decision, reason, lineId) {
       const result = K.recordDecision({ app, reqId: lineId, decision, reason, role: myRole });
       if (!result) return;
@@ -1923,6 +1935,7 @@
       badge.className = 'status-badge ' + now;
       badge.innerHTML = `<span class="dot"></span>${esc(LABELS[now] || now)}`;
       renderHosts();
+      renderServiceSetup();
       const left = K.approvalRequests().filter(r => r.app.id === app.id && K.canRoleAct(myRole, r.tier)).reduce((n, r) => n + r.pendingLines.length, 0);
       toast(result.status === 'returned-to-sales'
         ? `Review complete — ${app.biz} went back to ${app.actor} to modify the rejected rates.`
@@ -1971,7 +1984,8 @@
       document.body.classList.add('app-locked');
       $('submitCard').hidden = true;
       // Keep every control read-only, including the ones each re-render creates.
-      const lock = () => document.querySelectorAll('.content .card input, .content .card select, .content .card textarea, .content .card button:not(.setup-step)')
+      if (approverView) document.body.classList.add('approver-view');
+      const lock = () => document.querySelectorAll('.content .card input, .content .card select, .content .card textarea, .content .card button:not(.setup-step):not(.rp-act)')
         .forEach(el => { el.disabled = true; el.tabIndex = -1; });
       new MutationObserver(lock).observe(document.querySelector('.content'), { childList: true, subtree: true });
       lock();

@@ -391,6 +391,7 @@ window.KashierRates = (function () {
       documents: documents,
       mid: qs.get('mid') || '',
       website: qs.get('website') || '',
+      altIndustries: (() => { try { return JSON.parse(qs.get('altIndustries') || '[]'); } catch (e) { return []; } })(),
       transfers: (() => { try { return JSON.parse(qs.get('transfers') || 'null'); } catch (e) { return null; } })(),
       biz: qs.get('biz') || 'Untitled Application',
       actor: qs.get('actor') || 'Unknown',

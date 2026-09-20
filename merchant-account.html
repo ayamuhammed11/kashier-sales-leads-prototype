@@ -679,7 +679,9 @@
         ${kv('Business Name', app.biz)}
         ${kv('Kashier MID', mid)}
         ${kv('Merchant Type', s.entity)}
-        ${kv('Industry', s.industry)}
+        ${kv('Industry (primary)', s.industry)}
+        ${(app.altIndustries || []).length ? kv('Fallback industries', (app.altIndustries || []).map((a, i) =>
+          `<div>${i + 1}. ${esc(a.industry)}${a.reason ? ` <span style="color:var(--cadet-05)">\u2014 ${esc(a.reason)}</span>` : ''}</div>`).join(''), true) : ''}
         ${kv('Contact Email', s.email)}
         ${kv('Contact Phone', s.phone)}
         ${app.website ? kv('Website', `<a href="${esc(/^https?:/i.test(app.website) ? app.website : 'https://' + app.website)}" target="_blank" rel="noopener">${esc(app.website)}</a>`, true) : ''}

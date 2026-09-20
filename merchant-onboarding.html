@@ -222,7 +222,6 @@
   .alt-rank { width: 24px; height: 24px; border-radius: 50%; background: var(--ocean-10); color: var(--primary); font-size: 12px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .alt-select { flex: 0 1 260px; min-width: 200px; }
-  .alt-reason { flex: 1 1 260px; min-width: 200px; }
   .alt-remove { background: none; border: none; padding: 6px; cursor: pointer; color: var(--cadet-05); border-radius: 4px; display: flex; }
   .alt-remove:hover { color: var(--destructive); background: var(--destructive-bg); }
   .alt-add { font-size: 13px; }
@@ -647,7 +646,7 @@
             </div>
             <div class="crit-group full">
               <div class="crit-label">Secondary industries or activities<span class="opt">(optional, up to 2)</span></div>
-              <p class="alt-help">The bank sometimes classifies a merchant under a different industry than the one submitted. Add the other industries or activities this merchant could fall under, in the order the Onboarding team should try them.</p>
+              <p class="alt-help">The bank sometimes classifies a merchant under a different industry than the one submitted. Choose the other industries or activities this merchant could fall under, in the order the Onboarding team should try them.</p>
               <div id="critAlt"></div>
             </div>
           </div>
@@ -1054,7 +1053,6 @@
           <option value="">Select industry\u2026</option>
           ${options.map(x => `<option value="${esc(x)}"${x === a.industry ? ' selected' : ''}>${esc(x)}</option>`).join('')}
         </select>
-        <input class="inp alt-reason" type="text" data-alt-reason="${i}" placeholder="Why could this apply? e.g. also sells\u2026" value="${esc(a.reason)}" maxlength="120">
         <button type="button" class="alt-remove" data-alt-remove="${i}" aria-label="Remove">${RM_ICON}</button>
       </div>`;
     }).join('') + (criteria.altIndustries.length < MAX_ALT_INDUSTRIES
@@ -1066,16 +1064,12 @@
     criteria.altIndustries[Number(sel.dataset.altIndustry)].industry = sel.value;
     renderAltIndustries(); renderSubmitSummary();
   });
-  $('critAlt').addEventListener('input', e => {
-    const inp = e.target.closest('[data-alt-reason]');
-    if (inp) criteria.altIndustries[Number(inp.dataset.altReason)].reason = inp.value;
-  });
   $('critAlt').addEventListener('click', e => {
-    if (e.target.closest('[data-alt-add]')) { criteria.altIndustries.push({ industry: '', reason: '' }); renderAltIndustries(); return; }
+    if (e.target.closest('[data-alt-add]')) { criteria.altIndustries.push({ industry: '' }); renderAltIndustries(); return; }
     const rm = e.target.closest('[data-alt-remove]');
     if (rm) { criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1); renderAltIndustries(); renderSubmitSummary(); }
   });
-  const filledAltIndustries = () => criteria.altIndustries.filter(a => a.industry).map(a => ({ industry: a.industry, reason: (a.reason || '').trim() }));
+  const filledAltIndustries = () => criteria.altIndustries.filter(a => a.industry).map(a => ({ industry: a.industry }));
 
   /* ══════════ Step 4 — Required Documents, grouped per service exactly as Document Rules
      configures it for that service (its own entity/owner/industry/bank/module/service match) —
@@ -1744,7 +1738,7 @@
     if (s.phone) $('mPhone').value = s.phone;
     if (ENTITIES.includes(s.entity)) criteria.entity = s.entity;
     if (INDUSTRIES.includes(s.industry)) { criteria.industry = s.industry; $('critIndustry').value = s.industry; }
-    criteria.altIndustries = (app.altIndustries || []).filter(a => INDUSTRIES.includes(a.industry)).map(a => ({ industry: a.industry, reason: a.reason || '' }));
+    criteria.altIndustries = (app.altIndustries || []).filter(a => INDUSTRIES.includes(a.industry)).map(a => ({ industry: a.industry }));
     criteria.services = (s.services || []).filter(x => SERVICES.includes(x));
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';
@@ -1828,7 +1822,7 @@
       details: {
         'Business name': $('mBiz').value.trim(), 'Contact email': $('mEmail').value.trim(), 'Contact phone': $('mPhone').value.trim(),
         'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
-        'Secondary industries': filledAltIndustries().map(a => a.industry + (a.reason ? ' (' + a.reason + ')' : '')).join('; '),
+        'Secondary industries': filledAltIndustries().map(a => a.industry).join('; '),
         'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
       },
       services,

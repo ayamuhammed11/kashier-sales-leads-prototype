@@ -1095,8 +1095,8 @@
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>` : ''}</td>
-          <td><input class="cell-input rate-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
-          <td><input class="cell-input fee-input" type="number" min="0" step="0.25" inputmode="decimal" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
+          <td><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
+          <td><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
         </tr>`;
       }).join('');
     }).join('');
@@ -1109,7 +1109,7 @@
       const terminals = tier.tier === 'POS' && criteria.posEnabled
         ? `<tr class="svc-terminals-row"><td colspan="${heads.length}">
              <label class="lbl" for="posTerminalsInput">Number of Terminals<span class="req">*</span></label>
-             <input type="number" min="1" step="1" class="inp svc-terminals-input" id="posTerminalsInput" placeholder="e.g. 2" value="${esc(criteria.posTerminals)}"${appMode === 'locked' ? ' disabled' : ''}>
+             <input type="text" inputmode="numeric" autocomplete="off" class="inp svc-terminals-input" id="posTerminalsInput" placeholder="e.g. 2" value="${esc(criteria.posTerminals)}"${appMode === 'locked' ? ' disabled' : ''}>
            </td></tr>`
         : '';
       return header + terminals + tier.services.map(serviceRowsHTML).join('');
@@ -1267,6 +1267,16 @@
     renderSubmitSummary();
   }
   $('serviceSetupBody').addEventListener('input', e => {
+    // Plain text fields that only accept numbers — no spinner arrows.
+    if (e.target.matches('.rate-input, .fee-input')) {
+      let v = e.target.value.replace(/[^\d.]/g, '');
+      const dot = v.indexOf('.');
+      if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+      if (v !== e.target.value) e.target.value = v;
+    } else if (e.target.id === 'posTerminalsInput') {
+      const v = e.target.value.replace(/\D/g, '');
+      if (v !== e.target.value) e.target.value = v;
+    }
     if (e.target.id === 'mWebsite') {
       criteria.website = e.target.value;
       const bad = e.target.value.trim() && !websiteValid(e.target.value);

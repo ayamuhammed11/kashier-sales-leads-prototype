@@ -200,6 +200,12 @@
   .rate-just-note.empty { color: var(--cadet-06); font-style: italic; }
   .rp-by { font-size: 12px; color: var(--cadet-05); margin-top: 3px; }
 
+
+  /* The approver's reason, right under the rate that was rejected */
+  .rej-reason { margin-top: 6px; white-space: normal; max-width: 280px; font-size: 12px; line-height: 1.4; color: var(--destructive);
+    background: var(--destructive-bg); border-radius: 6px; padding: 6px 8px; font-weight: 400; }
+  .rej-reason b { display: block; font-weight: 700; margin-bottom: 2px; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -1256,7 +1262,7 @@
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
-          <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>` : ''}</td>
+          <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
           <td><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
           <td><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
           ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}

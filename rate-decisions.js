@@ -725,12 +725,14 @@ window.KashierRates = (function () {
      Every action on an application, newest first. Most of it is read off what was already
      recorded (submission, each rate decision, the Onboarding team's steps, resubmissions);
      the rest — starting the application, marking it Lost — is written as it happens. */
-  function logEvent(leadId, who, text, ts) {
+  function logEvent(leadId, who, text, ts, extra) {
     if (!leadId) return;
     const all = readStore('kashierApplicationLog');
-    (all[leadId] = all[leadId] || []).push({ ts: ts || new Date().toISOString(), who: who, text: text });
+    (all[leadId] = all[leadId] || []).push(Object.assign({ ts: ts || new Date().toISOString(), who: who, text: text }, extra || {}));
     writeStore('kashierApplicationLog', all);
   }
+  const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '\u2014';
+  /* Structured events, newest first: { ts, who, role, system, action, category, text, details:[{label, value | from, to}] }. */
   function applicationLog(leadId) {
     const apps = loadApplications().filter(a => a.leadId === leadId);
     const superseded = readStore('kashierSupersededApplications');
@@ -738,23 +740,54 @@ window.KashierRates = (function () {
     Object.keys(superseded).forEach(prev => { replaces[superseded[prev].by] = prev; });
     const events = [];
     apps.forEach(app => {
-      const version = apps.length > 1 ? ' (' + app.id + ')' : '';
-      accountLog(app).forEach((e, i) => {
-        let text = e.text;
-        if (i === 0 && replaces[app.id]) text = 'Resubmitted with revised rates — replaces ' + replaces[app.id];
-        else if (i === 0) text = 'Application submitted' + (app.requests.length ? ' — ' + app.requests.length + ' rate' + (app.requests.length === 1 ? '' : 's') + ' need approval' : '');
-        events.push({ ts: e.ts, who: e.who, text: text + (i === 0 ? '' : version) });
-      });
-      // What the last decision set in motion.
+      const sm = app.summary || {};
+      const need = app.requests || [];
+      const nMgr = need.filter(r => r.tier === 'manager').length, nHead = need.filter(r => r.tier === 'head').length;
+      const alt = (app.altIndustries || []).map(x => x.industry).join(', ');
+      const details = [{ label: 'Application', value: app.id }];
+      if (replaces[app.id]) details.push({ label: 'Replaces', value: replaces[app.id] });
+      details.push({ label: 'Services', value: (sm.services || []).join(', ') || '\u2014' });
+      if (sm.industry) details.push({ label: 'Industry', value: sm.industry + (alt ? ' (fallbacks: ' + alt + ')' : '') });
+      details.push({ label: 'Rates needing approval', value: need.length
+        ? need.length + ' \u2014 ' + [nMgr ? nMgr + ' Sales Manager' : '', nHead ? nHead + ' Head of Sales' : ''].filter(Boolean).join(' \u00b7 ')
+        : 'None \u2014 every rate at published pricing' });
+      const docs = (app.documents || []).length || Number(sm.docsDone || 0);
+      if (docs) details.push({ label: 'Documents', value: docs + ' uploaded' });
+      events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
+        text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details });
+
       const d = decisionsFor(app.id);
-      if (app.requests.length && app.requests.every(r => d[r.id])) {
-        const last = app.requests.map(r => d[r.id].ts).sort().pop();
-        const rejected = app.requests.some(r => d[r.id].decision === 'rejected');
-        events.push({ ts: last, who: 'System', text: rejected ? 'Returned to the salesperson — rejected rates need to be modified' : 'Every rate approved — sent to Underwriting Review' });
+      need.forEach(r => {
+        const dec = d[r.id];
+        if (!dec) return;
+        const det = [
+          { label: 'Service', value: [r.service, r.bank].filter(Boolean).join(' \u00b7 ') },
+          { label: 'Requested', value: money(r.requested, r.requestedFee) },
+          { label: 'Published', value: money(r.standard, r.standardFee) },
+        ];
+        if (r.note) det.push({ label: 'Salesperson justification', value: r.note });
+        if (dec.reason) det.push({ label: 'Decision comment', value: dec.reason });
+        events.push({ ts: dec.ts, who: dec.by, role: dec.roleLabel, action: dec.decision === 'approved' ? 'Approved' : 'Rejected',
+          category: 'Rates', text: r.rate, details: det });
+      });
+      if (need.length && need.every(r => d[r.id])) {
+        const last = need.map(r => d[r.id].ts).sort().pop();
+        const rejected = need.filter(r => d[r.id].decision === 'rejected').length;
+        events.push({ ts: last, who: 'Workflow Engine', role: 'System', system: true, action: rejected ? 'Returned' : 'Advanced', category: 'Application',
+          text: rejected ? 'Returned to the salesperson' : 'Every rate approved \u2014 sent to Underwriting Review',
+          details: rejected ? [{ label: 'Rejected rates', value: rejected + ' of ' + need.length }, { label: 'Next step', value: app.actor + ' modifies the rejected rates and resubmits' }]
+            : [{ label: 'Approved rates', value: String(need.length) }, { label: 'Next step', value: 'Underwriting Review by the Onboarding team' }] });
       }
+      const rec = accountRecord(app);
+      if (rec.approvedTs) events.push({ ts: rec.approvedTs, who: rec.by, role: 'Onboarding Team', action: 'Approved', category: 'Underwriting',
+        text: 'Approved internally and sent to the bank', details: [{ label: 'Application', value: app.id }] });
+      if (rec.status === 'rejected') events.push({ ts: rec.ts, who: rec.by, role: 'Onboarding Team', action: 'Rejected', category: 'Underwriting',
+        text: 'Application rejected by the Onboarding team', details: [{ label: 'Application', value: app.id }, { label: 'Reason', value: rec.reason || '\u2014' }] });
+      if (rec.status === 'live') events.push({ ts: rec.ts, who: rec.by, role: 'Onboarding Team', action: 'Live', category: 'Underwriting',
+        text: 'Bank/vendor approval received \u2014 account is live', details: [{ label: 'Application', value: app.id }] });
     });
-    (readStore('kashierApplicationLog')[leadId] || []).forEach(e => events.push(e));
-    return events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+    (readStore('kashierApplicationLog')[leadId] || []).forEach(e => events.push(Object.assign({ action: 'Note', category: 'Application', role: '' }, e)));
+    return events.sort((x, y) => new Date(y.ts) - new Date(x.ts));
   }
 
   /* Rate requests are reviewed on the application's own view too. */

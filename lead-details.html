@@ -119,7 +119,6 @@
   .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .badge-new { background: var(--ocean-10); color: var(--primary); }
   .badge-application { background: var(--warning-bg); color: var(--warning-text); }
-  .badge-submitted { background: #F3F0FF; color: #5B21B6; }
   .badge-rate-approval { background: var(--accent-10); color: #006A66; }
   .badge-onboarding-review { background: #EEF2FF; color: #3730A3; }
   .badge-bank-submission { background: #FDF2E9; color: #8A4B08; }
@@ -451,7 +450,6 @@
     new:                 { label: 'New',                       cls: 'badge-new' },
     application:         { label: 'Application in Progress',   cls: 'badge-application' },
     returned:            { label: 'Rejected Rates',             cls: 'badge-returned' },
-    submitted:           { label: 'Application Submitted',     cls: 'badge-submitted' },
     'rate-approval':     { label: 'Waiting Rate Approval',     cls: 'badge-rate-approval' },
     'onboarding-review': { label: 'Underwriting Review',          cls: 'badge-onboarding-review' },
     'bank-submission':   { label: 'Bank Submission',            cls: 'badge-bank-submission' },
@@ -460,7 +458,7 @@
   };
   /* Full pipeline order. Waiting Rate Approval only applies to merchants whose pricing
      needs sign-off (lead.needsRateApproval) — the stepper skips that step for the rest. */
-  const PIPELINE = ['new', 'application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+  const PIPELINE = ['new', 'application', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
   function pipelineFor(l) { return l.needsRateApproval ? PIPELINE : PIPELINE.filter(k => k !== 'rate-approval'); }
 
   const LEADS = {
@@ -701,7 +699,7 @@
 
   function renderPageActions() {
     const box = $('pageActions');
-    if (['submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'].includes(lead.status)) {
+    if (['rate-approval', 'onboarding-review', 'bank-submission', 'activated'].includes(lead.status)) {
       // Submitted applications are read-only; their progress lives in the Tracking tab.
       box.innerHTML = '';
     } else if (lead.status === 'application' && rejectedApp) {
@@ -737,7 +735,7 @@
   function renderStatusActions() {
     const box = $('statusActions');
     let html = '';
-    if (['new', 'application', 'submitted', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(lead.status)) {
+    if (['new', 'application', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(lead.status)) {
       html += `<button class="btn btn-ghost-danger btn-sm" id="markLostBtn">Mark as Lost</button>`;
     }
     box.innerHTML = html;
@@ -751,7 +749,7 @@
      The page opens on the merchant's application. Once it is submitted the application is a
      read-only record, and a Tracking tab follows it through approval, underwriting and go-live. */
   const K = window.KashierRates;
-  const SUBMITTED_STATUSES = ['submitted', 'rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+  const SUBMITTED_STATUSES = ['rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
   function currentApplication() {
     return K.loadApplications().filter(a => a.leadId === id && !a.superseded)[0] || null;
   }

@@ -720,6 +720,42 @@ window.KashierRates = (function () {
     return leadId ? 'merchant-onboarding.html?leadId=' + encodeURIComponent(leadId) : 'sales-leads.html';
   }
 
+  /* ── Activity log ───────────────────────────────────────────────────────────────
+     Every action on an application, newest first. Most of it is read off what was already
+     recorded (submission, each rate decision, the Onboarding team's steps, resubmissions);
+     the rest — starting the application, marking it Lost — is written as it happens. */
+  function logEvent(leadId, who, text) {
+    if (!leadId) return;
+    const all = readStore('kashierApplicationLog');
+    (all[leadId] = all[leadId] || []).push({ ts: new Date().toISOString(), who: who, text: text });
+    writeStore('kashierApplicationLog', all);
+  }
+  function applicationLog(leadId) {
+    const apps = loadApplications().filter(a => a.leadId === leadId);
+    const superseded = readStore('kashierSupersededApplications');
+    const replaces = {};   // new application id -> the rejected one it replaced
+    Object.keys(superseded).forEach(prev => { replaces[superseded[prev].by] = prev; });
+    const events = [];
+    apps.forEach(app => {
+      const version = apps.length > 1 ? ' (' + app.id + ')' : '';
+      accountLog(app).forEach((e, i) => {
+        let text = e.text;
+        if (i === 0 && replaces[app.id]) text = 'Resubmitted with revised rates — replaces ' + replaces[app.id];
+        else if (i === 0) text = 'Application submitted' + (app.requests.length ? ' — ' + app.requests.length + ' rate' + (app.requests.length === 1 ? '' : 's') + ' need approval' : '');
+        events.push({ ts: e.ts, who: e.who, text: text + (i === 0 ? '' : version) });
+      });
+      // What the last decision set in motion.
+      const d = decisionsFor(app.id);
+      if (app.requests.length && app.requests.every(r => d[r.id])) {
+        const last = app.requests.map(r => d[r.id].ts).sort().pop();
+        const rejected = app.requests.some(r => d[r.id].decision === 'rejected');
+        events.push({ ts: last, who: 'System', text: rejected ? 'Returned to the salesperson — rejected rates need to be modified' : 'Every rate approved — sent to Underwriting Review' });
+      }
+    });
+    (readStore('kashierApplicationLog')[leadId] || []).forEach(e => events.push(e));
+    return events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  }
+
   /* Rate requests are reviewed on the application's own view too. */
   function requestURL(appId, tier) {
     const a = loadApplications().filter(x => x.id === appId)[0];
@@ -735,7 +771,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

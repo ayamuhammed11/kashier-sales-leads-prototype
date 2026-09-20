@@ -163,6 +163,17 @@
     .pipe-dot { grid-row: 1 / span 2; margin: 0; }
   }
 
+
+  /* Activity log */
+  .log-list { margin-top: 6px; }
+  .log-item { display: grid; grid-template-columns: 150px 150px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border-subtle); font-size: 13px; }
+  .log-item:first-child { border-top: none; }
+  .log-time { color: var(--cadet-05); }
+  .log-who { font-weight: 600; color: var(--foreground); }
+  .log-text { color: var(--cadet-base); line-height: 1.5; }
+  .log-empty { font-size: 13px; color: var(--cadet-05); padding: 6px 0; }
+  @media (max-width: 720px) { .log-item { grid-template-columns: 1fr; gap: 2px; } }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -610,6 +621,8 @@
           </div>
         </div>
       </div>
+
+      <div class="status-panel" id="logPanel" hidden></div>
 
     </div>
   </main>
@@ -1665,6 +1678,7 @@
     if (appMode === 'edit' && status === 'new') {
       overrides[sourceLeadId] = 'application';
       K.writeStore('kashierLeadStatusOverrides', overrides);
+      K.logEvent(sourceLeadId, K.ROLES.sales.name, 'Started the onboarding application');
     }
     if (appMode !== 'edit' && app) { previousApp = app; fillFromApplication(app); }
 
@@ -1711,6 +1725,7 @@
       $('lostModal').addEventListener('click', e => { if (e.target === $('lostModal')) closeLost(); });
       $('lostConfirm').addEventListener('click', () => {
         const o = K.readStore('kashierLeadStatusOverrides'); o[sourceLeadId] = 'lost'; K.writeStore('kashierLeadStatusOverrides', o);
+        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Marked the lead as Lost');
         location.reload();
       });
     }
@@ -1786,9 +1801,18 @@
           }).join('')}</div>`).join('')}
       </div>`;
     }
+    const renderLog = () => {
+      const fmtT = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
+      const events = K.applicationLog(sourceLeadId);
+      $('logPanel').hidden = false;
+      $('logPanel').innerHTML = `<h2>Activity Log</h2>` + (events.length
+        ? `<div class="log-list">${events.map(e => `<div class="log-item"><span class="log-time">${esc(fmtT(e.ts))}</span><span class="log-who">${esc(e.who || '')}</span><span class="log-text">${esc(e.text)}</span></div>`).join('')}</div>`
+        : '<div class="log-empty">No activity has been recorded yet.</div>');
+    };
     const renderHosts = () => {
       $('ratePanelHost').innerHTML = ratePanelHTML();
       $('trackingHost').innerHTML = trackingHTML();
+      renderLog();
     };
     const hosts = '<div id="ratePanelHost"></div><div id="trackingHost"></div>';
     function decideRate(decision, reason, lineId) {

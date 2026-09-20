@@ -681,7 +681,11 @@
   <div class="modal-overlay" id="lostModal">
     <div class="modal">
       <div class="modal-header"><div><h3>Mark as Lost</h3></div><button class="btn-icon" id="lostClose" aria-label="Close">&#10005;</button></div>
-      <div class="modal-body"><p id="lostText" style="margin:0;font-size:13.5px;line-height:1.5"></p></div>
+      <div class="modal-body">
+        <p id="lostText" style="margin:0 0 12px;font-size:13.5px;line-height:1.5"></p>
+        <label for="lostReason" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Comment <span style="color:var(--destructive)">*</span></label>
+        <textarea id="lostReason" class="appr-line-note" placeholder="Why is this lead being marked as lost?"></textarea>
+      </div>
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="lostCancel">Cancel</button>
         <button class="btn btn-sm" id="lostConfirm" style="background:var(--destructive);color:#fff">Mark as Lost</button>
@@ -1836,7 +1840,8 @@
       const title = status === 'lost' ? 'This lead was marked as Lost — view only.'
         : !isSales ? 'View only — only the salesperson can edit this application.'
         : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
-      const sub = status === 'lost' ? 'No application will be submitted for this merchant.'
+      const lostNote = K.readStore('kashierLeadLostReason')[sourceLeadId];
+      const sub = status === 'lost' ? (lostNote ? `${lostNote.by}: ${lostNote.text}` : 'No application will be submitted for this merchant.')
         : !isSales ? 'The salesperson fills in and submits the application.'
         : 'You can edit this application once you receive feedback on it.';
       banner = `<div class="app-mode-banner locked">${LOCK}
@@ -1872,15 +1877,21 @@
       const lostBiz = () => $('mBiz').value || 'this merchant';
       $('markLostBtn').addEventListener('click', () => {
         $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lostBiz())}</b> as lost? This moves them out of the active pipeline — no further onboarding action can be taken.`;
+        $('lostReason').value = ''; $('lostReason').classList.remove('invalid');
         $('lostModal').classList.add('open');
+        $('lostReason').focus();
       });
       const closeLost = () => $('lostModal').classList.remove('open');
       $('lostClose').addEventListener('click', closeLost);
       $('lostCancel').addEventListener('click', closeLost);
       $('lostModal').addEventListener('click', e => { if (e.target === $('lostModal')) closeLost(); });
+      $('lostReason').addEventListener('input', () => $('lostReason').classList.remove('invalid'));
       $('lostConfirm').addEventListener('click', () => {
+        const reason = $('lostReason').value.trim();
+        if (!reason) { $('lostReason').classList.add('invalid'); $('lostReason').focus(); return; }
         const o = K.readStore('kashierLeadStatusOverrides'); o[sourceLeadId] = 'lost'; K.writeStore('kashierLeadStatusOverrides', o);
-        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Marked the lead as Lost');
+        const lr = K.readStore('kashierLeadLostReason'); lr[sourceLeadId] = { text: reason, by: K.ROLES[K.getRole()].name, ts: new Date().toISOString() }; K.writeStore('kashierLeadLostReason', lr);
+        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Marked the lead as Lost — ' + reason);
         location.reload();
       });
     }

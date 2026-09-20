@@ -227,31 +227,35 @@
   .alt-add { font-size: 13px; }
 
 
-  /* Activity log — compact, Kashier logs format */
-  .drawer { width: 480px; }
-  .lg-item { padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+  /* Activity log — simple and compact: one line per event, details on demand */
+  .drawer { width: 440px; }
+  .lg-item { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
   .lg-item:last-child { border-bottom: none; }
   .lg-head { display: flex; align-items: center; gap: 8px; }
-  .lg-ico { width: 20px; height: 20px; color: var(--cadet-base); flex-shrink: 0; display: flex; }
-  .lg-ico svg { width: 20px; height: 20px; }
-  .lg-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--foreground); line-height: 1.3; }
-  .lg-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .3px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
+  .lg-item.has-details .lg-head { cursor: pointer; }
+  .lg-ico { width: 18px; height: 18px; color: var(--cadet-base); flex-shrink: 0; display: flex; }
+  .lg-ico svg { width: 18px; height: 18px; }
+  .lg-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--foreground); line-height: 1.3; }
+  .lg-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .3px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
   .lg-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
   .lg-badge.pending  { background: var(--warning-bg); color: #92620A; }
   .lg-badge.approved { background: var(--success-bg); color: var(--success-text); }
   .lg-badge.rejected { background: var(--destructive-bg); color: var(--destructive); }
   .lg-badge.info     { background: var(--ocean-10); color: var(--primary); }
   .lg-badge.waiting  { background: var(--pill-bg); color: var(--pill-text); }
-  .lg-meta { margin: 3px 0 0 28px; font-size: 12px; color: var(--cadet-05); line-height: 1.4; }
-  .lg-meta .sep { color: var(--cadet-06); margin: 0 1px; }
-  .lg-details { margin: 6px 0 0 28px; border-left: 2px solid var(--border); padding-left: 10px; }
-  .lg-row { display: flex; gap: 8px; padding: 1px 0; font-size: 12px; line-height: 1.5; }
+  .lg-chev { width: 16px; height: 16px; color: var(--cadet-05); flex-shrink: 0; display: flex; transition: transform .15s ease; }
+  .lg-chev svg { width: 16px; height: 16px; }
+  .lg-item.open .lg-chev { transform: rotate(180deg); }
+  .lg-meta { margin: 1px 0 0 26px; font-size: 11.5px; color: var(--cadet-05); }
+  .lg-details { display: none; margin: 6px 0 2px 26px; border-left: 2px solid var(--border); padding-left: 10px; }
+  .lg-item.open .lg-details { display: block; }
+  .lg-row { display: flex; gap: 6px; padding: 1px 0; font-size: 12px; line-height: 1.45; }
   .lg-lbl { flex: 0 0 auto; color: var(--cadet-05); }
   .lg-lbl::after { content: ':'; }
   .lg-val { color: var(--foreground); font-weight: 600; word-break: break-word; }
   .lg-from { color: var(--cadet-05); text-decoration: line-through; font-weight: 400; }
-  .lg-arrow { margin: 0 5px; color: var(--cadet-05); }
+  .lg-arrow { margin: 0 4px; color: var(--cadet-05); }
   .lg-to { color: var(--foreground); font-weight: 700; }
 
   /* Opening an existing application */
@@ -1964,6 +1968,9 @@
     const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
     $('viewLogsBtn').addEventListener('click', openLogs);
+    const toggleLog = head => { const it = head.closest('.lg-item'); const on = it.classList.toggle('open'); head.setAttribute('aria-expanded', on); };
+    $('logDrawerBody').addEventListener('click', e => { const h = e.target.closest('[data-lg-toggle]'); if (h) toggleLog(h); });
+    $('logDrawerBody').addEventListener('keydown', e => { const h = e.target.closest('[data-lg-toggle]'); if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleLog(h); } });
     $('logDrawerClose').addEventListener('click', closeLogs);
     $('logDrawerOverlay').addEventListener('click', e => { if (e.target === $('logDrawerOverlay')) closeLogs(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogs(); });
@@ -2062,15 +2069,20 @@
     const detailValue = r => r.from != null
       ? `<span class="lg-from">${esc(r.from)}</span><span class="lg-arrow">\u2192</span><span class="lg-to">${esc(r.to)}</span>`
       : esc(r.value == null || r.value === '' ? '\u2014' : r.value);
-    const logEntryHTML = e => `<div class="lg-item">
-        <div class="lg-head">
+    const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
+    const logEntryHTML = e => {
+      const has = (e.details || []).length > 0;
+      return `<div class="lg-item${has ? ' has-details' : ''}">
+        <div class="lg-head"${has ? ' data-lg-toggle role="button" tabindex="0" aria-expanded="false"' : ''}>
           <span class="lg-ico" title="${esc(e.category || 'Application')}">${logIcon(e.category)}</span>
           <span class="lg-title">${esc(e.text)}</span>
           <span class="lg-badge ${ACTION_CLASS[e.action] || 'waiting'}"><span class="dot"></span>${esc(e.action || 'Note')}</span>
+          ${has ? `<span class="lg-chev">${CHEV}</span>` : ''}
         </div>
-        <div class="lg-meta">${esc(e.who || '')}${e.role ? ` <span class="sep">·</span> ${esc(e.role)}` : ''} <span class="sep">·</span> ${esc(stampOf(e.ts))} <span class="sep">·</span> ${esc(agoOf(e.ts))}</div>
-        ${(e.details || []).length ? `<div class="lg-details">${e.details.map(r => `<div class="lg-row"><span class="lg-lbl">${esc(r.label)}</span><span class="lg-val">${detailValue(r)}</span></div>`).join('')}</div>` : ''}
+        <div class="lg-meta">${esc(e.who || '')}${e.role ? ` · ${esc(e.role)}` : ''} · ${esc(stampOf(e.ts))}</div>
+        ${has ? `<div class="lg-details">${e.details.map(r => `<div class="lg-row"><span class="lg-lbl">${esc(r.label)}</span><span class="lg-val">${detailValue(r)}</span></div>`).join('')}</div>` : ''}
       </div>`;
+    };
     const renderLog = () => {
       const all = K.applicationLog(sourceLeadId);
       $('logDrawerSub').textContent = `${$('mBiz').value || 'This application'} · ${all.length} event${all.length === 1 ? '' : 's'}`;

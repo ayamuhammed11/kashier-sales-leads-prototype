@@ -206,6 +206,15 @@
     background: var(--destructive-bg); border-radius: 6px; padding: 6px 8px; font-weight: 400; }
   .rej-reason b { display: block; font-weight: 700; margin-bottom: 2px; }
 
+
+  /* Unit shown inside the field once a value is entered: % on fees, EGP on flat fees */
+  .unit-wrap { position: relative; display: block; }
+  .svc-table .unit-wrap .cell-input { padding-right: 12px; }
+  .svc-table .unit-wrap.filled .cell-input { padding-right: 40px; }
+  .unit-wrap.filled::after { content: attr(data-unit); position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; font-weight: 600; color: var(--cadet-04); pointer-events: none; }
+  .svc-table .unit-wrap[data-unit="%"].filled .cell-input { padding-right: 26px; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -1263,8 +1272,8 @@
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
-          <td><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></td>
-          <td><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></td>
+          <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
+          <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="EGP"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
           ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
         </tr>`;
       }).join('');
@@ -1442,6 +1451,7 @@
       const dot = v.indexOf('.');
       if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
       if (v !== e.target.value) e.target.value = v;
+      e.target.parentElement.classList.toggle('filled', v !== '');
     } else if (e.target.id === 'posTerminalsInput') {
       const v = e.target.value.replace(/\D/g, '');
       if (v !== e.target.value) e.target.value = v;

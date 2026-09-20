@@ -6,7 +6,7 @@
 <title>Kashier | Complete Onboarding Application</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Inter:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light;
@@ -489,8 +489,6 @@
   }
   @media (max-width: 620px) { .user .name { display: none; } }
 </style>
-<link rel="stylesheet" href="kashier-shell.css">
-<link rel="stylesheet" href="kashier-ds.css">
 </head>
 <body>
 
@@ -1186,11 +1184,9 @@
   function serviceRowsHTML(s) {
     const active = criteria.services.includes(s);
     if (!active) {
-      // A read-only view lists only what was set up; while editing, each service is one quiet row.
-      if (appMode === 'locked') return '';
       return `<tr class="svc-row-inactive">
         <td class="cell-service">${serviceToggleHTML(s, false)}</td>
-        <td class="cell-muted" colspan="5"></td>
+        <td class="cell-muted" colspan="5">Not activated — check the box to add its pricing</td>
       </tr>`;
     }
     const cfg = serviceConfig[s];
@@ -1237,7 +1233,6 @@
   function stepServicesTableHTML() {
     const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'];
     const body = SERVICE_CATALOG.map(tier => {
-      if (appMode === 'locked' && !tier.services.some(x => criteria.services.includes(x))) return '';
       const header = `<tr class="svc-tier-row"><td colspan="${heads.length}" class="svc-tier-head">${esc(tier.tier)} Services</td></tr>`;
       const terminals = tier.tier === 'POS' && criteria.posEnabled
         ? `<tr class="svc-terminals-row"><td colspan="${heads.length}">
@@ -1253,7 +1248,7 @@
           <tbody>${body}</tbody>
         </table>
       </div>
-      <div class="svc-table-hint">Check a service to activate it and add its pricing, then choose its financial institution, model and fees. Any rate below the published rate needs approval — you'll be asked for a justification before you can continue.</div>`;
+      <div class="svc-table-hint">Check a service to activate it, then choose its financial institution, model and fees. Any rate below the published rate needs approval — you'll be asked for a justification before you can continue.</div>`;
   }
 
   function stepDocumentsHTML() {

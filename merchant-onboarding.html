@@ -114,6 +114,31 @@
   .track-val.bad { color: var(--destructive); }
   .track-sub { font-size: 12px; font-weight: 400; color: var(--cadet-05); margin-top: 2px; }
 
+
+  /* Rate approval, on the application view */
+  .rate-panel .rp-sub { font-size: 12.5px; color: var(--cadet-05); margin: -4px 0 10px; }
+  .rp-group { border-top: 1px solid var(--border-subtle); padding: 12px 0; }
+  .rp-group:first-of-type { border-top: none; }
+  .rp-group-head { font-size: 13.5px; font-weight: 700; color: var(--foreground); margin-bottom: 8px; }
+  .rp-group-head span { font-weight: 400; font-size: 12px; color: var(--cadet-05); margin-left: 6px; }
+  .rp-line { border: 1px solid var(--border-subtle); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+  .rp-line-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .rp-line-name { font-size: 13px; font-weight: 600; }
+  .rp-fig { text-align: right; font-size: 12px; color: var(--cadet-05); }
+  .rp-fig b { display: block; font-size: 13px; color: var(--foreground); }
+  .rp-fig.asking b { color: var(--primary); }
+  .rp-figs { display: flex; gap: 20px; }
+  .rp-note { font-size: 12.5px; color: var(--cadet-base); background: var(--muted); border-radius: 6px; padding: 8px 10px; margin: 8px 0; line-height: 1.5; }
+  .rp-note.empty { color: var(--cadet-06); font-style: italic; }
+  .rp-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .rp-outcome { font-size: 12.5px; }
+  .rp-outcome .pill { display: inline-block; font-weight: 700; border-radius: 999px; padding: 2px 10px; font-size: 11px; margin-right: 6px; }
+  .rp-outcome .pill.approved { background: var(--success-bg); color: var(--success-text); }
+  .rp-outcome .pill.rejected { background: var(--destructive-bg); color: var(--destructive); }
+  .rp-outcome .why { margin-top: 4px; color: var(--cadet-base); }
+  .btn-reject { background: #fff; color: var(--destructive); border: 1.5px solid var(--destructive); }
+  .btn-approve { background: var(--success); color: #fff; border: 1.5px solid var(--success); }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -581,6 +606,20 @@
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="lostCancel">Cancel</button>
         <button class="btn btn-sm" id="lostConfirm" style="background:var(--destructive);color:#fff">Mark as Lost</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="rejectModal">
+    <div class="modal">
+      <div class="modal-header"><div><h3>Reject this rate</h3></div><button class="btn-icon" id="rejectClose" aria-label="Close">&#10005;</button></div>
+      <div class="modal-body">
+        <p id="rejectText" style="margin:0 0 10px;font-size:13.5px;line-height:1.5"></p>
+        <textarea id="rejectReason" class="appr-line-note" placeholder="Why is this rate being rejected? The salesperson sees this when the application comes back to them."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="rejectCancel">Cancel</button>
+        <button class="btn btn-sm" id="rejectConfirm" style="background:var(--destructive);color:#fff">Reject</button>
       </div>
     </div>
   </div>
@@ -1593,7 +1632,11 @@
     const p = new URLSearchParams(location.search);
     const overrides = K.readStore('kashierLeadStatusOverrides');
     const app = K.loadApplications().filter(a => a.leadId === sourceLeadId && !a.superseded)[0] || null;
-    const status = overrides[sourceLeadId] || p.get('leadStatus') || (app ? 'onboarding-review' : 'new');
+    // Opened with just a lead id (an approver's link, the Merchant module): read the stage off the application itself.
+    const acct = app ? K.findAccount(app.id) : null;
+    const fromApp = !app ? 'new' : ({ 'rate-approval': 'rate-approval', submitted: 'onboarding-review', 'pending-configurations': 'bank-submission',
+      live: 'activated', rejected: 'application', returned: 'application' }[acct && acct.status] || 'onboarding-review');
+    const status = overrides[sourceLeadId] || p.get('leadStatus') || fromApp;
     const note = K.readStore('kashierLeadReturnNote')[sourceLeadId] || null;
     const isSales = K.getRole() === 'sales';
 
@@ -1656,8 +1699,8 @@
     }
 
     // Tracking, on the same page: where the submitted application stands.
-    let tracking = '';
-    if (app && status !== 'new') {
+    const trackingHTML = () => {
+      if (!(app && status !== 'new')) return '';
       const fmt = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       const rows = [];
       const row = (label, value, tone) => rows.push(`<div class="track-row"><span class="track-label">${esc(label)}</span><span class="track-val ${tone || ''}">${value}</span></div>`);
@@ -1678,8 +1721,85 @@
       }
       const acct = K.findAccount(app.id);
       if (acct) row('Underwriting', esc(acct.meta.label), acct.meta.tone === 'success' ? 'ok' : acct.meta.tone === 'danger' ? 'bad' : 'warn');
-      tracking = `<div class="status-panel"><h2>Application Tracking</h2>${rows.join('')}</div>`;
+      return `<div class="status-panel"><h2>Application Tracking</h2>${rows.join('')}</div>`;
+    };
+
+    // Approvers review the rates at their own level right here, on the application.
+    const myRole = K.getRole();
+    const isApprover = K.ROLES[myRole].approves.length > 0;
+    const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
+    const dateOf = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    function ratePanelHTML() {
+      if (!isApprover || !app) return '';
+      const mine = K.approvalRequests().filter(r => r.app.id === app.id && K.canRoleAct(myRole, r.tier));
+      if (!mine.length) return '';
+      const decisions = K.decisionsFor(app.id);
+      const lines = mine.reduce((a, r) => a.concat(r.lines), []);
+      const open = lines.filter(l => !decisions[l.id]).length;
+      const groups = [];
+      lines.forEach(l => {
+        const key = l.service + '|' + (l.bank || '');
+        let g = groups.filter(x => x.key === key)[0];
+        if (!g) { g = { key, service: l.service, bank: l.bank, lines: [] }; groups.push(g); }
+        g.lines.push(l);
+      });
+      const canAct = !app.superseded;
+      return `<div class="status-panel rate-panel"><h2>Rate Approval — ${esc(K.TIER_OWNER[mine[0].tier])}</h2>
+        <p class="rp-sub">${open ? `${open} of ${lines.length} rate${lines.length === 1 ? '' : 's'} still to review — approve or reject each one.` : 'Every rate at your level has been reviewed.'}</p>
+        ${groups.map(g => `<div class="rp-group"><div class="rp-group-head">${esc(g.service)}${g.bank ? `<span>${esc(g.bank)}</span>` : ''}</div>
+          ${g.lines.map(l => {
+            const d = decisions[l.id];
+            return `<div class="rp-line"><div class="rp-line-top"><div class="rp-line-name">${esc(l.rate)}</div>
+              <div class="rp-figs"><div class="rp-fig asking">Asking<b>${esc(money(l.requested, l.requestedFee))}</b></div><div class="rp-fig">Published<b>${esc(money(l.standard, l.standardFee))}</b></div></div></div>
+              <div class="rp-note${l.note ? '' : ' empty'}">${l.note ? esc(l.note) : 'No justification was recorded for this rate.'}</div>
+              ${d ? `<div class="rp-outcome"><span class="pill ${d.decision}">${d.decision === 'approved' ? 'Approved' : 'Rejected'}</span>${esc(d.by)} &middot; ${esc(dateOf(d.ts))}${d.decision === 'rejected' && d.reason ? `<div class="why">${esc(d.reason)}</div>` : ''}</div>`
+                : canAct ? `<div class="rp-actions"><button type="button" class="btn btn-sm btn-reject" data-rp-reject="${esc(l.id)}">Reject</button><button type="button" class="btn btn-sm btn-approve" data-rp-approve="${esc(l.id)}">Approve</button></div>` : ''}
+            </div>`;
+          }).join('')}</div>`).join('')}
+      </div>`;
     }
+    const renderHosts = () => {
+      $('ratePanelHost').innerHTML = ratePanelHTML();
+      $('trackingHost').innerHTML = trackingHTML();
+    };
+    const hosts = '<div id="ratePanelHost"></div><div id="trackingHost"></div>';
+    function decideRate(decision, reason, lineId) {
+      const result = K.recordDecision({ app, reqId: lineId, decision, reason, role: myRole });
+      if (!result) return;
+      // The application moves on once every rate is reviewed — refresh the badge and panels.
+      const now = K.readStore('kashierLeadStatusOverrides')[sourceLeadId] || status;
+      const badge = document.querySelector('.status-badge');
+      badge.className = 'status-badge ' + now;
+      badge.innerHTML = `<span class="dot"></span>${esc(LABELS[now] || now)}`;
+      renderHosts();
+      const left = K.approvalRequests().filter(r => r.app.id === app.id && K.canRoleAct(myRole, r.tier)).reduce((n, r) => n + r.pendingLines.length, 0);
+      toast(result.status === 'returned-to-sales'
+        ? `Review complete — ${app.biz} went back to ${app.actor} to modify the rejected rates.`
+        : left ? `${result.request.rate} ${decision} — ${left} still to review.` : `Every rate reviewed for ${app.biz}.`);
+    }
+    let rejectLineId = '';
+    document.addEventListener('click', e => {
+      const ap = e.target.closest('[data-rp-approve]');
+      if (ap) { decideRate('approved', '', ap.dataset.rpApprove); return; }
+      const rj = e.target.closest('[data-rp-reject]');
+      if (!rj) return;
+      const line = app.requests.filter(l => l.id === rj.dataset.rpReject)[0];
+      if (!line) return;
+      rejectLineId = line.id;
+      $('rejectText').innerHTML = `Reject <b>${esc(line.rate)}</b> (${esc([line.service, line.bank].filter(Boolean).join(' · '))}) for <b>${esc(app.biz)}</b>? Keep reviewing the other rates — once every rate is reviewed, the application goes back to ${esc(app.actor)} to modify the rejected ones.`;
+      $('rejectReason').value = ''; $('rejectReason').classList.remove('invalid');
+      $('rejectModal').classList.add('open');
+    });
+    const closeReject = () => $('rejectModal').classList.remove('open');
+    $('rejectClose').addEventListener('click', closeReject);
+    $('rejectCancel').addEventListener('click', closeReject);
+    $('rejectModal').addEventListener('click', e => { if (e.target === $('rejectModal')) closeReject(); });
+    $('rejectConfirm').addEventListener('click', () => {
+      const reason = $('rejectReason').value.trim();
+      if (!reason) { $('rejectReason').classList.add('invalid'); return; }
+      closeReject();
+      decideRate('rejected', reason, rejectLineId);
+    });
 
     if (appMode !== 'edit') {
       const pill = head.querySelector('.lead-source-pill');
@@ -1691,10 +1811,11 @@
         : 'The application exactly as it was submitted.';
       document.querySelector('.breadcrumb .current').textContent = $('mBiz').value || h1.textContent;
       document.title = `Kashier | ${$('mBiz').value || h1.textContent}`;
-      head.insertAdjacentHTML('afterend', banner + tracking);
-    } else if (tracking) {
-      head.insertAdjacentHTML('afterend', tracking);
+      head.insertAdjacentHTML('afterend', banner + hosts);
+    } else {
+      head.insertAdjacentHTML('afterend', hosts);
     }
+    renderHosts();
     if (appMode === 'locked') {
       document.body.classList.add('app-locked');
       $('submitCard').hidden = true;

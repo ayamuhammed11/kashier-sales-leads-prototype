@@ -720,8 +720,10 @@ window.KashierRates = (function () {
     return leadId ? 'merchant-onboarding.html?leadId=' + encodeURIComponent(leadId) : 'sales-leads.html';
   }
 
+  /* Rate requests are reviewed on the application's own view too. */
   function requestURL(appId, tier) {
-    return 'rate-request.html?app=' + encodeURIComponent(appId) + '&level=' + encodeURIComponent(tier);
+    const a = loadApplications().filter(x => x.id === appId)[0];
+    return applicationURL(a && a.leadId);
   }
 
   return {

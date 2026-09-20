@@ -374,7 +374,7 @@ window.KashierRates = (function () {
       status: a.requests.length ? 'pending-rate-approval' : 'pending-onboarding-review',
     });
     if (s.posTerminals) qs.set('posTerminals', s.posTerminals);
-    return 'application-status.html?' + qs.toString();
+    return 'merchant-onboarding.html?' + qs.toString();
   }
 
   /* Rebuild an application from its tracking link. */
@@ -557,7 +557,7 @@ window.KashierRates = (function () {
     qs.set('revisionOf', app.id);
     qs.set('revision', String(Number(qs.get('revision') || 1) + 1));
     if (app.leadId) qs.set('leadId', app.leadId);
-    const url = 'application-status.html?' + qs.toString();
+    const url = 'merchant-onboarding.html?' + qs.toString();
 
     const statuses = readStore('kashierAppStatus');
     statuses[newId] = status;
@@ -715,8 +715,9 @@ window.KashierRates = (function () {
     return 'merchant-account.html?app=' + encodeURIComponent(appId);
   }
 
-  function revisionURL(appId) {
-    return 'rate-revision.html?app=' + encodeURIComponent(appId);
+  /* An application has one view, whatever its status: the onboarding form. */
+  function applicationURL(leadId) {
+    return leadId ? 'merchant-onboarding.html?leadId=' + encodeURIComponent(leadId) : 'sales-leads.html';
   }
 
   function requestURL(appId, tier) {
@@ -732,7 +733,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, revisionURL: revisionURL,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

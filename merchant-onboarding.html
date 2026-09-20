@@ -88,6 +88,32 @@
   .page-head h1 { font-size: 30px; color: var(--primary); margin-bottom: 8px; }
   .page-head .sub { font-size: 14px; color: var(--cadet-base); max-width: 640px; line-height: 1.5; margin: 0; }
 
+
+  /* One application view: CRM record, status and tracking sit on the form itself */
+  .crm-sync-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #006A66;
+    background: var(--accent-10); border-radius: 999px; padding: 5px 12px; margin-bottom: 12px; }
+  .crm-record-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .crm-record-link:hover { color: var(--primary); }
+  .page-head-actions { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 4px 12px; }
+  .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status-badge.new, .status-badge.application { background: var(--warning-bg); color: var(--warning-text); }
+  .status-badge.returned, .status-badge.lost { background: var(--destructive-bg); color: var(--destructive); }
+  .status-badge.rate-approval { background: var(--accent-10); color: #006A66; }
+  .status-badge.onboarding-review { background: #EEF2FF; color: #3730A3; }
+  .status-badge.bank-submission { background: #FDF2E9; color: #8A4B08; }
+  .status-badge.activated { background: var(--success-bg); color: var(--success-text); }
+  .status-panel { background: #fff; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px 20px; margin: 0 0 24px; }
+  .status-panel h2 { font-size: 15px; margin: 0 0 8px; }
+  .track-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 10px 0; border-top: 1px solid var(--border-subtle); }
+  .track-row:first-of-type { border-top: none; }
+  .track-label { font-size: 13px; color: var(--cadet-04); }
+  .track-val { font-size: 13.5px; font-weight: 600; color: var(--foreground); text-align: right; }
+  .track-val.ok { color: var(--success-text); }
+  .track-val.warn { color: var(--warning-text); }
+  .track-val.bad { color: var(--destructive); }
+  .track-sub { font-size: 12px; font-weight: 400; color: var(--cadet-05); margin-top: 2px; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -547,6 +573,17 @@
   </main>
 
   <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="lostModal">
+    <div class="modal">
+      <div class="modal-header"><div><h3>Mark as Lost</h3></div><button class="btn-icon" id="lostClose" aria-label="Close">&#10005;</button></div>
+      <div class="modal-body"><p id="lostText" style="margin:0;font-size:13.5px;line-height:1.5"></p></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="lostCancel">Cancel</button>
+        <button class="btn btn-sm" id="lostConfirm" style="background:var(--destructive);color:#fff">Mark as Lost</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Rates priced below the published rate need sign-off — this asks for the justification
        that used to sit in an inline Comment column, once the salesperson is done pricing. -->
@@ -1555,9 +1592,9 @@
     if (!sourceLeadId) return;
     const p = new URLSearchParams(location.search);
     const overrides = K.readStore('kashierLeadStatusOverrides');
-    const status = overrides[sourceLeadId] || p.get('leadStatus') || 'new';
-    const note = K.readStore('kashierLeadReturnNote')[sourceLeadId] || null;
     const app = K.loadApplications().filter(a => a.leadId === sourceLeadId && !a.superseded)[0] || null;
+    const status = overrides[sourceLeadId] || p.get('leadStatus') || (app ? 'onboarding-review' : 'new');
+    const note = K.readStore('kashierLeadReturnNote')[sourceLeadId] || null;
     const isSales = K.getRole() === 'sales';
 
     if (status === 'application' && note) appMode = 'returned';
@@ -1571,7 +1608,6 @@
     }
     if (appMode !== 'edit' && app) { previousApp = app; fillFromApplication(app); }
 
-    const trackURL = `lead-details.html?id=${encodeURIComponent(sourceLeadId)}&tab=tracking`;
     const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>';
     let banner = '';
     if (appMode === 'locked') {
@@ -1583,11 +1619,68 @@
         : 'You can edit this application once you receive feedback on it.';
       banner = `<div class="app-mode-banner locked">${LOCK}
         <div class="amb-text"><b>${esc(title)}</b><span>${esc(sub)}</span></div>
-        ${app || SUBMITTED_STATUSES.includes(status) ? `<a class="btn btn-outline btn-sm" href="${trackURL}">View Tracking</a>` : ''}
       </div>`;
     }
 
     const head = document.querySelector('.page-head');
+    const shown = status === 'application' && note && isSales ? 'returned' : status;
+    const LABELS = { new: 'New', application: 'Application in Progress', returned: 'Rejected Rates', 'rate-approval': 'Waiting Rate Approval',
+      'onboarding-review': 'Underwriting Review', 'bank-submission': 'Bank Submission', activated: 'Live', lost: 'Lost' };
+
+    // CRM record — one click back to the lead in Zoho.
+    const crmId = 'ZOHO-' + sourceLeadId.replace('L-', '00');
+    const crmURL = `https://crm.zoho.com/crm/org-kashier/tab/Leads/${encodeURIComponent(crmId)}`;
+    head.insertAdjacentHTML('beforebegin', '<div class="crm-sync-pill"><svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>' +
+      `Synced from ZOHO CRM &middot; Record <a class="crm-record-link" href="${crmURL}" target="_blank" rel="noopener" title="Open this lead in Zoho CRM">${esc(crmId)}</a></div>`);
+
+    // Status next to the title, and Mark as Lost while the application is still live in the pipeline.
+    const canLose = isSales && ['new', 'application', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(status);
+    head.insertAdjacentHTML('beforeend', `<div class="page-head-actions">
+      <span class="status-badge ${esc(shown)}"><span class="dot"></span>${esc(LABELS[shown] || shown)}</span>
+      ${canLose ? '<button type="button" class="btn btn-outline btn-sm" id="markLostBtn">Mark as Lost</button>' : ''}
+    </div>`);
+    if (canLose) {
+      const lostBiz = () => $('mBiz').value || 'this merchant';
+      $('markLostBtn').addEventListener('click', () => {
+        $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lostBiz())}</b> as lost? This moves them out of the active pipeline — no further onboarding action can be taken.`;
+        $('lostModal').classList.add('open');
+      });
+      const closeLost = () => $('lostModal').classList.remove('open');
+      $('lostClose').addEventListener('click', closeLost);
+      $('lostCancel').addEventListener('click', closeLost);
+      $('lostModal').addEventListener('click', e => { if (e.target === $('lostModal')) closeLost(); });
+      $('lostConfirm').addEventListener('click', () => {
+        const o = K.readStore('kashierLeadStatusOverrides'); o[sourceLeadId] = 'lost'; K.writeStore('kashierLeadStatusOverrides', o);
+        location.reload();
+      });
+    }
+
+    // Tracking, on the same page: where the submitted application stands.
+    let tracking = '';
+    if (app && status !== 'new') {
+      const fmt = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const rows = [];
+      const row = (label, value, tone) => rows.push(`<div class="track-row"><span class="track-label">${esc(label)}</span><span class="track-val ${tone || ''}">${value}</span></div>`);
+      row('Application', esc(app.id));
+      row('Submitted', `${esc(fmt(app.ts))} by ${esc(app.actor)}`);
+      const decisions = K.decisionsFor(app.id);
+      const total = app.requests.length;
+      if (!total) {
+        row('Rate approval', 'Not needed — every rate was at no-approval pricing', 'ok');
+      } else {
+        const approved = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'approved').length;
+        const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected').length;
+        const open = total - approved - rejected;
+        const levels = K.approvalRequests().filter(r => r.app.id === app.id)
+          .map(r => `${K.TIER_OWNER[r.tier]}: ${r.state === 'pending' ? `${r.pendingLines.length} to review` : r.state}`).join(' · ');
+        row('Rate approval', `${approved} approved · ${rejected} rejected · ${open} to review${levels ? `<div class="track-sub">${esc(levels)}</div>` : ''}`,
+          open ? 'warn' : rejected ? 'bad' : 'ok');
+      }
+      const acct = K.findAccount(app.id);
+      if (acct) row('Underwriting', esc(acct.meta.label), acct.meta.tone === 'success' ? 'ok' : acct.meta.tone === 'danger' ? 'bad' : 'warn');
+      tracking = `<div class="status-panel"><h2>Application Tracking</h2>${rows.join('')}</div>`;
+    }
+
     if (appMode !== 'edit') {
       const pill = head.querySelector('.lead-source-pill');
       if (pill) pill.remove();
@@ -1598,7 +1691,9 @@
         : 'The application exactly as it was submitted.';
       document.querySelector('.breadcrumb .current').textContent = $('mBiz').value || h1.textContent;
       document.title = `Kashier | ${$('mBiz').value || h1.textContent}`;
-      head.insertAdjacentHTML('afterend', banner);
+      head.insertAdjacentHTML('afterend', banner + tracking);
+    } else if (tracking) {
+      head.insertAdjacentHTML('afterend', tracking);
     }
     if (appMode === 'locked') {
       document.body.classList.add('app-locked');
@@ -1651,7 +1746,7 @@
     qs.set('documents', JSON.stringify(submittedDocs.map(name => ({
       name, file: [...(docFiles.get(name) || new Map()).values()].map(f => f.name).join(', '),
     }))));
-    const trackURL = 'application-status.html?' + qs.toString();
+    const trackURL = 'merchant-onboarding.html?' + qs.toString();
 
     // Advance the originating lead straight to whichever stage follows submission —
     // Waiting Rate Approval if any rate needs sign-off, else straight to Onboarding
@@ -1685,7 +1780,7 @@
     toast('Application created for ' + biz + (needsApproval
       ? ` — sent for ${needsApproval} rate approval${needsApproval === 1 ? '' : 's'} before the Onboarding team reviews it`
       : ' — sent to the Onboarding team for review'));
-    location.href = trackURL;
+    location.href = sourceLeadId ? K.applicationURL(sourceLeadId) : 'index.html';
   }
   $('submitAppBtn').addEventListener('click', attemptSubmit);
 

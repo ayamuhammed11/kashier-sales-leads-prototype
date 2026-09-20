@@ -552,7 +552,7 @@
       $('reqActions').innerHTML = `<div class="actions-note">Revised and resubmitted as ${esc(app.supersededBy)}.</div>`;
     } else if (role === 'sales' && returned) {
       // The salesperson's way back in: modify the rejected rates and resubmit.
-      $('reqActions').innerHTML = `<a class="btn btn-primary" href="${window.KashierRates.revisionURL(app.id)}">Modify Rejected Rates</a>`;
+      $('reqActions').innerHTML = `<a class="btn btn-primary" href="${window.KashierRates.applicationURL(app.leadId)}">Modify Rejected Rates</a>`;
     } else if (state !== 'pending') {
       const next = nextPending();
       $('reqActions').innerHTML = next
@@ -617,7 +617,7 @@
       field('Application', app.id),
     ].join('');
 
-    $('appLink').href = app.url;
+    $('appLink').href = window.KashierRates.applicationURL(app.leadId);
   }
 
   /* Decide one rate in the request. */

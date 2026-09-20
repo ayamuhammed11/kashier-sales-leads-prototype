@@ -688,8 +688,8 @@
       <div class="kv-grid">
         ${kv('Sales Account Owner', app.actor)}
         ${kv('Submitted', fmtDateTime(app.ts))}
-        ${kv('Lead', app.leadId ? `<a href="lead-details.html?id=${encodeURIComponent(app.leadId)}">${esc(app.leadId)}</a>` : '—', true)}
-        ${kv('Application', `<a href="${esc(app.url)}">${esc(app.id)}</a>`, true)}
+        ${kv('Lead', app.leadId ? `<a href="${K.applicationURL(app.leadId)}">${esc(app.leadId)}</a>` : '—', true)}
+        ${kv('Application', `<a href="${K.applicationURL(app.leadId)}">${esc(app.id)}</a>`, true)}
       </div>`;
   }
 

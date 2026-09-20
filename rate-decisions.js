@@ -724,10 +724,10 @@ window.KashierRates = (function () {
      Every action on an application, newest first. Most of it is read off what was already
      recorded (submission, each rate decision, the Onboarding team's steps, resubmissions);
      the rest — starting the application, marking it Lost — is written as it happens. */
-  function logEvent(leadId, who, text) {
+  function logEvent(leadId, who, text, ts) {
     if (!leadId) return;
     const all = readStore('kashierApplicationLog');
-    (all[leadId] = all[leadId] || []).push({ ts: new Date().toISOString(), who: who, text: text });
+    (all[leadId] = all[leadId] || []).push({ ts: ts || new Date().toISOString(), who: who, text: text });
     writeStore('kashierApplicationLog', all);
   }
   function applicationLog(leadId) {

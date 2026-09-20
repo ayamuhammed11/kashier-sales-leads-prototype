@@ -174,6 +174,20 @@
   .log-empty { font-size: 13px; color: var(--cadet-05); padding: 6px 0; }
   @media (max-width: 720px) { .log-item { grid-template-columns: 1fr; gap: 2px; } }
 
+
+  /* Activity log drawer */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(2,10,34,.35); display: none; z-index: 90; }
+  .drawer-overlay.open { display: block; }
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 460px; max-width: 100vw; background: #fff; display: flex; flex-direction: column;
+    box-shadow: -12px 0 40px rgba(0,20,60,.2); animation: drawer-in .18s ease-out; }
+  @keyframes drawer-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px; border-bottom: 1px solid var(--border-subtle); }
+  .drawer-head h3 { margin: 0 0 3px; font-size: 17px; color: var(--foreground); }
+  .drawer-sub { margin: 0; font-size: 12.5px; color: var(--cadet-05); }
+  .drawer-body { padding: 6px 22px 22px; overflow-y: auto; flex: 1; }
+  .drawer .log-item { grid-template-columns: 1fr; gap: 2px; padding: 13px 0; }
+  .drawer .log-time { font-size: 11.5px; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -622,12 +636,20 @@
         </div>
       </div>
 
-      <div class="status-panel" id="logPanel" hidden></div>
-
     </div>
   </main>
 
   <div class="toast" id="toast"></div>
+
+  <div class="drawer-overlay" id="logDrawerOverlay">
+    <aside class="drawer" id="logDrawer" role="dialog" aria-label="Activity log">
+      <div class="drawer-head">
+        <div><h3>Activity Log</h3><p class="drawer-sub" id="logDrawerSub"></p></div>
+        <button class="btn-icon" id="logDrawerClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="drawer-body" id="logDrawerBody"></div>
+    </aside>
+  </div>
 
   <div class="modal-overlay" id="lostModal">
     <div class="modal">
@@ -1657,6 +1679,76 @@
     });
   }
 
+  /* ══════════ Change log — what the salesperson changed before submitting ══════════
+     A snapshot is taken when the application opens; at submit it is compared with the form as
+     sent, and each difference is written to the activity log (a rate 1.2% -> 1.6%, a service
+     added, an institution or model switched, a justification, a document). */
+  let editBaseline = null;
+  const normNum = v => (v === '' || v == null || isNaN(Number(v))) ? '' : String(Number(v));
+  function snapshot() {
+    const services = {};
+    criteria.services.forEach(s => {
+      const cfg = serviceConfig[s];
+      if (!cfg) return;
+      const banks = bankKeysFor(cfg, s).slice();
+      const entry = { banks, models: {}, pricing: {} };
+      banks.forEach(k => {
+        const bc = cfg.bankConfigs[k];
+        entry.models[k] = bc ? bc.module : '';
+        ratesForService(s).forEach(t => {
+          const sel = bc && bc.pricing.get(t.key);
+          if (sel) entry.pricing[k + '::' + t.key] = { rate: normNum(sel.rate), fee: normNum(sel.fee), note: (sel.note || '').trim(), label: t.label };
+        });
+      });
+      services[s] = entry;
+    });
+    return {
+      details: {
+        'Business name': $('mBiz').value.trim(), 'Contact email': $('mEmail').value.trim(), 'Contact phone': $('mPhone').value.trim(),
+        'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
+        'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
+      },
+      services,
+      docs: [...docFiles.keys()].filter(isDocDone).sort(),
+    };
+  }
+  function diffSnapshots(a, b) {
+    const out = [];
+    Object.keys(b.details).forEach(k => {
+      const x = a.details[k] || '', y = b.details[k] || '';
+      if (x === y) return;
+      out.push(!x ? `${k} set to "${y}"` : !y ? `${k} cleared` : `${k} changed from "${x}" to "${y}"`);
+    });
+    const where = (s, k) => s + (k ? ' \u00b7 ' + k : '');
+    const money = p => `${p.rate}% + ${p.fee} EGP`;
+    Object.keys(b.services).forEach(s => {
+      const nb = b.services[s], na = a.services[s];
+      if (!na) {
+        const cfgs = nb.banks.length ? nb.banks.map(k => `${k} (${nb.models[k] || 'no model'})`).join(', ') : (nb.models[''] || '');
+        out.push(`Added ${s}${cfgs ? ' \u2014 ' + cfgs : ''}`);
+        return;
+      }
+      nb.banks.filter(k => na.banks.indexOf(k) === -1).forEach(k => out.push(`${s}: added institution ${k || '\u2014'}`));
+      na.banks.filter(k => nb.banks.indexOf(k) === -1).forEach(k => out.push(`${s}: removed institution ${k || '\u2014'}`));
+      nb.banks.filter(k => na.banks.indexOf(k) !== -1).forEach(k => {
+        if ((na.models[k] || '') !== (nb.models[k] || '')) out.push(`${where(s, k)}: model changed from ${na.models[k] || '\u2014'} to ${nb.models[k] || '\u2014'}`);
+        Object.keys(nb.pricing).filter(key => key.indexOf(k + '::') === 0).forEach(key => {
+          const pa = na.pricing[key], pb = nb.pricing[key];
+          if (!pa) return;
+          if (pa.rate !== pb.rate || pa.fee !== pb.fee) out.push(`${where(s, k)} \u2014 ${pb.label}: ${money(pa)} \u2192 ${money(pb)}`);
+          if (pa.note !== pb.note) out.push(`${where(s, k)} \u2014 ${pb.label}: justification ${pa.note ? 'updated' : 'added'} \u2014 "${pb.note}"`);
+        });
+      });
+    });
+    Object.keys(a.services).filter(s => !b.services[s]).forEach(s => out.push(`Removed ${s}`));
+    if (!a.docs.length) { if (b.docs.length) out.push(`Uploaded ${b.docs.length} document${b.docs.length === 1 ? '' : 's'}`); }
+    else {
+      b.docs.filter(d => a.docs.indexOf(d) === -1).forEach(d => out.push(`Uploaded ${d}`));
+      a.docs.filter(d => b.docs.indexOf(d) === -1).forEach(d => out.push(`Removed ${d}`));
+    }
+    return out;
+  }
+
   (function openApplication() {
     if (!sourceLeadId) return;
     const p = new URLSearchParams(location.search);
@@ -1711,8 +1803,15 @@
     const canLose = isSales && ['new', 'application', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(status);
     head.insertAdjacentHTML('beforeend', `<div class="page-head-actions">
       <span class="status-badge ${esc(shown)}"><span class="dot"></span>${esc(LABELS[shown] || shown)}</span>
+      <button type="button" class="btn btn-outline btn-sm" id="viewLogsBtn">View Logs</button>
       ${canLose ? '<button type="button" class="btn btn-outline btn-sm" id="markLostBtn">Mark as Lost</button>' : ''}
     </div>`);
+    const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
+    const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
+    $('viewLogsBtn').addEventListener('click', openLogs);
+    $('logDrawerClose').addEventListener('click', closeLogs);
+    $('logDrawerOverlay').addEventListener('click', e => { if (e.target === $('logDrawerOverlay')) closeLogs(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogs(); });
     if (canLose) {
       const lostBiz = () => $('mBiz').value || 'this merchant';
       $('markLostBtn').addEventListener('click', () => {
@@ -1804,10 +1903,10 @@
     const renderLog = () => {
       const fmtT = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
       const events = K.applicationLog(sourceLeadId);
-      $('logPanel').hidden = false;
-      $('logPanel').innerHTML = `<h2>Activity Log</h2>` + (events.length
+      $('logDrawerSub').textContent = `${$('mBiz').value || 'This application'} · ${events.length} event${events.length === 1 ? '' : 's'}`;
+      $('logDrawerBody').innerHTML = events.length
         ? `<div class="log-list">${events.map(e => `<div class="log-item"><span class="log-time">${esc(fmtT(e.ts))}</span><span class="log-who">${esc(e.who || '')}</span><span class="log-text">${esc(e.text)}</span></div>`).join('')}</div>`
-        : '<div class="log-empty">No activity has been recorded yet.</div>');
+        : '<div class="log-empty">No activity has been recorded yet.</div>';
     };
     const renderHosts = () => {
       $('ratePanelHost').innerHTML = ratePanelHTML();
@@ -1878,6 +1977,7 @@
       lock();
     }
     if (appMode === 'returned') $('submitAppBtn').textContent = 'Resubmit Application';
+    editBaseline = snapshot();
     renderCriteria();
     renderServiceSetup();
     renderSubmitSummary();
@@ -1948,6 +2048,13 @@
           K.writeStore('kashierLeadReturnNote', notes);
         }
       } catch (e) { /* storage unavailable */ }
+    }
+
+    // Each change made since the application was opened, just ahead of the submission it belongs to.
+    if (sourceLeadId && editBaseline) {
+      const T = new Date(qs.get('ts')).getTime();
+      diffSnapshots(editBaseline, snapshot()).forEach((text, i) =>
+        K.logEvent(sourceLeadId, K.ROLES.sales.name, text, new Date(T - 1000 - i).toISOString()));
     }
 
     toast('Application created for ' + biz + (needsApproval

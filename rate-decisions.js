@@ -743,11 +743,11 @@ window.KashierRates = (function () {
       const sm = app.summary || {};
       const need = app.requests || [];
       const nMgr = need.filter(r => r.tier === 'manager').length, nHead = need.filter(r => r.tier === 'head').length;
-      const alt = (app.altIndustries || []).map(x => x.industry).join(', ');
+      const alt = (app.altIndustries || []).map(x => x.activity || x.industry).join(', ');
       const details = [{ label: 'Application', value: app.id }];
       if (replaces[app.id]) details.push({ label: 'Replaces', value: replaces[app.id] });
       details.push({ label: 'Services', value: (sm.services || []).join(', ') || '\u2014' });
-      if (sm.industry) details.push({ label: 'Industry', value: sm.industry + (alt ? ' (fallbacks: ' + alt + ')' : '') });
+      if (sm.industry) details.push({ label: 'Industry', value: sm.industry + (alt ? ' (fallback activities: ' + alt + ')' : '') });
       details.push({ label: 'Rates needing approval', value: need.length
         ? need.length + ' \u2014 ' + [nMgr ? nMgr + ' Sales Manager' : '', nHead ? nHead + ' Head of Sales' : ''].filter(Boolean).join(' \u00b7 ')
         : 'None \u2014 every rate at published pricing' });

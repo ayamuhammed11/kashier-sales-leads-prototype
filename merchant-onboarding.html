@@ -265,6 +265,28 @@
 
   .rp-outcome .pill.pending { background: var(--warning-bg); color: #92620A; }
 
+
+  /* Secondary activities — two views to compare */
+  .alt-viewswitch { display: flex; width: fit-content; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 12px; color: var(--cadet-05); background: var(--muted); border-radius: 6px; padding: 4px 6px; }
+  .alt-viewswitch button { border: none; background: none; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--cadet-base); padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+  .alt-viewswitch button.on { background: #fff; color: var(--primary); box-shadow: 0 0 0 1px var(--border); }
+  .alt-chosen { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 30px; align-items: center; }
+  .alt-none { font-size: 13px; color: var(--cadet-05); }
+  .alt-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--ocean-10); border: 1.5px solid var(--primary); border-radius: 4px; padding: 4px 6px 4px 6px; }
+  .alt-chip i { font-style: normal; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .alt-chip span { font-size: 13px; font-weight: 600; color: var(--primary); }
+  .alt-chip small { display: block; font-size: 11px; font-weight: 400; color: var(--cadet-04); }
+  .alt-chip button { background: none; border: none; padding: 2px; cursor: pointer; color: var(--cadet-04); display: flex; }
+  .alt-chip button:hover { color: var(--destructive); }
+  .alt-search { max-width: 360px; margin-bottom: 10px; }
+  .alt-group { margin-bottom: 10px; }
+  .alt-group-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); margin-bottom: 6px; }
+  .alt-picks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .alt-pick { border: 1.5px solid var(--border); background: #fff; border-radius: 4px; padding: 6px 12px; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--cadet-base); cursor: pointer; }
+  .alt-pick:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+  .alt-pick:disabled { opacity: .45; cursor: not-allowed; }
+  .alt-note { font-size: 12.5px; color: var(--cadet-05); margin-top: 4px; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -684,8 +706,8 @@
               <div class="crit-chips" id="critOwner"></div>
             </div>
             <div class="crit-group full">
-              <div class="crit-label">Secondary industries or activities<span class="opt">(optional, up to 2)</span></div>
-              <p class="alt-help">The bank sometimes classifies a merchant under a different industry than the one submitted. Choose the other industries or activities this merchant could fall under, in the order the Onboarding team should try them.</p>
+              <div class="crit-label">Secondary activities<span class="opt">(optional, up to 2)</span></div>
+              <p class="alt-help">The bank sometimes classifies a merchant under a different activity than the one submitted. Choose the other activities this merchant could fall under, in the order the Onboarding team should try them.</p>
               <div id="critAlt"></div>
             </div>
           </div>
@@ -1080,42 +1102,114 @@
   $('critIndustry').addEventListener('change', e => {
     criteria.industry = e.target.value;
     // The primary industry can't also be a fallback.
-    criteria.altIndustries.forEach(a => { if (a.industry === criteria.industry) a.industry = ''; });
     renderAltIndustries();
     refreshAll();
   });
 
-  /* Secondary industries: up to two fallbacks, each with a one-line reason. */
+  /* Secondary activities: up to two fallbacks, in the order the Onboarding team should try them.
+     Two views of the same choice, to compare — A: ranked dropdowns; B: search and pick. */
   const MAX_ALT_INDUSTRIES = 2;
-  function renderAltIndustries() {
-    const box = $('critAlt');
-    if (!box) return;
-    const chosen = criteria.altIndustries.map(a => a.industry).filter(Boolean);
-    box.innerHTML = criteria.altIndustries.map((a, i) => {
-      const options = INDUSTRIES.filter(x => x !== criteria.industry && (x === a.industry || chosen.indexOf(x) === -1));
+  const ACTIVITIES = {
+    'Retail & E-commerce': ['Clothing & accessories', 'Electronics & appliances', 'Grocery & supermarket', 'Online marketplace', 'Home & furniture'],
+    'Food & Beverage': ['Restaurant', 'Caf\u00e9 & coffee shop', 'Catering', 'Food delivery', 'Bakery & sweets'],
+    'Healthcare / Pharmacy': ['Pharmacy', 'Medical clinic', 'Medical equipment', 'Laboratory & diagnostics', 'Dental care'],
+    'Education': ['Tutoring & lessons', 'Training center', 'Online courses', 'School & nursery', 'Educational supplies'],
+    'Travel & Tourism': ['Hotel & accommodation', 'Tour operator', 'Travel agency', 'Car rental', 'Diving & activities'],
+    'Professional Services': ['Consulting', 'Legal services', 'Accounting', 'Marketing & advertising', 'Engineering services'],
+    'Technology / SaaS': ['Software subscription', 'Mobile app', 'IT services', 'Web hosting', 'Digital marketplace'],
+    'Real Estate': ['Property sales', 'Property rental', 'Property management', 'Construction & contracting'],
+    'Automotive': ['Car dealership', 'Auto parts', 'Car maintenance', 'Car rental & leasing'],
+    'Fashion & Beauty': ['Fashion boutique', 'Beauty salon', 'Cosmetics', 'Jewelry & watches', 'Handmade crafts'],
+    'Entertainment & Media': ['Gyms & fitness', 'Events & tickets', 'Gaming', 'Streaming & content', 'Cinema & leisure'],
+    'Non-profit / NGO': ['Charity & donations', 'Fundraising campaigns', 'Community services'],
+    'Government': ['Public services', 'Fees & fines', 'Utilities'],
+    'Financial Services': ['Payments & wallets', 'Lending', 'Money transfer', 'Investment services'],
+    'Insurance': ['Insurance brokerage', 'Insurance premiums', 'Takaful'],
+    'Marketplace': ['Multi-vendor marketplace', 'Classifieds', 'Service marketplace'],
+    'Logistics & Delivery': ['Courier & delivery', 'Freight & shipping', 'Warehousing', 'Ride services'],
+  };
+  let altView = 'a', altSearch = '';
+  try { altView = localStorage.getItem('kashierAltView') === 'b' ? 'b' : 'a'; } catch (e) { /* storage unavailable */ }
+  const altKey = a => a.industry + '::' + a.activity;
+  const altTaken = () => criteria.altIndustries.filter(a => a.activity).map(altKey);
+  /* Activities grouped by industry, the merchant's own industry first. */
+  const altGroups = () => {
+    const order = Object.keys(ACTIVITIES).sort((x, y) => (x === criteria.industry ? -1 : y === criteria.industry ? 1 : x.localeCompare(y)));
+    return order.map(ind => ({ industry: ind, items: ACTIVITIES[ind], suggested: ind === criteria.industry }));
+  };
+
+  function altViewA() {
+    const taken = altTaken();
+    return criteria.altIndustries.map((a, i) => {
+      const groups = altGroups().map(g => `<optgroup label="${esc(g.suggested ? 'Suggested \u00b7 ' + g.industry : g.industry)}">${
+        g.items.filter(x => altKey({ industry: g.industry, activity: x }) === altKey(a) || taken.indexOf(g.industry + '::' + x) === -1)
+          .map(x => `<option value="${esc(g.industry + '::' + x)}"${altKey(a) === g.industry + '::' + x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</optgroup>`).join('');
       return `<div class="alt-row">
         <span class="alt-rank">${i + 1}</span>
-        <select class="crit-select alt-select" data-alt-industry="${i}">
-          <option value="">Select industry\u2026</option>
-          ${options.map(x => `<option value="${esc(x)}"${x === a.industry ? ' selected' : ''}>${esc(x)}</option>`).join('')}
-        </select>
+        <select class="crit-select alt-select" data-alt-activity="${i}"><option value="">Select activity\u2026</option>${groups}</select>
         <button type="button" class="alt-remove" data-alt-remove="${i}" aria-label="Remove">${RM_ICON}</button>
       </div>`;
     }).join('') + (criteria.altIndustries.length < MAX_ALT_INDUSTRIES
-      ? `<button type="button" class="cell-link alt-add" data-alt-add>+ Add a secondary industry</button>` : '');
+      ? `<button type="button" class="cell-link alt-add" data-alt-add>+ Add a secondary activity</button>` : '');
+  }
+  function altViewB() {
+    const chosen = criteria.altIndustries.filter(a => a.activity);
+    const chips = chosen.length
+      ? chosen.map((a, i) => `<span class="alt-chip"><i>${i + 1}</i><span>${esc(a.activity)}<small>${esc(a.industry)}</small></span>
+          <button type="button" data-alt-remove="${criteria.altIndustries.indexOf(a)}" aria-label="Remove">${RM_ICON}</button></span>`).join('')
+      : '<span class="alt-none">No secondary activity added</span>';
+    return `<div class="alt-chosen">${chips}</div>
+      <input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities\u2026" value="${esc(altSearch)}" autocomplete="off"${chosen.length >= MAX_ALT_INDUSTRIES ? ' disabled' : ''}>
+      <div class="alt-results" id="altResults">${altResultsHTML()}</div>`;
+  }
+  function altResultsHTML() {
+    const chosen = criteria.altIndustries.filter(a => a.activity);
+    if (chosen.length >= MAX_ALT_INDUSTRIES) return '<div class="alt-note">You have added 2. Remove one to choose a different activity.</div>';
+    const term = altSearch.trim().toLowerCase(), taken = altTaken();
+    const groups = altGroups().map(g => ({ g, items: g.items.filter(x => !term || x.toLowerCase().indexOf(term) !== -1 || g.industry.toLowerCase().indexOf(term) !== -1) }))
+      .filter(x => x.items.length && (term || x.g.suggested));
+    if (!groups.length) return term ? '<div class="alt-note">No activities match your search.</div>'
+      : '<div class="alt-note">Choose the merchant\u2019s industry above for suggestions, or search all activities.</div>';
+    return groups.map(({ g, items }) => `<div class="alt-group"><div class="alt-group-name">${esc(g.suggested ? 'Suggested for ' + g.industry : g.industry)}</div>
+      <div class="alt-picks">${items.map(x => `<button type="button" class="alt-pick" data-alt-pick="${esc(g.industry + '::' + x)}"${taken.indexOf(g.industry + '::' + x) !== -1 ? ' disabled' : ''}>+ ${esc(x)}</button>`).join('')}</div></div>`).join('')
+      + (!term ? '<div class="alt-note">Search to see activities from all industries.</div>' : '');
+  }
+  function renderAltIndustries() {
+    const box = $('critAlt');
+    if (!box) return;
+    if (altView === 'b') criteria.altIndustries = criteria.altIndustries.filter(a => a.activity);
+    box.innerHTML = `<div class="alt-viewswitch"><span>Compare views:</span>
+        <button type="button" data-alt-view="a" class="${altView === 'a' ? 'on' : ''}">A \u00b7 Dropdowns</button>
+        <button type="button" data-alt-view="b" class="${altView === 'b' ? 'on' : ''}">B \u00b7 Search &amp; pick</button></div>`
+      + (altView === 'a' ? altViewA() : altViewB());
   }
   $('critAlt').addEventListener('change', e => {
-    const sel = e.target.closest('[data-alt-industry]');
+    const sel = e.target.closest('[data-alt-activity]');
     if (!sel) return;
-    criteria.altIndustries[Number(sel.dataset.altIndustry)].industry = sel.value;
+    const [industry, activity] = sel.value ? sel.value.split('::') : ['', ''];
+    Object.assign(criteria.altIndustries[Number(sel.dataset.altActivity)], { industry, activity });
     renderAltIndustries(); renderSubmitSummary();
   });
+  $('critAlt').addEventListener('input', e => {
+    if (e.target.id !== 'altSearch') return;
+    altSearch = e.target.value;
+    $('altResults').innerHTML = altResultsHTML();
+  });
   $('critAlt').addEventListener('click', e => {
-    if (e.target.closest('[data-alt-add]')) { criteria.altIndustries.push({ industry: '' }); renderAltIndustries(); return; }
+    const v = e.target.closest('[data-alt-view]');
+    if (v) { altView = v.dataset.altView; try { localStorage.setItem('kashierAltView', altView); } catch (err) { /* storage unavailable */ } renderAltIndustries(); return; }
+    if (e.target.closest('[data-alt-add]')) { criteria.altIndustries.push({ industry: '', activity: '' }); renderAltIndustries(); return; }
+    const pick = e.target.closest('[data-alt-pick]');
+    if (pick && criteria.altIndustries.filter(a => a.activity).length < MAX_ALT_INDUSTRIES) {
+      const [industry, activity] = pick.dataset.altPick.split('::');
+      criteria.altIndustries.push({ industry, activity }); renderAltIndustries(); renderSubmitSummary();
+      const inp = $('altSearch'); if (inp && !inp.disabled) inp.focus();
+      return;
+    }
     const rm = e.target.closest('[data-alt-remove]');
     if (rm) { criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1); renderAltIndustries(); renderSubmitSummary(); }
   });
-  const filledAltIndustries = () => criteria.altIndustries.filter(a => a.industry).map(a => ({ industry: a.industry }));
+  const filledAltIndustries = () => criteria.altIndustries.filter(a => a.activity).map(a => ({ industry: a.industry, activity: a.activity }));
 
   /* ══════════ Step 4 — Required Documents, grouped per service exactly as Document Rules
      configures it for that service (its own entity/owner/industry/bank/module/service match) —
@@ -1808,7 +1902,7 @@
     if (s.phone) $('mPhone').value = s.phone;
     if (ENTITIES.includes(s.entity)) criteria.entity = s.entity;
     if (INDUSTRIES.includes(s.industry)) { criteria.industry = s.industry; $('critIndustry').value = s.industry; }
-    criteria.altIndustries = (app.altIndustries || []).filter(a => INDUSTRIES.includes(a.industry)).map(a => ({ industry: a.industry }));
+    criteria.altIndustries = (app.altIndustries || []).map(a => ({ industry: a.industry || '', activity: a.activity || a.industry || '' })).filter(a => a.activity);
     criteria.services = (s.services || []).filter(x => SERVICES.includes(x));
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';
@@ -1895,7 +1989,7 @@
       details: {
         'Business name': $('mBiz').value.trim(), 'Contact email': $('mEmail').value.trim(), 'Contact phone': $('mPhone').value.trim(),
         'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
-        'Secondary industries': filledAltIndustries().map(a => a.industry).join('; '),
+        'Secondary activities': filledAltIndustries().map(a => a.activity + ' (' + a.industry + ')').join('; '),
         'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
       },
       services,
@@ -1910,7 +2004,7 @@
     Object.keys(b.details).forEach(k => {
       const x = a.details[k] || '', y = b.details[k] || '';
       if (x === y) return;
-      add(/industr/i.test(k) ? 'Industry' : 'Business details', `${k} ${!x ? 'added' : !y ? 'cleared' : 'updated'}`,
+      add(/industr|activit/i.test(k) ? 'Industry' : 'Business details', `${k} ${!x ? 'added' : !y ? 'cleared' : 'updated'}`,
         [!x ? { label: k, value: y } : { label: k, from: x, to: y || '\u2014' }]);
     });
     Object.keys(b.services).forEach(s => {

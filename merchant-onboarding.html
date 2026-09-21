@@ -1203,23 +1203,19 @@
   let approvalModalCallback = null;
   function openApprovalModal(onSaved) {
     approvalModalCallback = onSaved;
-    const lines = approvalNeededLines();
+    // A fresh pop-up: only the rates that still need a justification, each with an empty box.
+    const lines = needsJustificationLines();
     $('approvalModalBody').innerHTML = lines.map(l => {
       const tier = lineVerdict(l.t, l.sel).tier;
       const bank = l.bankKey ? ` &middot; ${esc(l.bankKey)}` : '';
-      const stale = isStaleRejectedNote(l);
-      const rej = stale ? rejectedLines.get(lineKey(l)) : null;
-      const context = rej ? `<div class="appr-line-rej"><b>${esc(rej.by)}${rej.roleLabel ? ` (${esc(rej.roleLabel)})` : ''} rejected the earlier rate:</b> ${esc(rej.reason || '')}
-          ${l.sel.note ? `<div class="appr-line-prev">Your earlier justification: ${esc(l.sel.note)}</div>` : ''}</div>` : '';
       return `<div class="appr-line">
         <div class="appr-line-head">
           <div><span class="cell-channel">${esc(channelOf(l.service))}</span><span class="cell-service-name">${esc(stripChannel(l.service))}</span><span class="appr-line-bank">${bank}</span></div>
           <span class="appr-chip ${tier}">${esc(APPROVAL_SHORT[tier])}</span>
         </div>
         <div class="appr-line-meta">${esc(l.t.label)} — ${esc(l.sel.rate)}% + ${esc(l.sel.fee)} EGP</div>
-        ${context}
         <textarea class="appr-line-note" data-service="${esc(l.service)}" data-bank="${esc(l.bankKey)}" data-key="${esc(l.t.key)}"
-          placeholder="${stale ? 'Why does the revised rate still need to be approved?' : 'Why does this merchant need this rate?'}">${stale ? '' : esc(l.sel.note || '')}</textarea>
+          placeholder="Why does this merchant need this rate?"></textarea>
       </div>`;
     }).join('');
     $('approvalModal').classList.add('open');

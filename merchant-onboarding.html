@@ -262,6 +262,9 @@
   .appr-line-rej { font-size: 12.5px; color: var(--destructive); background: var(--destructive-bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.45; }
   .appr-line-prev { margin-top: 4px; color: var(--cadet-base); font-style: italic; }
 
+
+  .rp-outcome .pill.pending { background: var(--warning-bg); color: #92620A; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -1337,6 +1340,15 @@
       `<button type="button" class="btn btn-sm btn-approve rp-act" data-rp-approve="${esc(line.id)}">Approve</button></div>`;
   }
   let currentAppId = '';
+  function approvalStatusHTML(line) {
+    if (!line) return '<span class="cell-muted">No approval needed</span>';
+    const K2 = window.KashierRates;
+    const d = K2.decisionsFor(currentAppId)[line.id];
+    if (!d) return `<div class="rp-outcome"><span class="pill pending">Pending</span><div class="rp-by">With the ${esc(K2.TIER_OWNER[line.tier])}</div></div>`;
+    const ok = d.decision === 'approved';
+    return `<div class="rp-outcome"><span class="pill ${d.decision}">${ok ? 'Approved' : 'Rejected'}</span>` +
+      `<div class="rp-by">${esc(d.by)}</div>${!ok && d.reason ? `<div class="why">${esc(d.reason)}</div>` : ''}</div>`;
+  }
 
   function serviceToggleHTML(s, active) {
     return `<label class="cell-toggle">
@@ -1350,7 +1362,7 @@
     if (!active) {
       return `<tr class="svc-row-inactive">
         <td class="cell-service">${serviceToggleHTML(s, false)}</td>
-        <td class="cell-muted" colspan="${approverView ? 6 : 5}">Not activated — check the box to add its pricing</td>
+        <td class="cell-muted" colspan="${approverView || statusView ? 6 : 5}">Not activated — check the box to add its pricing</td>
       </tr>`;
     }
     const cfg = serviceConfig[s];
@@ -1389,14 +1401,15 @@
           <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `${(lb => `<span class="cell-rejected${lb.cls}">${esc(lb.text)}</span>`)(rejectedLabel(sel, rejection, t))}${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
           <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
           <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="EGP"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
-          ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
+          ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>`
+            : statusView ? `<td class="cell-approval-actions">${approvalStatusHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
         </tr>`;
       }).join('');
     }).join('');
   }
 
   function stepServicesTableHTML() {
-    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'].concat(approverView ? ['Rate approval'] : []);
+    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'].concat(approverView || statusView ? ['Rate approval'] : []);
     const body = SERVICE_CATALOG.map(tier => {
       const header = `<tr class="svc-tier-row"><td colspan="${heads.length}" class="svc-tier-head">${esc(tier.tier)} Services</td></tr>`;
       const terminals = tier.tier === 'POS' && criteria.posEnabled
@@ -1856,6 +1869,8 @@
   let editBaseline = null;
   /* An approver sees Approve / Reject beside each requested rate in the table itself. */
   let approverView = false;
+  /* The salesperson's read-only view of where each requested rate stands. */
+  let statusView = false;
   let approverRole = '';
   const approvalLineMap = new Map();   // service::bank::rateKey -> the requested rate line
   const normNum = v => (v === '' || v == null || isNaN(Number(v))) ? '' : String(Number(v));
@@ -1961,12 +1976,16 @@
     const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>';
     let banner = '';
     if (appMode === 'locked') {
-      const title = status === 'lost' ? 'This lead was marked as Lost — view only.'
+      const reviewing = isSales && status === 'rate-approval' && app;
+      const decidedN = reviewing ? app.requests.filter(r => K.decisionsFor(app.id)[r.id]).length : 0;
+      const title = reviewing ? 'Waiting for rate approval — view only.'
+        : status === 'lost' ? 'This lead was marked as Lost — view only.'
         : !isSales ? 'View only — only the salesperson can edit this application.'
         : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
       const lostNote = K.readStore('kashierLeadLostReason')[sourceLeadId];
       const sub = status === 'lost' ? (lostNote ? `${lostNote.by}: ${lostNote.text}` : 'No application will be submitted for this merchant.')
         : !isSales ? 'The salesperson fills in and submits the application.'
+        : reviewing ? `${decidedN} of ${app.requests.length} requested rate${app.requests.length === 1 ? '' : 's'} reviewed. It moves to Underwriting Review once every rate is approved, and comes back to you to edit if any is rejected.`
         : 'You can edit this application once you receive feedback on it.';
       banner = `<div class="app-mode-banner locked">${LOCK}
         <div class="amb-text"><b>${esc(title)}</b><span>${esc(sub)}</span></div>
@@ -2065,6 +2084,7 @@
     const isApprover = K.ROLES[myRole].approves.length > 0;
     approverView = isApprover && appMode === 'locked' && !!app && app.requests.some(r => K.canRoleAct(myRole, r.tier));
     approverRole = myRole; currentAppId = app ? app.id : '';
+    statusView = !approverView && isSales && appMode === 'locked' && !!app && app.requests.length > 0;
     const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
     const dateOf = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     /* Same format as the Kashier logs: action badge, when + relative time, who + role, then a
@@ -2177,7 +2197,7 @@
       document.body.classList.add('app-locked');
       $('submitCard').hidden = true;
       // Keep every control read-only, including the ones each re-render creates.
-      if (approverView) document.body.classList.add('approver-view');
+      if (approverView || statusView) document.body.classList.add('approver-view');
       const lock = () => document.querySelectorAll('.content .card input, .content .card select, .content .card textarea, .content .card button:not(.setup-step):not(.rp-act)')
         .forEach(el => { el.disabled = true; el.tabIndex = -1; });
       new MutationObserver(lock).observe(document.querySelector('.content'), { childList: true, subtree: true });

@@ -1022,7 +1022,7 @@
         ratesForService(s).forEach(t => {
           const sel = bc.pricing.get(t.key);
           const tier = sel ? lineVerdict(t, sel).tier : '';
-          if (!tier || tier === 'auto' || keptApproved(s, k, t.key, sel)) return;
+          if (!tier || tier === 'auto') return;
           out.push({
             id: `${s}::${k}::${t.key}`,
             service: s, bank: k, rate: t.label, tier, note: (sel.note || '').trim(),
@@ -2256,6 +2256,20 @@
           K.writeStore('kashierLeadReturnNote', notes);
         }
       } catch (e) { /* storage unavailable */ }
+    }
+
+    // Approved rates that were not changed keep their approval on the new application, so their special
+    // pricing is not lost and approvers are only asked about the revised rates.
+    if (appMode === 'returned' && previousApp) {
+      const all = K.readStore('kashierRateDecisions'), prev = all[previousApp.id] || {};
+      const carried = {};
+      pricingRequests().forEach(r => {
+        const [sv, bk, key] = r.id.split('::');
+        const bc = serviceConfig[sv] && serviceConfig[sv].bankConfigs[bk];
+        if (prev[r.id] && prev[r.id].decision === 'approved' && keptApproved(sv, bk, key, bc && bc.pricing.get(key))) carried[r.id] = prev[r.id];
+      });
+      all[qs.get('id')] = Object.assign(all[qs.get('id')] || {}, carried);
+      K.writeStore('kashierRateDecisions', all);
     }
 
     // Each change made since the application was opened, just ahead of the submission it belongs to.

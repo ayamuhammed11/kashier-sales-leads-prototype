@@ -757,9 +757,12 @@ window.KashierRates = (function () {
         text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details });
 
       const d = decisionsFor(app.id);
+      // Approvals carried over from the version this one replaces are already in the log once.
+      const prevD = replaces[app.id] ? decisionsFor(replaces[app.id]) : {};
       need.forEach(r => {
         const dec = d[r.id];
         if (!dec) return;
+        if (prevD[r.id] && prevD[r.id].ts === dec.ts) return;
         const det = [
           { label: 'Service', value: [r.service, r.bank].filter(Boolean).join(' \u00b7 ') },
           { label: 'Requested', value: money(r.requested, r.requestedFee) },

@@ -2084,8 +2084,13 @@
     const note = K.readStore('kashierLeadReturnNote')[sourceLeadId] || null;
     const isSales = K.getRole() === 'sales';
 
-    if (status === 'application' && note) appMode = 'returned';
-    else if (SUBMITTED_STATUSES.includes(status) || status === 'lost') appMode = 'locked';
+    /* A submitted application cannot be edited. The one way back in is feedback: a rejected rate (or the
+       Onboarding team sending it back) returns it to the salesperson. That is read from the data, not from
+       the status the page was opened with, so no link or stale status can unlock a submitted application. */
+    const rateReturned = !!K.rejectedApplicationFor(sourceLeadId);
+    const returnedToSales = status === 'application' && !!note && (rateReturned || note.kind === 'onboarding');
+    if (returnedToSales) appMode = 'returned';
+    else if (SUBMITTED_STATUSES.includes(status) || status === 'lost' || !!app) appMode = 'locked';
     if (!isSales) appMode = 'locked';
 
     // Opening a new lead's application starts it.
@@ -2109,7 +2114,7 @@
       const sub = status === 'lost' ? (lostNote ? `${lostNote.by}: ${lostNote.text}` : 'No application will be submitted for this merchant.')
         : !isSales ? 'The salesperson fills in and submits the application.'
         : reviewing ? `${decidedN} of ${app.requests.length} requested rate${app.requests.length === 1 ? '' : 's'} reviewed. It moves to Underwriting Review once every rate is approved, and comes back to you to edit if any is rejected.`
-        : 'You can edit this application once you receive feedback on it.';
+        : 'It can be edited again only if a rate is rejected and it is returned to you.';
       banner = `<div class="app-mode-banner locked">${LOCK}
         <div class="amb-text"><b>${esc(title)}</b><span>${esc(sub)}</span></div>
       </div>`;
@@ -2334,6 +2339,7 @@
   })();
 
   function attemptSubmit() {
+    if (appMode === 'locked') return;   // a submitted application cannot be re-sent
     if (needsJustificationLines().length) { openApprovalModal(attemptSubmit); return; }
     const biz = $('mBiz').value.trim(), email = $('mEmail').value.trim(), phone = $('mPhone').value.trim();
     const remaining = readinessChecks().filter(c => !c.done);

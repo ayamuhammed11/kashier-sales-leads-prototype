@@ -747,7 +747,7 @@ window.KashierRates = (function () {
       const details = [{ label: 'Application', value: app.id }];
       if (replaces[app.id]) details.push({ label: 'Replaces', value: replaces[app.id] });
       details.push({ label: 'Services', value: (sm.services || []).join(', ') || '\u2014' });
-      if (sm.industry) details.push({ label: 'Industry', value: sm.industry + (alt ? ' (fallback activities: ' + alt + ')' : '') });
+      if (sm.industry) details.push({ label: 'Industry', value: sm.industry + (alt ? ' \u2014 activities: ' + alt : '') });
       details.push({ label: 'Rates needing approval', value: need.length
         ? need.length + ' \u2014 ' + [nMgr ? nMgr + ' Sales Manager' : '', nHead ? nHead + ' Head of Sales' : ''].filter(Boolean).join(' \u00b7 ')
         : 'None \u2014 every rate at published pricing' });

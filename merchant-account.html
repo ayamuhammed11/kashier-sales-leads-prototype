@@ -680,7 +680,7 @@
         ${kv('Kashier MID', mid)}
         ${kv('Merchant Type', s.entity)}
         ${kv('Industry (primary)', s.industry)}
-        ${(app.altIndustries || []).length ? kv('Fallback activities', (app.altIndustries || []).map((a, i) =>
+        ${(app.altIndustries || []).length ? kv('Activities', (app.altIndustries || []).map((a, i) =>
           `<div>${i + 1}. ${esc(a.activity || a.industry)}${a.activity && a.industry ? ` <span style="color:var(--cadet-05)">\u00b7 ${esc(a.industry)}</span>` : ''}</div>`).join(''), true) : ''}
         ${kv('Contact Email', s.email)}
         ${kv('Contact Phone', s.phone)}

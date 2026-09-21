@@ -314,6 +314,23 @@
   .alt-opt:hover { background: var(--muted); }
   .alt-opt input { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; }
 
+
+  /* Industry and Activities on one row */
+  .ia-row { display: flex; gap: 12px; align-items: flex-start; }
+  .ia-industry { flex: 0 0 44%; min-width: 0; }
+  .ia-activities { flex: 1; min-width: 0; }
+  .ia-industry .crit-select { width: 100%; margin-top: 9px; }
+  .ia-activities .crit-label { justify-content: space-between; }
+  .ia-activities #critAlt { margin-top: 9px; }
+  .alt-toggle.mini { margin-left: auto; }
+  .alt-toggle.mini .alt-sw { width: 34px; height: 20px; }
+  .alt-toggle.mini .alt-sw::after { width: 16px; height: 16px; }
+  .alt-toggle.mini input:checked + .alt-sw::after { transform: translateX(14px); }
+  .alt-ms-btn:disabled { background: var(--muted); color: var(--cadet-05); cursor: not-allowed; }
+  .alt-panel { min-width: 280px; }
+  #critAltChips .alt-chosen { margin-top: 10px; margin-bottom: 0; }
+  @media (max-width: 640px) { .ia-row { flex-direction: column; } .ia-industry { flex-basis: auto; width: 100%; } .ia-activities { width: 100%; } }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -725,13 +742,18 @@
               <div class="crit-chips" id="critEntity"></div>
             </div>
             <div class="crit-group">
-              <div class="crit-label">Industry<span class="req">*</span></div>
-              <select class="crit-select" id="critIndustry"><option value="">Select industry…</option></select>
-              <div class="alt-block">
-                <label class="alt-toggle"><input type="checkbox" id="altToggle" role="switch"><span class="alt-sw"></span>
-                  <span class="alt-toggle-text">Secondary activities <span class="opt">(optional)</span></span></label>
-                <div id="critAlt" hidden></div>
+              <div class="ia-row">
+                <div class="ia-industry">
+                  <div class="crit-label">Industry<span class="req">*</span></div>
+                  <select class="crit-select" id="critIndustry"><option value="">Select industry…</option></select>
+                </div>
+                <div class="ia-activities">
+                  <div class="crit-label">Activities<span class="opt">(optional)</span>
+                    <label class="alt-toggle mini" title="Add activities the bank might classify this merchant under"><input type="checkbox" id="altToggle" role="switch"><span class="alt-sw"></span></label></div>
+                  <div id="critAlt"></div>
+                </div>
               </div>
+              <div id="critAltChips"></div>
             </div>
             <div class="crit-group">
               <div class="crit-label">Business Owner Nationality<span class="opt">(optional)</span></div>
@@ -1167,27 +1189,28 @@
       items.map(x => `<label class="alt-opt"><input type="checkbox" data-alt-check="${esc(g.industry + '::' + x)}"${altHas(g.industry + '::' + x) ? ' checked' : ''}><span>${esc(x)}</span></label>`).join('')}</div>`).join('');
   }
   function renderAltIndustries() {
-    const box = $('critAlt'), tog = $('altToggle');
+    const box = $('critAlt'), tog = $('altToggle'), chipsBox = $('critAltChips');
     if (!box || !tog) return;
     tog.checked = altOn;
-    box.hidden = !altOn;
-    if (!altOn) { box.innerHTML = ''; return; }
-    const chosen = criteria.altIndustries.filter(a => a.activity);
+    const chosen = altOn ? criteria.altIndustries.filter(a => a.activity) : [];
     const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
     box.innerHTML = `<div class="alt-ms">
-        <button type="button" class="alt-ms-btn${altOpen ? ' open' : ''}" data-alt-open aria-expanded="${altOpen}">
-          <span>${chosen.length ? `${chosen.length} selected` : 'Select activities\u2026'}</span>${chev}</button>
-        ${altOpen ? `<div class="alt-panel"><input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities\u2026" value="${esc(altSearch)}" autocomplete="off">
+        <button type="button" class="alt-ms-btn${altOpen && altOn ? ' open' : ''}" data-alt-open aria-expanded="${altOpen && altOn}"${altOn ? '' : ' disabled'}>
+          <span>${!altOn ? 'Off' : chosen.length ? `${chosen.length} selected` : 'Select activities\u2026'}</span>${chev}</button>
+        ${altOpen && altOn ? `<div class="alt-panel"><input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities\u2026" value="${esc(altSearch)}" autocomplete="off">
           <div class="alt-list" id="altList">${altListHTML()}</div></div>` : ''}
-      </div>
-      ${chosen.length ? `<div class="alt-chosen">${chosen.map((a, i) => `<span class="alt-chip"><i>${i + 1}</i><span>${esc(a.activity)}<small>${esc(a.industry)}</small></span>
-          <button type="button" data-alt-remove="${criteria.altIndustries.indexOf(a)}" aria-label="Remove">${RM_ICON}</button></span>`).join('')}</div>`
-        : '<div class="alt-note">Choose the other activities the bank might classify this merchant under.</div>'}`;
-    const s = $('altSearch'); if (s && altOpen) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+      </div>`;
+    chipsBox.innerHTML = chosen.length ? `<div class="alt-chosen">${chosen.map((a, i) => `<span class="alt-chip"><i>${i + 1}</i><span>${esc(a.activity)}<small>${esc(a.industry)}</small></span>
+          <button type="button" data-alt-remove="${criteria.altIndustries.indexOf(a)}" aria-label="Remove">${RM_ICON}</button></span>`).join('')}</div>` : '';
+    const sr = $('altSearch'); if (sr && altOpen && altOn) { sr.focus(); sr.setSelectionRange(sr.value.length, sr.value.length); }
   }
   $('altToggle').addEventListener('change', e => {
     altOn = e.target.checked; altOpen = false; altSearch = '';
     renderAltIndustries(); renderSubmitSummary();
+  });
+  $('critAltChips').addEventListener('click', e => {
+    const rm = e.target.closest('[data-alt-remove]');
+    if (rm) { criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1); renderAltIndustries(); renderSubmitSummary(); }
   });
   $('critAlt').addEventListener('click', e => {
     if (e.target.closest('[data-alt-open]')) { altOpen = !altOpen; if (!altOpen) altSearch = ''; renderAltIndustries(); return; }
@@ -1995,7 +2018,7 @@
       details: {
         'Business name': $('mBiz').value.trim(), 'Contact email': $('mEmail').value.trim(), 'Contact phone': $('mPhone').value.trim(),
         'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
-        'Secondary activities': filledAltIndustries().map(a => a.activity + ' (' + a.industry + ')').join('; '),
+        'Activities': filledAltIndustries().map(a => a.activity + ' (' + a.industry + ')').join('; '),
         'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
       },
       services,

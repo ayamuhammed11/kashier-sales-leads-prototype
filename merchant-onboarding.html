@@ -290,15 +290,6 @@
 
   /* Secondary activities: a toggle under Industry, and a multiselect */
   .alt-block { margin-top: 12px; }
-  .alt-toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--foreground); }
-  .alt-toggle .opt { font-weight: 400; color: var(--cadet-05); font-size: 12px; }
-  .alt-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
-  .alt-sw { position: relative; width: 42px; height: 24px; border-radius: 999px; background: var(--border); flex-shrink: 0; transition: background .15s ease; }
-  .alt-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .15s ease; }
-  .alt-toggle input:checked + .alt-sw { background: var(--primary); }
-  .alt-toggle input:checked + .alt-sw::after { transform: translateX(18px); }
-  .alt-toggle input:focus-visible + .alt-sw { box-shadow: 0 0 0 3px rgba(0,31,95,.25); }
-  .alt-toggle input:disabled + .alt-sw { opacity: .5; }
   #critAlt { margin-top: 10px; }
   .alt-ms { position: relative; }
   .alt-ms-btn { width: 100%; height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1.5px solid var(--border); border-radius: 8px;
@@ -322,10 +313,6 @@
   .ia-industry .crit-select { width: 100%; margin-top: 9px; }
   .ia-activities .crit-label { justify-content: space-between; }
   .ia-activities #critAlt { margin-top: 9px; }
-  .alt-toggle.mini { margin-left: auto; }
-  .alt-toggle.mini .alt-sw { width: 34px; height: 20px; }
-  .alt-toggle.mini .alt-sw::after { width: 16px; height: 16px; }
-  .alt-toggle.mini input:checked + .alt-sw::after { transform: translateX(14px); }
   .alt-ms-btn:disabled { background: var(--muted); color: var(--cadet-05); cursor: not-allowed; }
   .alt-panel { min-width: 280px; }
   #critAltChips .alt-chosen { margin-top: 10px; margin-bottom: 0; }
@@ -748,8 +735,7 @@
                   <select class="crit-select" id="critIndustry"><option value="">Select industry…</option></select>
                 </div>
                 <div class="ia-activities">
-                  <div class="crit-label">Activities<span class="opt">(optional)</span>
-                    <label class="alt-toggle mini" title="Add activities the bank might classify this merchant under"><input type="checkbox" id="altToggle" role="switch"><span class="alt-sw"></span></label></div>
+                  <div class="crit-label">Activities<span class="opt">(optional)</span></div>
                   <div id="critAlt"></div>
                   <div id="critAltChips"></div>
                 </div>
@@ -1177,7 +1163,7 @@
     'Logistics & Delivery': ['Courier & delivery', 'Freight & shipping', 'Warehousing', 'Ride services'],
   };
   /* On/off: when on, any number of activities can be selected from one grouped multiselect. */
-  let altOn = false, altOpen = false, altSearch = '';
+  let altOpen = false, altSearch = '';
   const altKey = a => a.industry + '::' + a.activity;
   const altHas = key => criteria.altIndustries.some(a => altKey(a) === key);
   const altGroups = () => Object.keys(ACTIVITIES).sort().map(ind => ({ industry: ind, items: ACTIVITIES[ind] }));
@@ -1189,25 +1175,20 @@
       items.map(x => `<label class="alt-opt"><input type="checkbox" data-alt-check="${esc(g.industry + '::' + x)}"${altHas(g.industry + '::' + x) ? ' checked' : ''}><span>${esc(x)}</span></label>`).join('')}</div>`).join('');
   }
   function renderAltIndustries() {
-    const box = $('critAlt'), tog = $('altToggle'), chipsBox = $('critAltChips');
-    if (!box || !tog) return;
-    tog.checked = altOn;
-    const chosen = altOn ? criteria.altIndustries.filter(a => a.activity) : [];
+    const box = $('critAlt'), chipsBox = $('critAltChips');
+    if (!box) return;
+    const chosen = criteria.altIndustries.filter(a => a.activity);
     const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
     box.innerHTML = `<div class="alt-ms">
-        <button type="button" class="alt-ms-btn${altOpen && altOn ? ' open' : ''}" data-alt-open aria-expanded="${altOpen && altOn}"${altOn ? '' : ' disabled'}>
-          <span>${!altOn ? 'Off' : chosen.length ? `${chosen.length} selected` : 'Select activities\u2026'}</span>${chev}</button>
-        ${altOpen && altOn ? `<div class="alt-panel"><input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities\u2026" value="${esc(altSearch)}" autocomplete="off">
+        <button type="button" class="alt-ms-btn${altOpen ? ' open' : ''}" data-alt-open aria-expanded="${altOpen}">
+          <span>${chosen.length ? `${chosen.length} selected` : 'Select activities\u2026'}</span>${chev}</button>
+        ${altOpen ? `<div class="alt-panel"><input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities\u2026" value="${esc(altSearch)}" autocomplete="off">
           <div class="alt-list" id="altList">${altListHTML()}</div></div>` : ''}
       </div>`;
     chipsBox.innerHTML = chosen.length ? `<div class="alt-chosen">${chosen.map((a, i) => `<span class="alt-chip"><i>${i + 1}</i><span>${esc(a.activity)}<small>${esc(a.industry)}</small></span>
           <button type="button" data-alt-remove="${criteria.altIndustries.indexOf(a)}" aria-label="Remove">${RM_ICON}</button></span>`).join('')}</div>` : '';
-    const sr = $('altSearch'); if (sr && altOpen && altOn) { sr.focus(); sr.setSelectionRange(sr.value.length, sr.value.length); }
+    const sr = $('altSearch'); if (sr && altOpen) { sr.focus(); sr.setSelectionRange(sr.value.length, sr.value.length); }
   }
-  $('altToggle').addEventListener('change', e => {
-    altOn = e.target.checked; altOpen = false; altSearch = '';
-    renderAltIndustries(); renderSubmitSummary();
-  });
   $('critAltChips').addEventListener('click', e => {
     const rm = e.target.closest('[data-alt-remove]');
     if (rm) { criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1); renderAltIndustries(); renderSubmitSummary(); }
@@ -1235,9 +1216,9 @@
   });
   document.addEventListener('click', e => {
     // (a click on something the panel just re-rendered is already detached — that is not an outside click)
-    if (altOpen && e.target.isConnected && !e.target.closest('#critAlt') && !e.target.closest('.alt-toggle')) { altOpen = false; altSearch = ''; renderAltIndustries(); }
+    if (altOpen && e.target.isConnected && !e.target.closest('#critAlt')) { altOpen = false; altSearch = ''; renderAltIndustries(); }
   });
-  const filledAltIndustries = () => altOn ? criteria.altIndustries.filter(a => a.activity).map(a => ({ industry: a.industry, activity: a.activity })) : [];
+  const filledAltIndustries = () => criteria.altIndustries.filter(a => a.activity).map(a => ({ industry: a.industry, activity: a.activity }));
 
   /* ══════════ Step 4 — Required Documents, grouped per service exactly as Document Rules
      configures it for that service (its own entity/owner/industry/bank/module/service match) —
@@ -1931,7 +1912,6 @@
     if (ENTITIES.includes(s.entity)) criteria.entity = s.entity;
     if (INDUSTRIES.includes(s.industry)) { criteria.industry = s.industry; $('critIndustry').value = s.industry; }
     criteria.altIndustries = (app.altIndustries || []).map(a => ({ industry: a.industry || '', activity: a.activity || a.industry || '' })).filter(a => a.activity);
-    altOn = criteria.altIndustries.length > 0;
     criteria.services = (s.services || []).filter(x => SERVICES.includes(x));
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';

@@ -2183,9 +2183,10 @@
       const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected').length;
       const open = total - approved - rejected;
       const acct = K.findAccount(app.id);
-      const order = ['rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
+      const order = ['rate-approval', 'onboarding-review', 'activated'];
       // 'application' after a review means the rates came back rejected — the pipeline stalls at rate approval.
-      const at = cur === 'application' ? 0 : order.indexOf(cur);
+      // Waiting on the bank is still part of Underwriting Review; there is no stage of its own for it.
+      const at = cur === 'application' ? 0 : cur === 'bank-submission' ? 1 : order.indexOf(cur);
       const stateOf = i => at === -1 ? 'todo' : i < at ? 'done' : i === at ? 'current' : 'todo';
       const steps = [{ label: 'Submitted', state: 'done', sub: `${fmt(app.ts)} by ${app.actor}<br>${app.id}` }];
       if (total) {
@@ -2195,7 +2196,6 @@
       }
       steps.push({ label: 'Underwriting Review', state: at >= 1 ? stateOf(1) : 'todo',
         sub: at >= 1 && acct ? acct.meta.label : '' });
-      steps.push({ label: 'Bank Submission', state: at >= 2 ? stateOf(2) : 'todo', sub: '' });
       steps.push({ label: 'Live', state: cur === 'activated' ? 'done' : 'todo', sub: cur === 'activated' ? 'Merchant is live' : '' });
       const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
       const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';

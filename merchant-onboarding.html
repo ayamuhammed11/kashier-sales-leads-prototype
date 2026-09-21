@@ -258,6 +258,13 @@
   .lg-arrow { margin: 0 4px; color: var(--cadet-05); }
   .lg-to { color: var(--foreground); font-weight: 700; }
 
+
+  .cell-rejected.warn { color: #92620A; }
+  .cell-rejected.warn { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .cell-rejected.ok { color: var(--success-text); }
+  .appr-line-rej { font-size: 12.5px; color: var(--destructive); background: var(--destructive-bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.45; }
+  .appr-line-prev { margin-top: 4px; color: var(--cadet-base); font-style: italic; }
+
   /* Opening an existing application */
   .app-mode-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; padding: 14px 16px; margin: -8px 0 22px; border: 1px solid; }
   .app-mode-banner > svg { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; }
@@ -860,6 +867,13 @@
   // 'edit' (not submitted), 'locked' (submitted — read-only) or 'returned' (feedback received).
   let appMode = 'edit';
   const rejectedLines = new Map();   // service::bank::rateKey -> the rejection on that rate
+  /* Rates an approver already approved. While they stay exactly as approved they keep that approval:
+     they need no new justification and are not sent for approval again. */
+  const approvedLines = new Map();   // service::bank::rateKey -> { origRate, origFee }
+  const keptApproved = (service, bankKey, key, sel) => {
+    const a = appMode === 'returned' ? approvedLines.get(`${service}::${bankKey}::${key}`) : null;
+    return !!(a && sel && String(sel.rate) === a.origRate && String(sel.fee) === a.origFee);
+  };
   /* Rejected rates still sitting at the exact rate and fee that were rejected — a resubmission
      is blocked until each one is actually changed. */
   function unchangedRejectedLines() {
@@ -990,7 +1004,7 @@
           const sel = bc.pricing.get(t.key);
           const tier = sel ? lineVerdict(t, sel).tier : '';
           if (!tier) { missing++; return; }
-          if (tier !== 'auto') {
+          if (tier !== 'auto' && !keptApproved(s, k, t.key, sel)) {
             needsApproval++;
             if (!(sel.note || '').trim()) unresolved++;
           }
@@ -1011,7 +1025,7 @@
         ratesForService(s).forEach(t => {
           const sel = bc.pricing.get(t.key);
           const tier = sel ? lineVerdict(t, sel).tier : '';
-          if (!tier || tier === 'auto') return;
+          if (!tier || tier === 'auto' || keptApproved(s, k, t.key, sel)) return;
           out.push({
             id: `${s}::${k}::${t.key}`,
             service: s, bank: k, rate: t.label, tier, note: (sel.note || '').trim(),
@@ -1168,10 +1182,24 @@
   /* Every entered rate that needs sign-off, and the ones among them still missing the
      justification the approval pop-up asks for. */
   function approvalNeededLines() {
-    return pricingLines().filter(l => l.sel && lineVerdict(l.t, l.sel).tier && lineVerdict(l.t, l.sel).tier !== 'auto');
+    return pricingLines().filter(l => l.sel && lineVerdict(l.t, l.sel).tier && lineVerdict(l.t, l.sel).tier !== 'auto' && !keptApproved(l.service, l.bankKey, l.t.key, l.sel));
   }
+  /* Rejected rates the salesperson has revised and re-justified in this session. A rate that came
+     back rejected and still needs approval must be justified afresh — the old note answered an
+     older request, and the approver is about to look at the revised one. */
+  const reconfirmedNotes = new Set();
+  /* Label under a rejected rate: what state the revision is in. */
+  function rejectedLabel(sel, rej, t) {
+    if (String(sel.rate) === rej.origRate && String(sel.fee) === rej.origFee) return { text: 'Rejected — change this rate', cls: '' };
+    const v = lineVerdict(t, sel);
+    if (v.tier === 'manager' || v.tier === 'head') return { text: `Still needs ${APPROVAL_SHORT[v.tier]} approval — you'll add a justification`, cls: ' warn' };
+    if (v.tier === 'auto') return { text: 'Rejected — now within published pricing', cls: ' ok' };
+    return { text: 'Rejected', cls: '' };
+  }
+  const lineKey = l => `${l.service}::${l.bankKey}::${l.t.key}`;
+  const isStaleRejectedNote = l => appMode === 'returned' && rejectedLines.has(lineKey(l)) && !reconfirmedNotes.has(lineKey(l));
   function needsJustificationLines() {
-    return approvalNeededLines().filter(l => !(l.sel.note || '').trim());
+    return approvalNeededLines().filter(l => !(l.sel.note || '').trim() || isStaleRejectedNote(l));
   }
 
   /* The approval pop-up: every rate needing sign-off, with a justification textarea for each
@@ -1185,14 +1213,19 @@
     $('approvalModalBody').innerHTML = lines.map(l => {
       const tier = lineVerdict(l.t, l.sel).tier;
       const bank = l.bankKey ? ` &middot; ${esc(l.bankKey)}` : '';
+      const stale = isStaleRejectedNote(l);
+      const rej = stale ? rejectedLines.get(lineKey(l)) : null;
+      const context = rej ? `<div class="appr-line-rej"><b>${esc(rej.by)}${rej.roleLabel ? ` (${esc(rej.roleLabel)})` : ''} rejected the earlier rate:</b> ${esc(rej.reason || '')}
+          ${l.sel.note ? `<div class="appr-line-prev">Your earlier justification: ${esc(l.sel.note)}</div>` : ''}</div>` : '';
       return `<div class="appr-line">
         <div class="appr-line-head">
           <div><span class="cell-channel">${esc(channelOf(l.service))}</span><span class="cell-service-name">${esc(stripChannel(l.service))}</span><span class="appr-line-bank">${bank}</span></div>
           <span class="appr-chip ${tier}">${esc(APPROVAL_SHORT[tier])}</span>
         </div>
         <div class="appr-line-meta">${esc(l.t.label)} — ${esc(l.sel.rate)}% + ${esc(l.sel.fee)} EGP</div>
+        ${context}
         <textarea class="appr-line-note" data-service="${esc(l.service)}" data-bank="${esc(l.bankKey)}" data-key="${esc(l.t.key)}"
-          placeholder="Why does this merchant need this rate?">${esc(l.sel.note || '')}</textarea>
+          placeholder="${stale ? 'Why does the revised rate still need to be approved?' : 'Why does this merchant need this rate?'}">${stale ? '' : esc(l.sel.note || '')}</textarea>
       </div>`;
     }).join('');
     $('approvalModal').classList.add('open');
@@ -1214,6 +1247,7 @@
       const cur = bc.pricing.get(a.dataset.key) || { rate: '', fee: '', tier: '' };
       cur.note = a.value.trim();
       bc.pricing.set(a.dataset.key, cur);
+      reconfirmedNotes.add(`${a.dataset.service}::${a.dataset.bank}::${a.dataset.key}`);
     });
     const cb = approvalModalCallback;
     closeApprovalModal();
@@ -1362,7 +1396,7 @@
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
             <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
-          <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `<span class="cell-rejected">${stillUnchanged ? 'Rejected — change this rate' : 'Rejected'}</span>${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
+          <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `${(lb => `<span class="cell-rejected${lb.cls}"${lb.cls === ' warn' ? ' data-just-open role="button" tabindex="0"' : ''}>${esc(lb.text)}</span>`)(rejectedLabel(sel, rejection, t))}${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
           <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
           <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="EGP"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
           ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
@@ -1468,6 +1502,8 @@
   });
 
   $('serviceSetupBody').addEventListener('click', e => {
+    // The warning under a revised rejected rate opens the justification pop-up right away.
+    if (e.target.closest('[data-just-open]')) { if (needsJustificationLines().length) openApprovalModal(null); return; }
     if (e.target.closest('#setupNext')) {
       if (!stepDone(setupStep)) { toast(stepIssues(setupStep)[0]); return; }
       goToSetupStep(setupStep + 1, true);
@@ -1579,7 +1615,10 @@
     const rejLabel = row.querySelector('.cell-rejected');
     if (rejected && rejLabel) {
       const stillUnchanged = String(next.rate) === rejected.origRate && String(next.fee) === rejected.origFee;
-      rejLabel.textContent = stillUnchanged ? 'Rejected — change this rate' : 'Rejected';
+      const lb = rejectedLabel(next, rejected, t);
+      rejLabel.textContent = lb.text; rejLabel.className = 'cell-rejected' + lb.cls;
+      if (lb.cls === ' warn') { rejLabel.setAttribute('data-just-open', ''); rejLabel.setAttribute('role', 'button'); rejLabel.tabIndex = 0; }
+      else { rejLabel.removeAttribute('data-just-open'); rejLabel.removeAttribute('role'); rejLabel.removeAttribute('tabindex'); }
       row.classList.toggle('row-rejected', stillUnchanged);
     }
     refreshStepChrome();
@@ -1808,6 +1847,7 @@
       approvalLineMap.set(`${r.service}::${bankKey}::${key}`, r);
       const d = decisions[r.id];
       // The rejected rate and fee, so a resubmission can be blocked until they actually change.
+      if (d && d.decision === 'approved') approvedLines.set(`${r.service}::${bankKey}::${key}`, { origRate: sel.rate, origFee: sel.fee });
       if (d && d.decision === 'rejected') rejectedLines.set(`${r.service}::${bankKey}::${key}`, Object.assign({}, d, { origRate: sel.rate, origFee: sel.fee }));
     });
 

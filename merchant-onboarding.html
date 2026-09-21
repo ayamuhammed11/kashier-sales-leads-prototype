@@ -1132,16 +1132,13 @@
   try { altView = localStorage.getItem('kashierAltView') === 'b' ? 'b' : 'a'; } catch (e) { /* storage unavailable */ }
   const altKey = a => a.industry + '::' + a.activity;
   const altTaken = () => criteria.altIndustries.filter(a => a.activity).map(altKey);
-  /* Activities grouped by industry, the merchant's own industry first. */
-  const altGroups = () => {
-    const order = Object.keys(ACTIVITIES).sort((x, y) => (x === criteria.industry ? -1 : y === criteria.industry ? 1 : x.localeCompare(y)));
-    return order.map(ind => ({ industry: ind, items: ACTIVITIES[ind], suggested: ind === criteria.industry }));
-  };
+  /* Activities grouped by industry. */
+  const altGroups = () => Object.keys(ACTIVITIES).sort().map(ind => ({ industry: ind, items: ACTIVITIES[ind] }));
 
   function altViewA() {
     const taken = altTaken();
     return criteria.altIndustries.map((a, i) => {
-      const groups = altGroups().map(g => `<optgroup label="${esc(g.suggested ? 'Suggested \u00b7 ' + g.industry : g.industry)}">${
+      const groups = altGroups().map(g => `<optgroup label="${esc(g.industry)}">${
         g.items.filter(x => altKey({ industry: g.industry, activity: x }) === altKey(a) || taken.indexOf(g.industry + '::' + x) === -1)
           .map(x => `<option value="${esc(g.industry + '::' + x)}"${altKey(a) === g.industry + '::' + x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</optgroup>`).join('');
       return `<div class="alt-row">
@@ -1167,12 +1164,11 @@
     if (chosen.length >= MAX_ALT_INDUSTRIES) return '<div class="alt-note">You have added 2. Remove one to choose a different activity.</div>';
     const term = altSearch.trim().toLowerCase(), taken = altTaken();
     const groups = altGroups().map(g => ({ g, items: g.items.filter(x => !term || x.toLowerCase().indexOf(term) !== -1 || g.industry.toLowerCase().indexOf(term) !== -1) }))
-      .filter(x => x.items.length && (term || x.g.suggested));
-    if (!groups.length) return term ? '<div class="alt-note">No activities match your search.</div>'
-      : '<div class="alt-note">Choose the merchant\u2019s industry above for suggestions, or search all activities.</div>';
-    return groups.map(({ g, items }) => `<div class="alt-group"><div class="alt-group-name">${esc(g.suggested ? 'Suggested for ' + g.industry : g.industry)}</div>
-      <div class="alt-picks">${items.map(x => `<button type="button" class="alt-pick" data-alt-pick="${esc(g.industry + '::' + x)}"${taken.indexOf(g.industry + '::' + x) !== -1 ? ' disabled' : ''}>+ ${esc(x)}</button>`).join('')}</div></div>`).join('')
-      + (!term ? '<div class="alt-note">Search to see activities from all industries.</div>' : '');
+      .filter(x => x.items.length);
+    if (!term) return '<div class="alt-note">Search for an activity to add it.</div>';
+    if (!groups.length) return '<div class="alt-note">No activities match your search.</div>';
+    return groups.map(({ g, items }) => `<div class="alt-group"><div class="alt-group-name">${esc(g.industry)}</div>
+      <div class="alt-picks">${items.map(x => `<button type="button" class="alt-pick" data-alt-pick="${esc(g.industry + '::' + x)}"${taken.indexOf(g.industry + '::' + x) !== -1 ? ' disabled' : ''}>+ ${esc(x)}</button>`).join('')}</div></div>`).join('');
   }
   function renderAltIndustries() {
     const box = $('critAlt');

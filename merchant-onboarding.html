@@ -1203,8 +1203,8 @@
   let approvalModalCallback = null;
   function openApprovalModal(onSaved) {
     approvalModalCallback = onSaved;
-    // A fresh pop-up: only the rates that still need a justification, each with an empty box.
-    const lines = needsJustificationLines();
+    // A fresh pop-up: every entered rate that needs the Sales Manager's or Head of Sales' approval, each with an empty box.
+    const lines = approvalNeededLines();
     $('approvalModalBody').innerHTML = lines.map(l => {
       const tier = lineVerdict(l.t, l.sel).tier;
       const bank = l.bankKey ? ` &middot; ${esc(l.bankKey)}` : '';

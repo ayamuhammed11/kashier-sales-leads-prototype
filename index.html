@@ -444,6 +444,9 @@
     const counts = { all: LEADS.length };
     Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => statusOf(l) === k).length);
     let tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
+    // Bank Submission is not a filter of its own; those applications still show under All.
+    tabs = tabs.filter(([k]) => k !== 'bank-submission');
+    if (activeStatus === 'bank-submission') activeStatus = 'all';
     if (isApprover()) {
       tabs = tabs.filter(([k]) => k !== 'returned');
       if (activeStatus === 'returned') activeStatus = 'all';

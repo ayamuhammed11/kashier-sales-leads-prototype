@@ -799,7 +799,7 @@
       <div class="modal-body">
         <p id="lostText" style="margin:0 0 12px;font-size:13.5px;line-height:1.5"></p>
         <label for="lostReason" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Comment <span style="color:var(--destructive)">*</span></label>
-        <textarea id="lostReason" class="appr-line-note" placeholder="Why is this lead being marked as lost?"></textarea>
+        <textarea id="lostReason" class="appr-line-note" placeholder="Why is this application being canceled?"></textarea>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="lostCancel">Cancel</button>
@@ -2090,7 +2090,7 @@
       const reviewing = isSales && status === 'rate-approval' && app;
       const decidedN = reviewing ? app.requests.filter(r => K.decisionsFor(app.id)[r.id]).length : 0;
       const title = reviewing ? 'Waiting for rate approval — view only.'
-        : status === 'lost' ? 'This lead was marked as Lost — view only.'
+        : status === 'lost' ? 'This application was canceled — view only.'
         : !isSales ? 'View only — only the salesperson can edit this application.'
         : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
       const lostNote = K.readStore('kashierLeadLostReason')[sourceLeadId];
@@ -2106,7 +2106,7 @@
     const head = document.querySelector('.page-head');
     const shown = status === 'application' && note && isSales ? 'returned' : status;
     const LABELS = { new: 'New', application: 'Application in Progress', returned: 'Rejected Rates', 'rate-approval': 'Waiting Rate Approval',
-      'onboarding-review': 'Underwriting Review', 'bank-submission': 'Bank Submission', activated: 'Live', lost: 'Lost' };
+      'onboarding-review': 'Underwriting Review', 'bank-submission': 'Bank Submission', activated: 'Live', lost: 'Canceled' };
 
     // CRM record — one click back to the lead in Zoho.
     const crmId = 'ZOHO-' + sourceLeadId.replace('L-', '00');
@@ -2150,7 +2150,7 @@
         if (!reason) { $('lostReason').classList.add('invalid'); $('lostReason').focus(); return; }
         const o = K.readStore('kashierLeadStatusOverrides'); o[sourceLeadId] = 'lost'; K.writeStore('kashierLeadStatusOverrides', o);
         const lr = K.readStore('kashierLeadLostReason'); lr[sourceLeadId] = { text: reason, by: K.ROLES[K.getRole()].name, ts: new Date().toISOString() }; K.writeStore('kashierLeadLostReason', lr);
-        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Marked the lead as Lost', null, { action: 'Lost', category: 'Application', role: K.ROLES[K.getRole()].label, details: [{ label: 'Comment', value: reason }] });
+        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Application canceled', null, { action: 'Canceled', category: 'Application', role: K.ROLES[K.getRole()].label, details: [{ label: 'Comment', value: reason }] });
         location.reload();
       });
     }
@@ -2215,7 +2215,7 @@
     const logIcon = c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="${LOG_ICON[c] || LOG_ICON.Application}"/></svg>`;
     const SYSTEM_AV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122"/></svg>';
     const ACTION_CLASS = { Started: 'info', Added: 'info', Changed: 'info', Advanced: 'info', Submitted: 'pending', Resubmitted: 'pending',
-      Approved: 'approved', Live: 'approved', Rejected: 'rejected', Returned: 'rejected', Lost: 'rejected' };
+      Approved: 'approved', Live: 'approved', Rejected: 'rejected', Returned: 'rejected', Canceled: 'rejected' };
     const initialsOfName = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
     const stampOf = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
     const agoOf = iso => {

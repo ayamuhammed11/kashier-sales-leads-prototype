@@ -534,6 +534,12 @@
   .svc-table tbody tr:first-child td { border-top: none; }
   .svc-table .cell-service { vertical-align: top; padding-top: 9px; min-width: 104px; }
   .svc-table .cell-bank, .svc-table .cell-model { vertical-align: top; padding-top: 7px; min-width: 128px; }
+  .op-list { margin-top: 8px; }
+  .op-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); margin-bottom: 4px; }
+  .op-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--foreground); padding: 2px 0; cursor: pointer; }
+  .op-item input { width: 14px; height: 14px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
+  .op-item input:disabled { cursor: not-allowed; }
+  .op-item input:disabled + span { color: var(--cadet-05); }
   .cell-channel { display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
     color: var(--primary); background: var(--ocean-10); border-radius: 999px; padding: 1px 7px; margin-bottom: 3px; }
   .cell-service-name { display: block; font-weight: 600; font-size: 13px; }
@@ -1008,8 +1014,16 @@
   /* The keys that need their own settlement type + pricing for this service: one per selected
      bank when the service needs a bank, or a single '' key (no Financial Institution) otherwise. */
   function bankKeysFor(cfg, service) { return bankRequiredFor(service) ? cfg.banks : ['']; }
+  /* Supported Operations — extra capabilities a service can be switched on for, beyond its
+     rates. Only services that actually have optional operations get the checklist. */
+  const SUPPORTED_OPERATIONS = {
+    'Online Card': ['Pay Non-3DS', 'MOTO', 'Auth & Cap', 'Recurring', 'Meeza Payments', 'Virtual Cards'],
+    'POS Card': ['Auth & Cap'],
+  };
+  function operationsFor(service) { return SUPPORTED_OPERATIONS[service] || null; }
   function ensureBankConfig(cfg, key) {
-    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: '', pricing: new Map() };
+    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: '', pricing: new Map(), operations: [] };
+    if (!cfg.bankConfigs[key].operations) cfg.bankConfigs[key].operations = [];
     return cfg.bankConfigs[key];
   }
   function serviceReady(cfg, service) {
@@ -1470,8 +1484,12 @@
              ${multi && gi > 0 ? `<button type="button" class="cell-link danger" data-remove-bank="${esc(s)}" data-bank="${esc(k)}">Remove</button>` : ''}
            </div>`
         : '';
+      const ops = operationsFor(s);
       const modelCell = cellSelectHTML(`data-model-select data-service="${esc(s)}" data-bank="${esc(k || '')}"`,
-        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !chosen);
+        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !chosen)
+        + (ops ? `<div class="op-list"><div class="op-title">Supported Operations</div>${ops.map(op => `<label class="op-item">
+              <input type="checkbox" data-op-check="${esc(s)}::${esc(k || '')}::${esc(op)}"${chosen && bc.operations.includes(op) ? ' checked' : ''}${chosen ? '' : ' disabled'}>
+              <span>${esc(op)}</span></label>`).join('')}</div>` : '');
       return rates.map((t, i) => {
         const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
         const off = chosen ? '' : ' disabled';
@@ -1640,6 +1658,14 @@
     const modelSel = e.target.closest('[data-model-select]');
     if (modelSel) {
       ensureBankConfig(serviceConfig[modelSel.dataset.service], modelSel.dataset.bank).module = modelSel.value;
+      onSetupChanged();
+      return;
+    }
+    const opCheck = e.target.closest('[data-op-check]');
+    if (opCheck) {
+      const [svc, bank, op] = opCheck.dataset.opCheck.split('::');
+      const bc = ensureBankConfig(serviceConfig[svc], bank);
+      bc.operations = opCheck.checked ? bc.operations.concat(op) : bc.operations.filter(x => x !== op);
       onSetupChanged();
       return;
     }
@@ -1913,6 +1939,7 @@
         }
         const bc = ensureBankConfig(cfg, key);
         bc.module = c.module || '';
+        bc.operations = c.operations || [];
         // Rates that needed no approval went in at the published pricing.
         ratesForService(sc.service).forEach(t => bc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
       });
@@ -2317,7 +2344,8 @@
     const status = needsApproval ? 'pending-rate-approval' : 'pending-onboarding-review';
     const serviceConfigsPayload = criteria.services.map(s => {
       const cfg = serviceConfig[s];
-      const configs = bankKeysFor(cfg, s).map(k => ({ bank: k, module: (cfg.bankConfigs[k] && cfg.bankConfigs[k].module) || '' }));
+      const configs = bankKeysFor(cfg, s).map(k => ({ bank: k, module: (cfg.bankConfigs[k] && cfg.bankConfigs[k].module) || '',
+        operations: (cfg.bankConfigs[k] && cfg.bankConfigs[k].operations) || [] }));
       return { service: s, configs };
     });
     const qs = new URLSearchParams({

@@ -1003,7 +1003,7 @@
   ];
   function intlRateTier(currency) {
     return { key: 'intl-' + currency, label: 'International rate — ' + currency, desc: 'Cards charged in ' + currency + '.',
-      fixedFee: 3, standard: 2.5, manager: 2, head: 1.5 };
+      fixedFee: 3, standard: 2.5, manager: 2, head: 1.5, feeCurrency: currency };
   }
   function ratesForService(service, bc) {
     if (!service.includes('Card')) return DEFAULT_RATE_TIERS;
@@ -1130,7 +1130,7 @@
             id: `${s}::${k}::${t.key}`,
             service: s, bank: k, rate: t.label, tier, note: (sel.note || '').trim(),
             requested: Number(sel.rate), standard: t.standard, managerRate: t.manager,
-            requestedFee: Number(sel.fee), standardFee: t.fixedFee,
+            requestedFee: Number(sel.fee), standardFee: t.fixedFee, feeCurrency: t.feeCurrency || 'EGP',
             from: tier === 'manager' ? t.manager : t.head,
             to: tier === 'manager' ? t.standard : t.manager,
           });
@@ -1344,7 +1344,7 @@
           <div><span class="cell-channel">${esc(channelOf(l.service))}</span><span class="cell-service-name">${esc(stripChannel(l.service))}</span><span class="appr-line-bank">${bank}</span></div>
           <span class="appr-chip ${tier}">${esc(APPROVAL_SHORT[tier])}</span>
         </div>
-        <div class="appr-line-meta">${esc(l.t.label)} — ${esc(l.sel.rate)}% + ${esc(l.sel.fee)} EGP</div>
+        <div class="appr-line-meta">${esc(l.t.label)} — ${esc(l.sel.rate)}% + ${esc(l.sel.fee)} ${esc(l.t.feeCurrency || 'EGP')}</div>
         <textarea class="appr-line-note" data-service="${esc(l.service)}" data-bank="${esc(l.bankKey)}" data-key="${esc(l.t.key)}"
           placeholder="Why does this merchant need this rate?"></textarea>
       </div>`;
@@ -1450,7 +1450,7 @@
   /* What the approver needs beside a requested rate: the published rate to compare with and the
      salesperson's justification; then Approve / Reject, or the decision already taken. */
   function approvalNoteHTML(line) {
-    const pub = [line.standard != null ? line.standard + '%' : '', line.standardFee != null ? line.standardFee + ' EGP' : ''].filter(Boolean).join(' + ');
+    const pub = [line.standard != null ? line.standard + '%' : '', line.standardFee != null ? line.standardFee + ' ' + (line.feeCurrency || 'EGP') : ''].filter(Boolean).join(' + ');
     return `<div class="rate-just"><div class="rate-just-pub">Published ${esc(pub || '\u2014')}</div>` +
       `<div class="rate-just-note${line.note ? '' : ' empty'}">${line.note ? esc(line.note) : 'No justification recorded'}</div></div>`;
   }
@@ -1539,7 +1539,7 @@
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `${(lb => `<span class="cell-rejected${lb.cls}">${esc(lb.text)}</span>`)(rejectedLabel(sel, rejection, t))}${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
           <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
-          <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="EGP"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
+          <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="${esc(t.feeCurrency || 'EGP')}"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
           ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>`
             : statusView ? `<td class="cell-approval-actions">${approvalStatusHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
         </tr>`;
@@ -2121,7 +2121,7 @@
         entry.models[k] = bc ? bc.module : '';
         ratesForService(s, bc).forEach(t => {
           const sel = bc && bc.pricing.get(t.key);
-          if (sel) entry.pricing[k + '::' + t.key] = { rate: normNum(sel.rate), fee: normNum(sel.fee), note: (sel.note || '').trim(), label: t.label };
+          if (sel) entry.pricing[k + '::' + t.key] = { rate: normNum(sel.rate), fee: normNum(sel.fee), note: (sel.note || '').trim(), label: t.label, feeCurrency: t.feeCurrency || 'EGP' };
         });
       });
       services[s] = entry;
@@ -2141,7 +2141,7 @@
     const out = [];
     const add = (category, text, details) => out.push({ category, text, details });
     const where = (s, k) => s + (k ? ' \u00b7 ' + k : '');
-    const pct = v => v + '%', egp = v => v + ' EGP';
+    const pct = v => v + '%', egp = (v, cur) => v + ' ' + (cur || 'EGP');
     Object.keys(b.details).forEach(k => {
       const x = a.details[k] || '', y = b.details[k] || '';
       if (x === y) return;
@@ -2166,7 +2166,7 @@
           if (pa.rate !== pb.rate || pa.fee !== pb.fee) {
             const det = [];
             if (pa.rate !== pb.rate) det.push({ label: 'Fees (%)', from: pct(pa.rate), to: pct(pb.rate) });
-            if (pa.fee !== pb.fee) det.push({ label: 'Flat fee', from: egp(pa.fee), to: egp(pb.fee) });
+            if (pa.fee !== pb.fee) det.push({ label: 'Flat fee', from: egp(pa.fee, pb.feeCurrency), to: egp(pb.fee, pb.feeCurrency) });
             add('Pricing', `${where(s, k)} \u2014 ${pb.label}`, det);
           }
           if (pa.note !== pb.note) add('Pricing', `${where(s, k)} \u2014 ${pb.label}: justification ${pa.note ? 'updated' : 'added'}`,

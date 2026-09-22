@@ -734,7 +734,7 @@ window.KashierRates = (function () {
     (all[leadId] = all[leadId] || []).push(Object.assign({ ts: ts || new Date().toISOString(), who: who, text: text }, extra || {}));
     writeStore('kashierApplicationLog', all);
   }
-  const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '\u2014';
+  const money = (pct, fee, cur) => [pct != null ? pct + '%' : '', fee != null ? fee + ' ' + (cur || 'EGP') : ''].filter(Boolean).join(' + ') || '\u2014';
   /* Structured events, newest first: { ts, who, role, system, action, category, text, details:[{label, value | from, to}] }. */
   function applicationLog(leadId) {
     const apps = loadApplications().filter(a => a.leadId === leadId);
@@ -768,8 +768,8 @@ window.KashierRates = (function () {
         if (prevD[r.id] && prevD[r.id].ts === dec.ts) return;
         const det = [
           { label: 'Service', value: [r.service, r.bank].filter(Boolean).join(' \u00b7 ') },
-          { label: 'Requested', value: money(r.requested, r.requestedFee) },
-          { label: 'Published', value: money(r.standard, r.standardFee) },
+          { label: 'Requested', value: money(r.requested, r.requestedFee, r.feeCurrency) },
+          { label: 'Published', value: money(r.standard, r.standardFee, r.feeCurrency) },
         ];
         if (r.note) det.push({ label: 'Salesperson justification', value: r.note });
         if (dec.reason) det.push({ label: 'Decision comment', value: dec.reason });

@@ -681,7 +681,7 @@
         ${kv('Merchant Type', s.entity)}
         ${kv('Industry (primary)', s.industry)}
         ${(app.altIndustries || []).length ? kv('Activities', (app.altIndustries || []).map((a, i) =>
-          `<div>${i + 1}. ${esc(a.activity || a.industry)}${a.activity && a.industry ? ` <span style="color:var(--cadet-05)">\u00b7 ${esc(a.industry)}</span>` : ''}</div>`).join(''), true) : ''}
+          `<div>${i + 1}. ${esc(a.activity || a.industry)}${a.activity && a.industry && a.activity !== a.industry ? ` <span style="color:var(--cadet-05)">\u00b7 ${esc(a.industry)}</span>` : ''}</div>`).join(''), true) : ''}
         ${kv('Contact Email', s.email)}
         ${kv('Contact Phone', s.phone)}
         ${app.website ? kv('Website', `<a href="${esc(/^https?:/i.test(app.website) ? app.website : 'https://' + app.website)}" target="_blank" rel="noopener">${esc(app.website)}</a>`, true) : ''}

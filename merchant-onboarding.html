@@ -738,7 +738,7 @@
                   <select class="crit-select" id="critIndustry"><option value="">Select industry…</option></select>
                 </div>
                 <div class="ia-activities">
-                  <div class="crit-label">Activities<span class="opt">(optional)</span></div>
+                  <div class="crit-label">Activities<span class="req">*</span></div>
                   <div id="critAlt"></div>
                   <div id="critAltChips"></div>
                 </div>
@@ -1139,43 +1139,23 @@
   fillSelect('critIndustry', INDUSTRIES);
   $('critIndustry').addEventListener('change', e => {
     criteria.industry = e.target.value;
-    // The primary industry can't also be a fallback.
+    ensureIndustryDefaultActivity(criteria.industry);
     renderAltIndustries();
     refreshAll();
   });
 
-  /* Secondary activities: up to two fallbacks, in the order the Onboarding team should try them.
-     Two views of the same choice, to compare — A: ranked dropdowns; B: search and pick. */
-    const ACTIVITIES = {
-    'Retail & E-commerce': ['Clothing & accessories', 'Electronics & appliances', 'Grocery & supermarket', 'Online marketplace', 'Home & furniture'],
-    'Food & Beverage': ['Restaurant', 'Caf\u00e9 & coffee shop', 'Catering', 'Food delivery', 'Bakery & sweets'],
-    'Healthcare / Pharmacy': ['Pharmacy', 'Medical clinic', 'Medical equipment', 'Laboratory & diagnostics', 'Dental care'],
-    'Education': ['Tutoring & lessons', 'Training center', 'Online courses', 'School & nursery', 'Educational supplies'],
-    'Travel & Tourism': ['Hotel & accommodation', 'Tour operator', 'Travel agency', 'Car rental', 'Diving & activities'],
-    'Professional Services': ['Consulting', 'Legal services', 'Accounting', 'Marketing & advertising', 'Engineering services'],
-    'Technology / SaaS': ['Software subscription', 'Mobile app', 'IT services', 'Web hosting', 'Digital marketplace'],
-    'Real Estate': ['Property sales', 'Property rental', 'Property management', 'Construction & contracting'],
-    'Automotive': ['Car dealership', 'Auto parts', 'Car maintenance', 'Car rental & leasing'],
-    'Fashion & Beauty': ['Fashion boutique', 'Beauty salon', 'Cosmetics', 'Jewelry & watches', 'Handmade crafts'],
-    'Entertainment & Media': ['Gyms & fitness', 'Events & tickets', 'Gaming', 'Streaming & content', 'Cinema & leisure'],
-    'Non-profit / NGO': ['Charity & donations', 'Fundraising campaigns', 'Community services'],
-    'Government': ['Public services', 'Fees & fines', 'Utilities'],
-    'Financial Services': ['Payments & wallets', 'Lending', 'Money transfer', 'Investment services'],
-    'Insurance': ['Insurance brokerage', 'Insurance premiums', 'Takaful'],
-    'Marketplace': ['Multi-vendor marketplace', 'Classifieds', 'Service marketplace'],
-    'Logistics & Delivery': ['Courier & delivery', 'Freight & shipping', 'Warehousing', 'Ride services'],
-  };
-  /* On/off: when on, any number of activities can be selected from one grouped multiselect. */
+  /* Activities: the same list as Industry, with no grouping. Choosing the primary industry
+     pre-selects it here by default; the salesperson can add more or remove it. */
   let altOpen = false, altSearch = '';
-  const altKey = a => a.industry + '::' + a.activity;
-  const altHas = key => criteria.altIndustries.some(a => altKey(a) === key);
-  const altGroups = () => Object.keys(ACTIVITIES).sort().map(ind => ({ industry: ind, items: ACTIVITIES[ind] }));
+  const altHas = name => criteria.altIndustries.some(a => a.industry === name);
+  function ensureIndustryDefaultActivity(ind) {
+    if (ind && !altHas(ind)) criteria.altIndustries.push({ industry: ind, activity: ind });
+  }
   function altListHTML() {
     const term = altSearch.trim().toLowerCase();
-    const groups = altGroups().map(g => ({ g, items: g.items.filter(x => !term || x.toLowerCase().indexOf(term) !== -1 || g.industry.toLowerCase().indexOf(term) !== -1) })).filter(x => x.items.length);
-    if (!groups.length) return '<div class="alt-note">No activities match your search.</div>';
-    return groups.map(({ g, items }) => `<div class="alt-group"><div class="alt-group-name">${esc(g.industry)}</div>${
-      items.map(x => `<label class="alt-opt"><input type="checkbox" data-alt-check="${esc(g.industry + '::' + x)}"${altHas(g.industry + '::' + x) ? ' checked' : ''}><span>${esc(x)}</span></label>`).join('')}</div>`).join('');
+    const items = INDUSTRIES.filter(x => !term || x.toLowerCase().indexOf(term) !== -1);
+    if (!items.length) return '<div class="alt-note">No activities match your search.</div>';
+    return `<div class="alt-group">${items.map(x => `<label class="alt-opt"><input type="checkbox" data-alt-check="${esc(x)}"${altHas(x) ? ' checked' : ''}><span>${esc(x)}</span></label>`).join('')}</div>`;
   }
   function renderAltIndustries() {
     const box = $('critAlt'), chipsBox = $('critAltChips');
@@ -1184,11 +1164,11 @@
     const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
     box.innerHTML = `<div class="alt-ms">
         <button type="button" class="alt-ms-btn${altOpen ? ' open' : ''}" data-alt-open aria-expanded="${altOpen}">
-          <span>${chosen.length ? `${chosen.length} selected` : 'Select activities\u2026'}</span>${chev}</button>
-        ${altOpen ? `<div class="alt-panel"><input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities\u2026" value="${esc(altSearch)}" autocomplete="off">
+          <span>${chosen.length ? `${chosen.length} selected` : 'Select activities…'}</span>${chev}</button>
+        ${altOpen ? `<div class="alt-panel"><input class="inp alt-search" type="text" id="altSearch" placeholder="Search activities…" value="${esc(altSearch)}" autocomplete="off">
           <div class="alt-list" id="altList">${altListHTML()}</div></div>` : ''}
       </div>`;
-    chipsBox.innerHTML = chosen.length ? `<div class="alt-chosen">${chosen.map((a, i) => `<span class="alt-chip"><i>${i + 1}</i><span>${esc(a.activity)}<small>${esc(a.industry)}</small></span>
+    chipsBox.innerHTML = chosen.length ? `<div class="alt-chosen">${chosen.map((a, i) => `<span class="alt-chip"><i>${i + 1}</i><span>${esc(a.activity)}${a.activity !== a.industry ? `<small>${esc(a.industry)}</small>` : ''}</span>
           <button type="button" data-alt-remove="${criteria.altIndustries.indexOf(a)}" aria-label="Remove">${RM_ICON}</button></span>`).join('')}</div>` : '';
     const sr = $('altSearch'); if (sr && altOpen) { sr.focus(); sr.setSelectionRange(sr.value.length, sr.value.length); }
   }
@@ -1204,10 +1184,9 @@
   $('critAlt').addEventListener('change', e => {
     const c = e.target.closest('[data-alt-check]');
     if (!c) return;
-    const [industry, activity] = c.dataset.altCheck.split('::');
-    if (c.checked) { if (!altHas(c.dataset.altCheck)) criteria.altIndustries.push({ industry, activity }); }
-    else criteria.altIndustries = criteria.altIndustries.filter(a => altKey(a) !== c.dataset.altCheck);
-    // keep the panel open and only refresh the count and chips
+    const name = c.dataset.altCheck;
+    if (c.checked) { if (!altHas(name)) criteria.altIndustries.push({ industry: name, activity: name }); }
+    else criteria.altIndustries = criteria.altIndustries.filter(a => a.industry !== name);
     const scrollTop = $('altList') ? $('altList').scrollTop : 0;
     renderAltIndustries();
     if ($('altList')) $('altList').scrollTop = scrollTop;
@@ -1825,6 +1804,7 @@
     const checks = [
       { label: 'Merchant details — business name, email and phone', done: hasContact },
       { label: 'Merchant type and industry', done: !!(criteria.entity && criteria.industry) },
+      { label: 'At least one activity selected', done: filledAltIndustries().length > 0 },
       { label: 'At least one service selected', done: hasAnyService() },
     ];
     if (criteria.posEnabled) {
@@ -1884,7 +1864,7 @@
     if (leadEmail) $('mEmail').value = leadEmail;
     if (leadPhone) $('mPhone').value = leadPhone;
     if (leadType && ENTITIES.includes(leadType)) criteria.entity = leadType;
-    if (leadIndustry && INDUSTRIES.includes(leadIndustry)) { criteria.industry = leadIndustry; $('critIndustry').value = leadIndustry; }
+    if (leadIndustry && INDUSTRIES.includes(leadIndustry)) { criteria.industry = leadIndustry; $('critIndustry').value = leadIndustry; ensureIndustryDefaultActivity(leadIndustry); }
     renderSubmitSummary();
   })();
   /* ══════════ Opening an existing application ══════════
@@ -2001,7 +1981,7 @@
       details: {
         'Business name': $('mBiz').value.trim(), 'Contact email': $('mEmail').value.trim(), 'Contact phone': $('mPhone').value.trim(),
         'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
-        'Activities': filledAltIndustries().map(a => a.activity + ' (' + a.industry + ')').join('; '),
+        'Activities': filledAltIndustries().map(a => a.activity === a.industry ? a.activity : a.activity + ' (' + a.industry + ')').join('; '),
         'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
       },
       services,

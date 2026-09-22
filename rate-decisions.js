@@ -386,9 +386,12 @@ window.KashierRates = (function () {
     try { serviceConfigs = JSON.parse(qs.get('serviceConfigs') || '[]'); } catch (e) { serviceConfigs = []; }
     let documents = [];
     try { documents = JSON.parse(qs.get('documents') || '[]'); } catch (e) { documents = []; }
+    let contracts = [];
+    try { contracts = JSON.parse(qs.get('contracts') || '[]'); } catch (e) { contracts = []; }
     return {
       id: qs.get('id') || '—', leadId: leadId || qs.get('leadId') || '', url: url,
       documents: documents,
+      contracts: contracts,
       mid: qs.get('mid') || '',
       website: qs.get('website') || '',
       altIndustries: (() => { try { return JSON.parse(qs.get('altIndustries') || '[]'); } catch (e) { return []; } })(),

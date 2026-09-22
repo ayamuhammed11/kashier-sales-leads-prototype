@@ -94,7 +94,10 @@
     background: var(--accent-10); border-radius: 999px; padding: 5px 12px; margin-bottom: 12px; }
   .crm-record-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .crm-record-link:hover { color: var(--primary); }
-  .page-head-actions { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .page-head-actions { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .phl-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .btn-outline.btn-cancel-app { background: #fff; color: var(--destructive); border-color: var(--destructive); }
+  .btn-outline.btn-cancel-app:hover { background: var(--destructive-bg); }
   .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 4px 12px; }
   .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   .status-badge.new, .status-badge.application { background: var(--warning-bg); color: var(--warning-text); }
@@ -792,7 +795,7 @@
 
   <div class="modal-overlay" id="lostModal">
     <div class="modal">
-      <div class="modal-header"><div><h3>Mark as Lost</h3></div><button class="btn-icon" id="lostClose" aria-label="Close">&#10005;</button></div>
+      <div class="modal-header"><div><h3>Cancel Application</h3></div><button class="btn-icon" id="lostClose" aria-label="Close">&#10005;</button></div>
       <div class="modal-body">
         <p id="lostText" style="margin:0 0 12px;font-size:13.5px;line-height:1.5"></p>
         <label for="lostReason" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Comment <span style="color:var(--destructive)">*</span></label>
@@ -800,7 +803,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="lostCancel">Cancel</button>
-        <button class="btn btn-sm" id="lostConfirm" style="background:var(--destructive);color:#fff">Mark as Lost</button>
+        <button class="btn btn-sm" id="lostConfirm" style="background:var(--destructive);color:#fff">Canceled</button>
       </div>
     </div>
   </div>
@@ -2114,9 +2117,11 @@
     // Status next to the title, and Mark as Lost while the application is still live in the pipeline.
     const canLose = isSales && ['new', 'application', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(status);
     head.insertAdjacentHTML('beforeend', `<div class="page-head-actions">
-      <span class="status-badge ${esc(shown)}"><span class="dot"></span>${esc(LABELS[shown] || shown)}</span>
-      <button type="button" class="btn btn-outline btn-sm" id="viewLogsBtn">View Logs</button>
-      ${canLose ? '<button type="button" class="btn btn-outline btn-sm" id="markLostBtn">Mark as Lost</button>' : ''}
+      <div class="phl-left">
+        <span class="status-badge ${esc(shown)}"><span class="dot"></span>${esc(LABELS[shown] || shown)}</span>
+        <button type="button" class="btn btn-outline btn-sm" id="viewLogsBtn">View Logs</button>
+      </div>
+      ${canLose ? '<button type="button" class="btn btn-outline btn-sm btn-cancel-app" id="markLostBtn">Canceled</button>' : ''}
     </div>`);
     const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
@@ -2130,7 +2135,7 @@
     if (canLose) {
       const lostBiz = () => $('mBiz').value || 'this merchant';
       $('markLostBtn').addEventListener('click', () => {
-        $('lostText').innerHTML = `Are you sure you want to mark <b>${esc(lostBiz())}</b> as lost? This moves them out of the active pipeline — no further onboarding action can be taken.`;
+        $('lostText').innerHTML = `Are you sure you want to cancel <b>${esc(lostBiz())}</b>? This moves them out of the active pipeline — no further onboarding action can be taken.`;
         $('lostReason').value = ''; $('lostReason').classList.remove('invalid');
         $('lostModal').classList.add('open');
         $('lostReason').focus();

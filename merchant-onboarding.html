@@ -1001,8 +1001,8 @@
   }
   function ratesForService(service, bc) {
     if (!service.includes('Card')) return DEFAULT_RATE_TIERS;
-    const foreign = bc && bc.currencies ? bc.currencies.filter(c => c !== 'EGP') : [];
-    return CARD_RATE_TIERS.concat(foreign.map(intlRateTier));
+    const accepted = bc && bc.currencies && bc.currencies.length ? bc.currencies : ['EGP'];
+    return CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
   }
 
   /* ══════════ Per-service configuration — each selected service gets its own Financial

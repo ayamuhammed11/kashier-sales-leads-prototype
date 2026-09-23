@@ -752,8 +752,8 @@
       cards.push(`<div class="cfg-card">
         <div class="cfg-head"><span class="cfg-name">${esc(sc.service)}</span></div>
         <div class="cfg-rows">
-          <div><div class="k">Financial Institution</div><div class="v">${esc(cfg.bank || 'Not required')}</div></div>
           <div><div class="k">Settlement Type</div><div class="v">${esc(cfg.module || '—')}</div></div>
+          <div><div class="k">Financial Institution</div><div class="v">${esc(cfg.bank || 'Not required')}</div></div>
         </div>
         ${rates ? `<div class="cfg-rates">${rates}</div>` : ''}
         <div class="cfg-foot">${rates ? 'All other rates at standard pricing.' : 'All rates at standard pricing.'}</div>

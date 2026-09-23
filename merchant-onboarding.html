@@ -1535,8 +1535,8 @@
         const stillUnchanged = rejection && rejUnchanged.has(`${s}::${k}::${t.key}`);
         return `<tr class="${i === 0 ? 'group-start' : ''}${rejection ? ' row-rejected' : ''}"${rejection ? ` title="Rejected by ${esc(rejection.by)}: ${esc(rejection.reason)}"` : ''}>
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
-            <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>
-            <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>` : ''}
+            <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>
+            <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `${(lb => `<span class="cell-rejected${lb.cls}">${esc(lb.text)}</span>`)(rejectedLabel(sel, rejection, t))}${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
           <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
           <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="${esc(t.feeCurrency || 'EGP')}"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
@@ -1548,7 +1548,7 @@
   }
 
   function stepServicesTableHTML() {
-    const heads = ['Service', 'Financial Institution', 'Model', 'Rate Type', 'Fees (%)', 'Flat Fees'].concat(approverView || statusView ? ['Rate approval'] : []);
+    const heads = ['Service', 'Model', 'Financial Institution', 'Rate Type', 'Fees (%)', 'Flat Fees'].concat(approverView || statusView ? ['Rate approval'] : []);
     const body = SERVICE_CATALOG.map(tier => {
       const header = `<tr class="svc-tier-row"><td colspan="${heads.length}" class="svc-tier-head">${esc(tier.tier)} Services</td></tr>`;
       const terminals = tier.tier === 'POS' && criteria.posEnabled

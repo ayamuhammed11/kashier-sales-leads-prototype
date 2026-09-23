@@ -1647,11 +1647,11 @@
               <input type="checkbox" data-currency-check="${esc(s)}::${esc(k || '')}::${esc(c)}"${editable && bc.currencies.includes(c) ? ' checked' : ''}${editable && bc.module !== 'PF' ? '' : ' disabled'}>
               <span>${esc(c)}</span></label>`).join('')}${editable && bc.module === 'PF' ? '<div class="op-hint">PF settles in EGP only — pick PSP for other currencies.</div>' : ''}</div>` : '')
         + (ops ? `<div class="op-list"><div class="op-title">Supported Operations</div>${ops.map(op => `<label class="op-item">
-              <input type="checkbox" data-op-check="${esc(s)}::${esc(k || '')}::${esc(op)}"${chosen && bc.operations.includes(op) ? ' checked' : ''}${chosen ? '' : ' disabled'}>
+              <input type="checkbox" data-op-check="${esc(s)}::${esc(k || '')}::${esc(op)}"${editable && bc.operations.includes(op) ? ' checked' : ''}${editable && bc.module ? '' : ' disabled'}>
               <span>${esc(op)}</span></label>`).join('')}</div>
             <div class="op-notes"><div class="op-title">Notes <span class="opt">(optional)</span></div>
               <textarea class="op-notes-input" data-note-service="${esc(s)}" data-note-bank="${esc(k || '')}"
-                placeholder="Any comment about this setup…"${chosen ? '' : ' disabled'}>${chosen ? esc(bc.notes || '') : ''}</textarea></div>` : '');
+                placeholder="Any comment about this setup…"${editable && bc.module ? '' : ' disabled'}>${editable ? esc(bc.notes || '') : ''}</textarea></div>` : '');
       return rates.map((t, i) => {
         const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
         const off = chosen ? '' : ' disabled';

@@ -1620,10 +1620,10 @@
     const groups = needsBank ? (cfg.banks.length ? cfg.banks : [null]) : [''];
     return groups.map((k, gi) => {
       const chosen = k !== null;
-      // Card services let the salesperson set the model and currency before an institution is
-      // picked, so the Compare Banks button can suggest one — held as a draft config until a
-      // bank is actually chosen (there or via the dropdown), keyed like the no-institution case.
-      const draftAllowed = compareBanksFor(s) && !chosen;
+      // Any bank-settled service lets the salesperson set the model (and, for Card, the
+      // currency — enabling the Compare Banks suggestion) before an institution is picked,
+      // held as a draft config until a bank is actually chosen, there or via the dropdown.
+      const draftAllowed = needsBank && !chosen;
       const bc = chosen ? ensureBankConfig(cfg, k) : (draftAllowed ? ensureBankConfig(cfg, '') : null);
       const editable = chosen || draftAllowed;
       const rates = ratesForService(s, bc);

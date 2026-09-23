@@ -1469,13 +1469,15 @@
   function chooseComparedBank(s, from, to) {
     const cfg = serviceConfig[s];
     if (to !== from) {
+      // "from" is a real institution already in cfg.banks when switching one that was already
+      // chosen, or the '' draft key when a model/currency was set before any institution was —
+      // either way, its config (model, currencies) carries over to the picked bank.
       const i = cfg.banks.indexOf(from);
-      if (i !== -1) {
-        cfg.banks[i] = to;
-        cfg.bankConfigs[to] = cfg.bankConfigs[from] || { module: '', pricing: new Map(), operations: [], notes: '', currencies: ['EGP'] };
+      if (i !== -1) cfg.banks[i] = to;
+      else if (!cfg.banks.includes(to)) cfg.banks.push(to);
+      if (cfg.bankConfigs[from]) {
+        cfg.bankConfigs[to] = cfg.bankConfigs[from];
         delete cfg.bankConfigs[from];
-      } else if (!cfg.banks.includes(to)) {
-        cfg.banks.push(to);
       }
     }
     const bc = ensureBankConfig(cfg, to);
@@ -1618,7 +1620,12 @@
     const groups = needsBank ? (cfg.banks.length ? cfg.banks : [null]) : [''];
     return groups.map((k, gi) => {
       const chosen = k !== null;
-      const bc = chosen ? ensureBankConfig(cfg, k) : null;
+      // Card services let the salesperson set the model and currency before an institution is
+      // picked, so the Compare Banks button can suggest one — held as a draft config until a
+      // bank is actually chosen (there or via the dropdown), keyed like the no-institution case.
+      const draftAllowed = compareBanksFor(s) && !chosen;
+      const bc = chosen ? ensureBankConfig(cfg, k) : (draftAllowed ? ensureBankConfig(cfg, '') : null);
+      const editable = chosen || draftAllowed;
       const rates = ratesForService(s, bc);
       const others = cfg.banks.filter(b => b !== k);
       const bankCell = needsBank
@@ -1628,17 +1635,17 @@
              ${multi && chosen && gi === groups.length - 1 && cfg.banks.length < BANKS.length
                ? `<button type="button" class="cell-link" data-add-bank="${esc(s)}">+ Add institution</button>` : ''}
              ${multi && gi > 0 ? `<button type="button" class="cell-link danger" data-remove-bank="${esc(s)}" data-bank="${esc(k)}">Remove</button>` : ''}
-             ${chosen && compareBanksFor(s) && bc.module === 'PF' && bc.currencies.length === 1 && bc.currencies[0] === 'EGP' && appMode !== 'locked'
-               ? `<button type="button" class="cell-link" data-compare-banks="${esc(s)}::${esc(k)}">Compare banks</button>` : ''}
+             ${editable && compareBanksFor(s) && bc.module === 'PF' && bc.currencies.length === 1 && bc.currencies[0] === 'EGP' && appMode !== 'locked'
+               ? `<button type="button" class="cell-link" data-compare-banks="${esc(s)}::${esc(k || '')}">Compare banks</button>` : ''}
            </div>`
         : '';
       const ops = operationsFor(s);
       const currencies = currenciesFor(s);
       const modelCell = cellSelectHTML(`data-model-select data-service="${esc(s)}" data-bank="${esc(k || '')}"`,
-        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !chosen)
-        + (currencies ? `<div class="op-list"><div class="op-title">Accepted Currencies</div>${(chosen && bc.module === 'PF' ? ['EGP'] : currencies).map(c => `<label class="op-item">
-              <input type="checkbox" data-currency-check="${esc(s)}::${esc(k || '')}::${esc(c)}"${chosen && bc.currencies.includes(c) ? ' checked' : ''}${chosen && bc.module !== 'PF' ? '' : ' disabled'}>
-              <span>${esc(c)}</span></label>`).join('')}${chosen && bc.module === 'PF' ? '<div class="op-hint">PF settles in EGP only — pick PSP for other currencies.</div>' : ''}</div>` : '')
+        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !editable)
+        + (currencies ? `<div class="op-list"><div class="op-title">Accepted Currencies</div>${(editable && bc.module === 'PF' ? ['EGP'] : currencies).map(c => `<label class="op-item">
+              <input type="checkbox" data-currency-check="${esc(s)}::${esc(k || '')}::${esc(c)}"${editable && bc.currencies.includes(c) ? ' checked' : ''}${editable && bc.module !== 'PF' ? '' : ' disabled'}>
+              <span>${esc(c)}</span></label>`).join('')}${editable && bc.module === 'PF' ? '<div class="op-hint">PF settles in EGP only — pick PSP for other currencies.</div>' : ''}</div>` : '')
         + (ops ? `<div class="op-list"><div class="op-title">Supported Operations</div>${ops.map(op => `<label class="op-item">
               <input type="checkbox" data-op-check="${esc(s)}::${esc(k || '')}::${esc(op)}"${chosen && bc.operations.includes(op) ? ' checked' : ''}${chosen ? '' : ' disabled'}>
               <span>${esc(op)}</span></label>`).join('')}</div>
@@ -1836,7 +1843,10 @@
         }
       } else if (val) {
         cfg.banks.push(val);
-        ensureBankConfig(cfg, val);
+        // A model/currency picked before any institution was (the '' draft key) carries over
+        // to whichever bank gets chosen, from the dropdown or from Compare Banks.
+        if (cfg.bankConfigs['']) { cfg.bankConfigs[val] = cfg.bankConfigs['']; delete cfg.bankConfigs['']; }
+        else ensureBankConfig(cfg, val);
       }
       onSetupChanged();
       return;

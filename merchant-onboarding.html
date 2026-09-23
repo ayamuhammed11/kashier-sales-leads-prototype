@@ -524,6 +524,17 @@
   .contract-file .doc-chip { max-width: 220px; }
   .contract-row .btn-icon { border: 1px solid transparent; }
   .contract-add { margin-bottom: 4px; }
+
+  /* Compare Banks pop-up */
+  .compare-intro { font-size: 12.5px; color: var(--cadet-base); line-height: 1.5; margin-bottom: 14px; }
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .compare-table th, .compare-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+  .compare-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--cadet-05); font-weight: 700; }
+  .compare-table td.better { color: var(--success-text); font-weight: 700; background: var(--success-bg); }
+  .compare-badge { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .03em; color: var(--success-text); background: var(--success-bg); border-radius: 20px; padding: 2px 8px; vertical-align: middle; }
+  .compare-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .compare-actions .btn { flex: 1; }
   .setup-nav { align-items: center; }
   .setup-nav-status { flex: 1; font-size: 12.5px; color: var(--cadet-05); }
 
@@ -597,6 +608,7 @@
   .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 420px;
     box-shadow: 0 20px 60px rgba(0,20,60,.25); }
   .modal.appr-modal { max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
+  .modal.compare-modal { max-width: 560px; max-height: 85vh; display: flex; flex-direction: column; }
   .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px;
     border-bottom: 1px solid var(--border-subtle); }
   .modal-header h3 { margin: 0 0 4px; font-size: 16px; color: var(--foreground); }
@@ -861,6 +873,21 @@
     </div>
   </div>
 
+  <!-- Compare the standard PF/EGP pricing of National Bank of Egypt and Bank Misr for this
+       merchant's industry, then adopt whichever bank's rates fit better. -->
+  <div class="modal-overlay" id="compareBanksModal">
+    <div class="modal compare-modal">
+      <div class="modal-header">
+        <div>
+          <h3 id="compareBanksTitle">Compare banks</h3>
+          <p class="appr-modal-sub">Standard PF / EGP pricing, published for this merchant's industry. Choosing a bank fills in its standard rates below.</p>
+        </div>
+        <button class="btn-icon" id="compareBanksClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body" id="compareBanksBody"></div>
+    </div>
+  </div>
+
 <script src="rate-decisions.js"></script>
 <script>
   const $ = id => document.getElementById(id);
@@ -1010,6 +1037,37 @@
     const accepted = bc && bc.currencies && bc.currencies.length ? bc.currencies : ['EGP'];
     return CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
   }
+
+  /* ══════════ Compare Banks — PF / EGP card pricing, National Bank of Egypt vs Bank Misr, by industry.
+     Prototype simplification: standard pricing is scaled off the universal CARD_RATE_TIERS by a
+     per-bank, per-industry factor, mirroring how the real Pricing Rules module varies acceptance
+     cost per segment without hand-modelling every published rate. ══════════ */
+  const BANK_COMPARE = ['National Bank of Egypt', 'Bank Misr'];
+  const BANK_INDUSTRY_FACTOR = {
+    'National Bank of Egypt': {
+      'Retail & E-commerce': 0.96, 'Food & Beverage': 1.05, 'Healthcare / Pharmacy': 0.98, 'Education': 0.94,
+      'Travel & Tourism': 1.04, 'Professional Services': 0.97, 'Technology / SaaS': 0.95, 'Real Estate': 1.02,
+      'Automotive': 1.00, 'Fashion & Beauty': 0.99, 'Entertainment & Media': 1.03, 'Non-profit / NGO': 0.92,
+      'Government': 0.90, 'Financial Services': 1.06, 'Insurance': 1.01, 'Marketplace': 0.97, 'Logistics & Delivery': 1.02,
+    },
+    'Bank Misr': {
+      'Retail & E-commerce': 1.04, 'Food & Beverage': 0.95, 'Healthcare / Pharmacy': 1.02, 'Education': 1.05,
+      'Travel & Tourism': 0.97, 'Professional Services': 1.03, 'Technology / SaaS': 1.05, 'Real Estate': 0.98,
+      'Automotive': 1.00, 'Fashion & Beauty': 1.01, 'Entertainment & Media': 0.97, 'Non-profit / NGO': 1.06,
+      'Government': 1.08, 'Financial Services': 0.94, 'Insurance': 0.99, 'Marketplace': 1.03, 'Logistics & Delivery': 0.98,
+    },
+  };
+  const round2 = v => Math.round(v * 100) / 100;
+  function bankIndustryFactor(bank, industry) {
+    const table = BANK_INDUSTRY_FACTOR[bank];
+    return (table && table[industry]) || 1;
+  }
+  function bankStandardRate(bank, industry, t) {
+    const factor = bankIndustryFactor(bank, industry);
+    return { rate: round2(t.standard * factor), fee: round2(t.fixedFee * factor) };
+  }
+  /* Card services only — the comparison assumes PF settlement and EGP-only acceptance. */
+  function compareBanksFor(service) { return service.endsWith('Card'); }
 
   /* ══════════ Per-service configuration — each selected service gets its own Financial
      Institution(s), and each of those banks gets its OWN settlement type and pricing
@@ -1378,7 +1436,66 @@
   $('approvalModalCancel').addEventListener('click', closeApprovalModal);
   $('approvalModalClose').addEventListener('click', closeApprovalModal);
   $('approvalModal').addEventListener('click', e => { if (e.target === $('approvalModal')) closeApprovalModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeApprovalModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeApprovalModal(); closeCompareBanksModal(); });
+
+  /* Compare Banks: standard PF/EGP pricing for National Bank of Egypt vs Bank Misr, by industry —
+     picking one switches the row's institution (keeping PF/EGP) and fills in its standard rates. */
+  function compareBanksHTML(s, currentKey) {
+    const cfg = serviceConfig[s];
+    const bc = ensureBankConfig(cfg, currentKey);
+    const industry = criteria.industry;
+    const rows = ratesForService(s, bc).map(t => ({
+      t, byBank: BANK_COMPARE.map(bank => ({ bank, r: bankStandardRate(bank, industry, t) })),
+    }));
+    const totalFor = bank => rows.reduce((sum, row) => sum + row.byBank.find(x => x.bank === bank).r.rate, 0);
+    const totals = BANK_COMPARE.map(bank => ({ bank, total: totalFor(bank) }));
+    const lower = totals[0].total === totals[1].total ? '' : (totals[0].total < totals[1].total ? totals[0].bank : totals[1].bank);
+    return `<div class="compare-intro">For ${esc(industry || 'this merchant')}'s industry pricing, ${esc(stripChannel(s))} — standard rate and flat fee per rate type.</div>
+      <table class="compare-table">
+        <thead><tr><th>Rate type</th>${BANK_COMPARE.map(bank => `<th>${esc(bank)}${bank === lower ? '<span class="compare-badge">Lower overall</span>' : ''}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(row => `<tr>
+          <td>${esc(row.t.label)}</td>
+          ${row.byBank.map(x => `<td class="${x.bank === lower ? 'better' : ''}">${esc(x.r.rate)}% + ${esc(x.r.fee)} ${esc(row.t.feeCurrency || 'EGP')}</td>`).join('')}
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="compare-actions">${BANK_COMPARE.map(bank => `<button type="button" class="btn btn-outline btn-sm" data-choose-bank data-service="${esc(s)}" data-from="${esc(currentKey)}" data-to="${esc(bank)}">Choose ${esc(bank)}</button>`).join('')}</div>`;
+  }
+  function openCompareBanksModal(s, currentKey) {
+    $('compareBanksTitle').textContent = `Compare banks — ${stripChannel(s)}`;
+    $('compareBanksBody').innerHTML = compareBanksHTML(s, currentKey);
+    $('compareBanksModal').classList.add('open');
+  }
+  function closeCompareBanksModal() { $('compareBanksModal').classList.remove('open'); }
+  function chooseComparedBank(s, from, to) {
+    const cfg = serviceConfig[s];
+    if (to !== from) {
+      const i = cfg.banks.indexOf(from);
+      if (i !== -1) {
+        cfg.banks[i] = to;
+        cfg.bankConfigs[to] = cfg.bankConfigs[from] || { module: '', pricing: new Map(), operations: [], notes: '', currencies: ['EGP'] };
+        delete cfg.bankConfigs[from];
+      } else if (!cfg.banks.includes(to)) {
+        cfg.banks.push(to);
+      }
+    }
+    const bc = ensureBankConfig(cfg, to);
+    bc.module = 'PF';
+    bc.currencies = ['EGP'];
+    ratesForService(s, bc).forEach(t => {
+      const r = bankStandardRate(to, criteria.industry, t);
+      bc.pricing.set(t.key, { rate: String(r.rate), fee: String(r.fee), note: '', tier: 'auto' });
+    });
+  }
+  $('compareBanksClose').addEventListener('click', closeCompareBanksModal);
+  $('compareBanksModal').addEventListener('click', e => {
+    if (e.target === $('compareBanksModal')) { closeCompareBanksModal(); return; }
+    const chooseBtn = e.target.closest('[data-choose-bank]');
+    if (chooseBtn) {
+      chooseComparedBank(chooseBtn.dataset.service, chooseBtn.dataset.from, chooseBtn.dataset.to);
+      closeCompareBanksModal();
+      onSetupChanged();
+    }
+  });
 
   /* What still stops each step from being complete — empty means done. */
   function serviceStepIssues(n) {
@@ -1511,6 +1628,8 @@
              ${multi && chosen && gi === groups.length - 1 && cfg.banks.length < BANKS.length
                ? `<button type="button" class="cell-link" data-add-bank="${esc(s)}">+ Add institution</button>` : ''}
              ${multi && gi > 0 ? `<button type="button" class="cell-link danger" data-remove-bank="${esc(s)}" data-bank="${esc(k)}">Remove</button>` : ''}
+             ${chosen && compareBanksFor(s) && bc.module === 'PF' && bc.currencies.length === 1 && bc.currencies[0] === 'EGP' && appMode !== 'locked'
+               ? `<button type="button" class="cell-link" data-compare-banks="${esc(s)}::${esc(k)}">Compare banks</button>` : ''}
            </div>`
         : '';
       const ops = operationsFor(s);
@@ -1678,6 +1797,12 @@
       cfg.banks = cfg.banks.filter(b => b !== remove.dataset.bank);
       delete cfg.bankConfigs[remove.dataset.bank];
       onSetupChanged();
+      return;
+    }
+    const compare = e.target.closest('[data-compare-banks]');
+    if (compare) {
+      const [svc, bankKey] = compare.dataset.compareBanks.split('::');
+      openCompareBanksModal(svc, bankKey);
       return;
     }
 

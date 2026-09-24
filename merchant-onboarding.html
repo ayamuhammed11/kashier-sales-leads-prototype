@@ -1620,7 +1620,7 @@
     if (!active) {
       return `<tr class="svc-row-inactive">
         <td class="cell-service">${serviceToggleHTML(s, false)}</td>
-        <td class="cell-muted" colspan="${approverView || statusView ? 7 : 6}">Not activated — check the box to add its pricing</td>
+        <td class="cell-muted" colspan="${approverView || statusView ? 7 : 6}">Check the service to proceed with the activation</td>
       </tr>`;
     }
     const cfg = serviceConfig[s];

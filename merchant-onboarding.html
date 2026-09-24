@@ -606,7 +606,7 @@
   .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 420px;
     box-shadow: 0 20px 60px rgba(0,20,60,.25); }
   .modal.appr-modal { max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
-  .modal.compare-modal { max-width: 560px; max-height: 85vh; display: flex; flex-direction: column; }
+  .modal.compare-modal { max-width: 820px; max-height: 85vh; display: flex; flex-direction: column; }
   .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px;
     border-bottom: 1px solid var(--border-subtle); }
   .modal-header h3 { margin: 0 0 4px; font-size: 16px; color: var(--foreground); }
@@ -884,7 +884,6 @@
       <div class="modal-body" id="pricingRulesBody"></div>
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="pricingRulesCancel">Close</button>
-        <button class="btn btn-primary btn-sm" id="pricingRulesAdd">Add rates</button>
       </div>
     </div>
   </div>
@@ -1444,28 +1443,41 @@
     const f = compareBanksFor(s) && BANK_COMPARE.indexOf(bank) !== -1 ? bankIndustryFactor(bank, criteria.industry) : 1;
     return { standard: round2(t.standard * f), manager: round2(t.manager * f), head: round2(t.head * f), fee: round2(t.fixedFee * f) };
   }
+  /* For a service settled through a bank the pricing rules are shown per institution and the
+     salesperson picks the institution from here: Add rates sets it and fills its rates in. */
   function openPricingRulesModal(s, key) {
-    const bc = ensureBankConfig(serviceConfig[s], key);
+    const cfg = serviceConfig[s];
+    const bc = ensureBankConfig(cfg, key);
     pricingRulesTarget = { s, key };
-    const rows = ratesForService(s, bc).map(t => ({ t, r: pricingRuleFor(s, key, t) }));
+    const tiers = ratesForService(s, bc);
+    const banks = bankRequiredFor(s) ? BANKS.filter(b => b === key || !cfg.banks.includes(b)) : [''];
+    const cell = (t, bank) => { const r = pricingRuleFor(s, bank, t);
+      return `<td><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% · Head ${esc(r.head)}%</div></td>`; };
     $('pricingRulesTitle').textContent = `Service pricing — ${stripChannel(s)} (${channelOf(s)})`;
-    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${key ? ' · ' + esc(key) : ' · any institution'}${bc.module ? ' · ' + esc(bc.module) : ''}</div>
+    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bankRequiredFor(s) ? ' — choose the institution to add its rates.' : ''}</div>
       <table class="compare-table">
-        <thead><tr><th>Rate type</th><th>Published rate</th><th>Sales Manager floor</th><th>Head of Sales floor</th><th>Flat fee</th></tr></thead>
-        <tbody>${rows.map(({ t, r }) => `<tr><td>${esc(t.label)}</td><td>${esc(r.standard)}%</td><td>${esc(r.manager)}%</td><td>${esc(r.head)}%</td><td>${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}</td></tr>`).join('')}</tbody>
+        <thead><tr><th>Rate type</th>${banks.map(b => `<th>${esc(b || 'Published pricing')}${b && b === key ? ' <span class="cell-hint">(current)</span>' : ''}</th>`).join('')}</tr></thead>
+        <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}
+        <tr><td></td>${banks.map(b => `<td><button type="button" class="btn btn-primary btn-sm" data-add-rates="${esc(b)}">${b ? 'Add rates &amp; choose' : 'Add rates'}</button></td>`).join('')}</tr></tbody>
       </table>`;
     $('pricingRulesModal').classList.add('open');
   }
   function closePricingRulesModal() { $('pricingRulesModal').classList.remove('open'); pricingRulesTarget = null; }
   $('pricingRulesClose').addEventListener('click', closePricingRulesModal);
   $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);
-  $('pricingRulesModal').addEventListener('click', e => { if (e.target === $('pricingRulesModal')) closePricingRulesModal(); });
-  $('pricingRulesAdd').addEventListener('click', () => {
-    if (!pricingRulesTarget) return;
-    const { s, key } = pricingRulesTarget;
-    const bc = ensureBankConfig(serviceConfig[s], key);
+  $('pricingRulesModal').addEventListener('click', e => {
+    if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
+    const add = e.target.closest('[data-add-rates]');
+    if (!add || !pricingRulesTarget) return;
+    const { s, key } = pricingRulesTarget, to = add.dataset.addRates, cfg = serviceConfig[s];
+    if (bankRequiredFor(s) && to !== key) {
+      const i = cfg.banks.indexOf(key);
+      if (i !== -1) cfg.banks[i] = to; else cfg.banks.push(to);
+      if (cfg.bankConfigs[key]) { cfg.bankConfigs[to] = cfg.bankConfigs[key]; delete cfg.bankConfigs[key]; }
+    }
+    const bc = ensureBankConfig(cfg, bankRequiredFor(s) ? to : key);
     ratesForService(s, bc).forEach(t => {
-      const r = pricingRuleFor(s, key, t);
+      const r = pricingRuleFor(s, to, t);
       bc.pricing.set(t.key, { rate: String(r.standard), fee: String(r.fee), note: '', tier: 'auto' });
     });
     closePricingRulesModal();
@@ -1624,7 +1636,7 @@
               <textarea class="op-notes-input" data-note-service="${esc(s)}" data-note-bank="${esc(k || '')}"
                 placeholder="Any comment about this setup…"${editable && bc.module ? '' : ' disabled'}>${editable ? esc(bc.notes || '') : ''}</textarea></div>` : '');
       const pricingCell = appMode === 'locked' ? '' :
-        `<button type="button" class="btn btn-outline btn-sm cell-pricing-btn" data-view-pricing="${esc(s)}::${esc(k || '')}"${editable && bc && bc.module ? '' : ' disabled'}>View service pricing</button>${editable && bc && bc.module ? '' : '<div class="cell-hint">Choose a model first</div>'}`;
+        `<button type="button" class="btn btn-outline btn-sm cell-pricing-btn" data-view-pricing="${esc(s)}::${esc(k || '')}"${editable ? '' : ' disabled'}>View service pricing</button>`;
       return rates.map((t, i) => {
         const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
         const off = editable ? '' : ' disabled';

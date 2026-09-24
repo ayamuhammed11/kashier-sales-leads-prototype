@@ -551,6 +551,10 @@
   .svc-table tr.group-start td { border-top: 1px solid var(--border); }
   .svc-table tbody tr:first-child td { border-top: none; }
   .svc-table .cell-service { vertical-align: top; padding-top: 9px; min-width: 104px; }
+  .svc-table .cell-pricing { vertical-align: top; padding-top: 7px; min-width: 120px; }
+  .cell-pricing-btn { white-space: nowrap; }
+  .cell-hint { font-size: 11px; color: var(--cadet-05); margin-top: 4px; }
+  .pricing-rules-note { font-size: 12.5px; color: var(--cadet-base); line-height: 1.5; margin-bottom: 12px; }
   .svc-table .cell-bank, .svc-table .cell-model { vertical-align: top; padding-top: 7px; min-width: 128px; }
   .op-list { margin-top: 8px; }
   .op-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--cadet-05); margin-bottom: 4px; }
@@ -869,6 +873,24 @@
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="approvalModalCancel">Cancel</button>
         <button class="btn btn-primary btn-sm" id="approvalModalSave">Save &amp; Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- The pricing rules already configured in the Pricing Rules module for this service. -->
+  <div class="modal-overlay" id="pricingRulesModal">
+    <div class="modal compare-modal">
+      <div class="modal-header">
+        <div>
+          <h3 id="pricingRulesTitle">Service pricing</h3>
+          <p class="appr-modal-sub">Pricing rules configured in the Pricing Rules module for this merchant's industry and type.</p>
+        </div>
+        <button class="btn-icon" id="pricingRulesClose" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body" id="pricingRulesBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="pricingRulesCancel">Close</button>
+        <button class="btn btn-primary btn-sm" id="pricingRulesAdd">Add rates</button>
       </div>
     </div>
   </div>
@@ -1436,7 +1458,44 @@
   $('approvalModalCancel').addEventListener('click', closeApprovalModal);
   $('approvalModalClose').addEventListener('click', closeApprovalModal);
   $('approvalModal').addEventListener('click', e => { if (e.target === $('approvalModal')) closeApprovalModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeApprovalModal(); closeCompareBanksModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeApprovalModal(); closeCompareBanksModal(); closePricingRulesModal(); } });
+
+  /* View service pricing: the configured pricing rule for each rate type of this service (published
+     rate, Sales Manager floor, Head of Sales floor, flat fee). Bank Misr / National Bank of Egypt card
+     rules follow their own per-industry pricing; every other rule is the universal one. "Add rates"
+     fills the rows in at the published rate, like choosing a bank in Compare Banks. */
+  let pricingRulesTarget = null;
+  function pricingRuleFor(s, bank, t) {
+    const f = compareBanksFor(s) && BANK_COMPARE.indexOf(bank) !== -1 ? bankIndustryFactor(bank, criteria.industry) : 1;
+    return { standard: round2(t.standard * f), manager: round2(t.manager * f), head: round2(t.head * f), fee: round2(t.fixedFee * f) };
+  }
+  function openPricingRulesModal(s, key) {
+    const bc = ensureBankConfig(serviceConfig[s], key);
+    pricingRulesTarget = { s, key };
+    const rows = ratesForService(s, bc).map(t => ({ t, r: pricingRuleFor(s, key, t) }));
+    $('pricingRulesTitle').textContent = `Service pricing — ${stripChannel(s)} (${channelOf(s)})`;
+    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${key ? ' · ' + esc(key) : ' · any institution'}${bc.module ? ' · ' + esc(bc.module) : ''}</div>
+      <table class="compare-table">
+        <thead><tr><th>Rate type</th><th>Published rate</th><th>Sales Manager floor</th><th>Head of Sales floor</th><th>Flat fee</th></tr></thead>
+        <tbody>${rows.map(({ t, r }) => `<tr><td>${esc(t.label)}</td><td>${esc(r.standard)}%</td><td>${esc(r.manager)}%</td><td>${esc(r.head)}%</td><td>${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}</td></tr>`).join('')}</tbody>
+      </table>`;
+    $('pricingRulesModal').classList.add('open');
+  }
+  function closePricingRulesModal() { $('pricingRulesModal').classList.remove('open'); pricingRulesTarget = null; }
+  $('pricingRulesClose').addEventListener('click', closePricingRulesModal);
+  $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);
+  $('pricingRulesModal').addEventListener('click', e => { if (e.target === $('pricingRulesModal')) closePricingRulesModal(); });
+  $('pricingRulesAdd').addEventListener('click', () => {
+    if (!pricingRulesTarget) return;
+    const { s, key } = pricingRulesTarget;
+    const bc = ensureBankConfig(serviceConfig[s], key);
+    ratesForService(s, bc).forEach(t => {
+      const r = pricingRuleFor(s, key, t);
+      bc.pricing.set(t.key, { rate: String(r.standard), fee: String(r.fee), note: '', tier: 'auto' });
+    });
+    closePricingRulesModal();
+    onSetupChanged();
+  });
 
   /* Compare Banks: standard PF/EGP pricing for National Bank of Egypt vs Bank Misr, by industry —
      picking one switches the row's institution (keeping PF/EGP) and fills in its standard rates. */
@@ -1609,7 +1668,7 @@
     if (!active) {
       return `<tr class="svc-row-inactive">
         <td class="cell-service">${serviceToggleHTML(s, false)}</td>
-        <td class="cell-muted" colspan="${approverView || statusView ? 6 : 5}">Not activated — check the box to add its pricing</td>
+        <td class="cell-muted" colspan="${approverView || statusView ? 7 : 6}">Not activated — check the box to add its pricing</td>
       </tr>`;
     }
     const cfg = serviceConfig[s];
@@ -1652,20 +1711,23 @@
             <div class="op-notes"><div class="op-title">Notes <span class="opt">(optional)</span></div>
               <textarea class="op-notes-input" data-note-service="${esc(s)}" data-note-bank="${esc(k || '')}"
                 placeholder="Any comment about this setup…"${editable && bc.module ? '' : ' disabled'}>${editable ? esc(bc.notes || '') : ''}</textarea></div>` : '');
+      const pricingCell = appMode === 'locked' ? '' :
+        `<button type="button" class="btn btn-outline btn-sm cell-pricing-btn" data-view-pricing="${esc(s)}::${esc(k || '')}"${editable && bc && bc.module ? '' : ' disabled'}>View service pricing</button>${editable && bc && bc.module ? '' : '<div class="cell-hint">Choose a model first</div>'}`;
       return rates.map((t, i) => {
         const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
-        const off = chosen ? '' : ' disabled';
-        const attrs = chosen ? lineAttrs(s, k, t.key) : '';
+        const off = editable ? '' : ' disabled';
+        const attrs = editable ? lineAttrs(s, k || '', t.key) : '';
         const rejUnchanged = new Set(unchangedRejectedLines().map(u => u.id));
         const rejection = chosen && appMode === 'returned' ? rejectedLines.get(`${s}::${k}::${t.key}`) : null;
         const stillUnchanged = rejection && rejUnchanged.has(`${s}::${k}::${t.key}`);
         return `<tr class="${i === 0 ? 'group-start' : ''}${rejection ? ' row-rejected' : ''}"${rejection ? ` title="Rejected by ${esc(rejection.by)}: ${esc(rejection.reason)}"` : ''}>
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
             <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>
-            <td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>` : ''}
+            <td rowspan="${rates.length}" class="cell-pricing">${pricingCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `${(lb => `<span class="cell-rejected${lb.cls}">${esc(lb.text)}</span>`)(rejectedLabel(sel, rejection, t))}${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
           <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
           <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="${esc(t.feeCurrency || 'EGP')}"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
+          ${i === 0 ? `<td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>` : ''}
           ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>`
             : statusView ? `<td class="cell-approval-actions">${approvalStatusHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
         </tr>`;
@@ -1674,7 +1736,7 @@
   }
 
   function stepServicesTableHTML() {
-    const heads = ['Service', 'Model', 'Financial Institution', 'Rate Type', 'Fees (%)', 'Flat Fees'].concat(approverView || statusView ? ['Rate approval'] : []);
+    const heads = ['Service', 'Model', 'Pricing', 'Rate Type', 'Fees (%)', 'Flat Fees', 'Financial Institution'].concat(approverView || statusView ? ['Rate approval'] : []);
     const body = SERVICE_CATALOG.map(tier => {
       const header = `<tr class="svc-tier-row"><td colspan="${heads.length}" class="svc-tier-head">${esc(tier.tier)} Services</td></tr>`;
       const terminals = tier.tier === 'POS' && criteria.posEnabled
@@ -1804,6 +1866,12 @@
       cfg.banks = cfg.banks.filter(b => b !== remove.dataset.bank);
       delete cfg.bankConfigs[remove.dataset.bank];
       onSetupChanged();
+      return;
+    }
+    const viewPricing = e.target.closest('[data-view-pricing]');
+    if (viewPricing) {
+      const [svc, bankKey] = viewPricing.dataset.viewPricing.split('::');
+      openPricingRulesModal(svc, bankKey);
       return;
     }
     const compare = e.target.closest('[data-compare-banks]');

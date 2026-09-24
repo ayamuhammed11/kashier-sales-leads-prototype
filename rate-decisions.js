@@ -180,7 +180,7 @@ window.KashierRates = (function () {
         entity: 'Registered Business', industry: 'Software & SaaS',
         services: ['Online Card', 'Online Wallet'],
         serviceConfigs: [
-          { service: 'Online Card', configs: [{ bank: 'QNB', module: 'PF' }] },
+          { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PF' }] },
           { service: 'Online Wallet', configs: [{ bank: '', module: 'PF' }] },
         ],
         posTerminals: '', docsDone: '7', docsTotal: '7',
@@ -195,13 +195,13 @@ window.KashierRates = (function () {
         { name: 'Wallet Service Addendum', file: 'wallet-addendum.pdf' },
       ],
       requests: [
-        { id: 'Online Card::QNB::national-offus', service: 'Online Card', bank: 'QNB',
+        { id: 'Online Card::National Bank of Egypt::national-offus', service: 'Online Card', bank: 'National Bank of Egypt',
           rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2, requestedFee: 2, standardFee: 2,
           note: 'Subscription product on thin margins — Karim negotiated this rate before signing.' },
         { id: 'Online Wallet::::wallet', service: 'Online Wallet', bank: '',
           rate: 'Wallet rate', tier: 'head', from: 1, to: 1.5, requested: 0.8, standard: 2, requestedFee: 1, standardFee: 1.5,
           note: 'Their app users top up by wallet — the same deal as cards keeps checkout consistent.' },
-        { id: 'Online Card::QNB::intl-EGP', service: 'Online Card', bank: 'QNB',
+        { id: 'Online Card::National Bank of Egypt::intl-EGP', service: 'Online Card', bank: 'National Bank of Egypt',
           rate: 'International rate — EGP', tier: 'manager', from: 2, to: 2.5, requested: 2.2, standard: 2.5, requestedFee: 1.5, standardFee: 3,
           note: 'Half their volume is international clients paying in USD.' },
       ],
@@ -215,8 +215,8 @@ window.KashierRates = (function () {
         entity: 'Professional Business', industry: 'Education',
         services: ['Online Card', 'Online Bank Installments'],
         serviceConfigs: [
-          { service: 'Online Card', configs: [{ bank: 'CIB', module: 'PSP' }] },
-          { service: 'Online Bank Installments', configs: [{ bank: 'CIB', module: 'PSP' }] },
+          { service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
+          { service: 'Online Bank Installments', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
         ],
         posTerminals: '', docsDone: '5', docsTotal: '5',
       },
@@ -228,20 +228,20 @@ window.KashierRates = (function () {
         { name: 'Signed Merchant Agreement', file: 'agreement-signed.pdf' },
       ],
       requests: [
-        { id: 'Online Card::CIB::national-onus', service: 'Online Card', bank: 'CIB',
+        { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
           rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.25, standard: 1.5, requestedFee: 1.5, standardFee: 2,
           note: 'Tuition payments peak at the start of each term — a partner referral with steady volume.' },
-        { id: 'Online Card::CIB::national-offus', service: 'Online Card', bank: 'CIB',
+        { id: 'Online Card::Bank Misr::national-offus', service: 'Online Card', bank: 'Bank Misr',
           rate: 'National — Off-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.1, standard: 1.5, requestedFee: 1, standardFee: 2,
           note: 'Most parents pay with cards from other banks.' },
-        { id: 'Online Bank Installments::CIB::12-month', service: 'Online Bank Installments', bank: 'CIB',
+        { id: 'Online Bank Installments::Bank Misr::12-month', service: 'Online Bank Installments', bank: 'Bank Misr',
           rate: '12-month plan', tier: 'head', from: 3, to: 4, requested: 2.5, standard: 4.5, requestedFee: 2, standardFee: 2,
           note: 'Parents split yearly tuition into 12 installments — the partner asked for this rate.' },
       ],
       seedDecisions: {
-        'Online Card::CIB::national-onus': { decision: 'approved', reason: '', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-07T13:00:00.000Z' },
-        'Online Card::CIB::national-offus': { decision: 'rejected', reason: 'Off-us at 1.1% is below cost for this volume — 1.35% is the lowest we can offer.', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-07T13:05:00.000Z' },
-        'Online Bank Installments::CIB::12-month': { decision: 'rejected', reason: 'A 12-month plan under 3% is not viable — resubmit at 3% or above.', by: 'Tarek Fahmy', roleLabel: 'Head of Sales', ts: '2026-09-08T10:30:00.000Z' },
+        'Online Card::Bank Misr::national-onus': { decision: 'approved', reason: '', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-07T13:00:00.000Z' },
+        'Online Card::Bank Misr::national-offus': { decision: 'rejected', reason: 'Off-us at 1.1% is below cost for this volume — 1.35% is the lowest we can offer.', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-07T13:05:00.000Z' },
+        'Online Bank Installments::Bank Misr::12-month': { decision: 'rejected', reason: 'A 12-month plan under 3% is not viable — resubmit at 3% or above.', by: 'Tarek Fahmy', roleLabel: 'Head of Sales', ts: '2026-09-08T10:30:00.000Z' },
       },
     },
     // Applications already past rate approval, one at each onboarding stage.
@@ -300,8 +300,8 @@ window.KashierRates = (function () {
         entity: 'Registered Business', industry: 'Automotive',
         services: ['Online Card', 'POS Card'],
         serviceConfigs: [
-          { service: 'Online Card', configs: [{ bank: 'QNB', module: 'PSP' }] },
-          { service: 'POS Card', configs: [{ bank: 'QNB', module: 'PSP' }] },
+          { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
+          { service: 'POS Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
         ],
         posTerminals: '3', docsDone: '5', docsTotal: '5',
       },
@@ -320,6 +320,22 @@ window.KashierRates = (function () {
   /* A seeded application that arrives already reviewed writes its decisions once, the same
      way a real decision would, so the lead shows up as returned. Nothing is written again
      once the application has decisions of its own (or was resubmitted). */
+  /* QNB and CIB were removed as institutions: decisions already saved against their rate lines
+     follow those lines to the banks the seeded applications now use. */
+  (function migrateRemovedBanks() {
+    const all = readStore('kashierRateDecisions');
+    const to = { QNB: 'National Bank of Egypt', CIB: 'Bank Misr' };
+    let changed = false;
+    Object.keys(all).forEach(appId => Object.keys(all[appId]).forEach(id => {
+      const m = id.match(/^(.*?)::(QNB|CIB)::(.*)$/);
+      if (!m) return;
+      all[appId][m[1] + '::' + to[m[2]] + '::' + m[3]] = all[appId][id];
+      delete all[appId][id];
+      changed = true;
+    }));
+    if (changed) writeStore('kashierRateDecisions', all);
+  })();
+
   (function seedReviewedApplications() {
     const all = readStore('kashierRateDecisions');
     SEEDED.forEach(app => {

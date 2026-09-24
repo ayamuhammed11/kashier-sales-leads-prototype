@@ -1040,10 +1040,15 @@
     return { key: 'intl-' + currency, label: 'International rate — ' + currency, desc: 'Cards charged in ' + currency + '.',
       fixedFee: 3, standard: 2.5, manager: 2, head: 1.5, feeCurrency: currency };
   }
-  function ratesForService(service, bc) {
+  /* With a bank given, its own pricing rule applies: the published rate, both approval floors and
+     the flat fee are that bank's, so a rate at the bank's published pricing never needs approval. */
+  function ratesForService(service, bc, bank) {
     if (!service.includes('Card')) return DEFAULT_RATE_TIERS;
     const accepted = bc && bc.currencies && bc.currencies.length ? bc.currencies : ['EGP'];
-    return CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
+    const tiers = CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
+    if (!bank || BANK_COMPARE.indexOf(bank) === -1) return tiers;
+    const f = bankIndustryFactor(bank, criteria.industry);
+    return tiers.map(t => Object.assign({}, t, { standard: round2(t.standard * f), manager: round2(t.manager * f), head: round2(t.head * f), fixedFee: round2(t.fixedFee * f) }));
   }
 
   /* ══════════ Per-bank card pricing rules — National Bank of Egypt vs Bank Misr, by industry.
@@ -1161,7 +1166,7 @@
       bankKeysFor(cfg, s).forEach(k => {
         const bc = cfg.bankConfigs[k];
         if (!bc || !bc.module) return;
-        ratesForService(s, bc).forEach(t => {
+        ratesForService(s, bc, k).forEach(t => {
           total++;
           const sel = bc.pricing.get(t.key);
           const tier = sel ? lineVerdict(t, sel).tier : '';
@@ -1184,7 +1189,7 @@
       bankKeysFor(cfg, s).forEach(k => {
         const bc = cfg.bankConfigs[k];
         if (!bc || !bc.module) return;
-        ratesForService(s, bc).forEach(t => {
+        ratesForService(s, bc, k).forEach(t => {
           const sel = bc.pricing.get(t.key);
           const tier = sel ? lineVerdict(t, sel).tier : '';
           if (!tier || tier === 'auto') return;
@@ -1364,7 +1369,7 @@
       bankKeysFor(cfg, s).forEach(k => {
         const bc = cfg.bankConfigs[k];
         if (!bc || !bc.module) return;
-        ratesForService(s, bc).forEach(t => out.push({ service: s, bankKey: k, t, sel: bc.pricing.get(t.key) }));
+        ratesForService(s, bc, k).forEach(t => out.push({ service: s, bankKey: k, t, sel: bc.pricing.get(t.key) }));
       });
     });
     return out;
@@ -1637,7 +1642,7 @@
       const draftAllowed = needsBank && !chosen;
       const bc = chosen ? ensureBankConfig(cfg, k) : (draftAllowed ? ensureBankConfig(cfg, '') : null);
       const editable = chosen || draftAllowed;
-      const rates = ratesForService(s, bc);
+      const rates = ratesForService(s, bc, k || '');
       const others = cfg.banks.filter(b => b !== k);
       const bankCell = needsBank
         ? `${cellSelectHTML(`data-bank-select data-service="${esc(s)}" data-current="${esc(k || '')}"`, k || '',
@@ -1951,7 +1956,7 @@
     if (!input || !input.dataset.key) return;
     const s = input.dataset.service, bankKey = input.dataset.bank, key = input.dataset.key;
     const bc = ensureBankConfig(serviceConfig[s], bankKey);
-    const t = ratesForService(s, bc).find(x => x.key === key);
+    const t = ratesForService(s, bc, bankKey).find(x => x.key === key);
     const cur = bc.pricing.get(key) || { rate: '', fee: '', tier: '', note: '' };
     const next = {
       rate: input.classList.contains('rate-input') ? input.value : cur.rate,
@@ -2167,8 +2172,8 @@
   let previousApp = null;   // the submitted version this form was filled in from
 
   /* Rate lines were stored per rate type; a service with a single rate type takes any line. */
-  function tierKeyFor(service, key, bc) {
-    const tiers = ratesForService(service, bc);
+  function tierKeyFor(service, key, bc, bank) {
+    const tiers = ratesForService(service, bc, bank);
     if (tiers.some(t => t.key === key)) return key;
     return tiers.length === 1 ? tiers[0].key : '';
   }
@@ -2206,7 +2211,7 @@
         bc.notes = c.notes || '';
         bc.currencies = (c.currencies && c.currencies.length) ? c.currencies : ['EGP'];
         // Rates that needed no approval went in at the published pricing.
-        ratesForService(sc.service, bc).forEach(t => bc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
+        ratesForService(sc.service, bc, key).forEach(t => bc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
       });
     });
 
@@ -2216,8 +2221,8 @@
       if (!cfg) return;
       const bankKey = bankRequiredFor(r.service) ? (r.bank || '') : '';
       const rbc = cfg.bankConfigs[bankKey];
-      const key = tierKeyFor(r.service, String(r.id).split('::')[2], rbc);
-      const t = ratesForService(r.service, rbc).find(x => x.key === key);
+      const key = tierKeyFor(r.service, String(r.id).split('::')[2], rbc, bankKey);
+      const t = ratesForService(r.service, rbc, bankKey).find(x => x.key === key);
       if (!t) return;
       const sel = { rate: String(r.requested), fee: r.requestedFee != null ? String(r.requestedFee) : String(t.fixedFee), note: r.note || '' };
       sel.tier = lineVerdict(t, sel).tier;
@@ -2266,7 +2271,7 @@
       banks.forEach(k => {
         const bc = cfg.bankConfigs[k];
         entry.models[k] = bc ? bc.module : '';
-        ratesForService(s, bc).forEach(t => {
+        ratesForService(s, bc, k).forEach(t => {
           const sel = bc && bc.pricing.get(t.key);
           if (sel) entry.pricing[k + '::' + t.key] = { rate: normNum(sel.rate), fee: normNum(sel.fee), note: (sel.note || '').trim(), label: t.label, feeCurrency: t.feeCurrency || 'EGP' };
         });

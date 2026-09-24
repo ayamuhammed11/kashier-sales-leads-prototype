@@ -528,6 +528,9 @@
   /* Pricing pop-up table */
   .compare-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   .compare-table th, .compare-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+  .compare-table th.pick-bank { cursor: pointer; }
+  .compare-table th.pick-bank label { cursor: pointer; }
+  .compare-table th.picked, .compare-table td.picked { box-shadow: inset 2px 0 0 var(--primary), inset -2px 0 0 var(--primary); }
   .compare-table td.better { background: var(--success-bg); }
   .compare-table td.better b { color: var(--success-text); }
   .compare-badge { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
@@ -888,6 +891,7 @@
       <div class="modal-body" id="pricingRulesBody"></div>
       <div class="modal-footer">
         <button class="btn btn-outline btn-sm" id="pricingRulesCancel">Close</button>
+        <button class="btn btn-primary btn-sm" id="pricingRulesAdd">Add rates</button>
       </div>
     </div>
   </div>
@@ -1449,10 +1453,10 @@
   }
   /* For a service settled through a bank the pricing rules are shown per institution and the
      salesperson picks the institution from here: Add rates sets it and fills its rates in. */
-  function openPricingRulesModal(s, key) {
+  function renderPricingRules() {
+    const { s, key, selected } = pricingRulesTarget;
     const cfg = serviceConfig[s];
     const bc = ensureBankConfig(cfg, key);
-    pricingRulesTarget = { s, key };
     const tiers = ratesForService(s, bc);
     const banks = bankRequiredFor(s) ? BANKS.filter(b => b === key || !cfg.banks.includes(b)) : [''];
     // The better bank charges the lowest published rate: highlighted per rate type, and overall.
@@ -1463,14 +1467,20 @@
     const cell = (t, bank) => { const r = pricingRuleFor(s, bank, t);
       const rs = banks.map(b => pricingRuleFor(s, b, t).standard);
       const best = banks.length > 1 && r.standard === Math.min.apply(null, rs) && rs.some(x => x !== r.standard);
-      return `<td class="${best ? 'better' : ''}"><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% · Head ${esc(r.head)}%</div></td>`; };
+      return `<td class="${best ? 'better' : ''}${bank === selected ? ' picked' : ''}"><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% · Head ${esc(r.head)}%</div></td>`; };
     $('pricingRulesTitle').textContent = `Service pricing — ${stripChannel(s)} (${channelOf(s)})`;
-    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bankRequiredFor(s) ? ' — choose the institution to add its rates.' : ''}</div>
+    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bankRequiredFor(s) ? ' — pick an institution, then Add rates.' : ''}</div>
       <table class="compare-table">
-        <thead><tr><th>Rate type</th>${banks.map(b => `<th>${esc(b || 'Published pricing')}${b && b === key ? ' <span class="cell-hint">(current)</span>' : ''}${b && b === bestBank ? '<span class="compare-badge">Better pricing</span>' : ''}</th>`).join('')}</tr></thead>
-        <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}
-        <tr><td></td>${banks.map(b => `<td><button type="button" class="btn btn-primary btn-sm" data-add-rates="${esc(b)}">${b ? 'Add rates &amp; choose' : 'Add rates'}</button></td>`).join('')}</tr></tbody>
+        <thead><tr><th>Rate type</th>${banks.map(b => b === '' ? '<th>Published pricing</th>' : `<th class="pick-bank${b === selected ? ' picked' : ''}" data-pick-bank="${esc(b)}"><label><input type="radio" name="pricingBank"${b === selected ? ' checked' : ''}> ${esc(b)}</label>${b === key ? ' <span class="cell-hint">(current)</span>' : ''}${b === bestBank ? '<span class="compare-badge">Better pricing</span>' : ''}</th>`).join('')}</tr></thead>
+        <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}</tbody>
       </table>`;
+    $('pricingRulesAdd').disabled = selected == null;
+  }
+  function openPricingRulesModal(s, key) {
+    const cfg = serviceConfig[s];
+    ensureBankConfig(cfg, key);
+    pricingRulesTarget = { s, key, selected: bankRequiredFor(s) ? (key || null) : '' };
+    renderPricingRules();
     $('pricingRulesModal').classList.add('open');
   }
   function closePricingRulesModal() { $('pricingRulesModal').classList.remove('open'); pricingRulesTarget = null; }
@@ -1478,9 +1488,12 @@
   $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
-    const add = e.target.closest('[data-add-rates]');
-    if (!add || !pricingRulesTarget) return;
-    const { s, key } = pricingRulesTarget, to = add.dataset.addRates, cfg = serviceConfig[s];
+    const pick = e.target.closest('[data-pick-bank]');
+    if (pick && pricingRulesTarget) { pricingRulesTarget.selected = pick.dataset.pickBank; renderPricingRules(); }
+  });
+  $('pricingRulesAdd').addEventListener('click', () => {
+    if (!pricingRulesTarget || pricingRulesTarget.selected == null) return;
+    const { s, key, selected: to } = pricingRulesTarget, cfg = serviceConfig[s];
     if (bankRequiredFor(s) && to !== key) {
       const i = cfg.banks.indexOf(key);
       if (i !== -1) cfg.banks[i] = to; else cfg.banks.push(to);

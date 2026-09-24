@@ -1040,15 +1040,20 @@
     return { key: 'intl-' + currency, label: 'International rate — ' + currency, desc: 'Cards charged in ' + currency + '.',
       fixedFee: 3, standard: 2.5, manager: 2, head: 1.5, feeCurrency: currency };
   }
-  /* With a bank given, its own pricing rule applies: the published rate, both approval floors and
-     the flat fee are that bank's, so a rate at the bank's published pricing never needs approval. */
+  /* Published pricing depends on the model (PSP rates run above PF) and, with a bank given, on that
+     bank's own pricing rule. The rate and both approval floors move together, so a rate at the
+     published pricing never needs approval; only one below it does. */
+  const MODEL_RATE_FACTOR = { PF: 1, PSP: 1.1 };
   function ratesForService(service, bc, bank) {
-    if (!service.includes('Card')) return DEFAULT_RATE_TIERS;
-    const accepted = bc && bc.currencies && bc.currencies.length ? bc.currencies : ['EGP'];
-    const tiers = CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
-    if (!bank || BANK_COMPARE.indexOf(bank) === -1) return tiers;
-    const f = bankIndustryFactor(bank, criteria.industry);
-    return tiers.map(t => Object.assign({}, t, { standard: round2(t.standard * f), manager: round2(t.manager * f), head: round2(t.head * f), fixedFee: round2(t.fixedFee * f) }));
+    let tiers = DEFAULT_RATE_TIERS;
+    if (service.includes('Card')) {
+      const accepted = bc && bc.currencies && bc.currencies.length ? bc.currencies : ['EGP'];
+      tiers = CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
+    }
+    const bf = service.includes('Card') && bank && BANK_COMPARE.indexOf(bank) !== -1 ? bankIndustryFactor(bank, criteria.industry) : 1;
+    const rf = bf * (MODEL_RATE_FACTOR[bc && bc.module] || 1);
+    if (rf === 1 && bf === 1) return tiers;
+    return tiers.map(t => Object.assign({}, t, { standard: round2(t.standard * rf), manager: round2(t.manager * rf), head: round2(t.head * rf), fixedFee: round2(t.fixedFee * bf) }));
   }
 
   /* ══════════ Per-bank card pricing rules — National Bank of Egypt vs Bank Misr, by industry.
@@ -1477,7 +1482,7 @@
       const best = banks.length > 1 && r.standard === Math.min.apply(null, rs) && rs.some(x => x !== r.standard);
       return `<td class="${best ? 'better' : ''}${bank === selected ? ' picked' : ''}"><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% · Head ${esc(r.head)}%</div></td>`; };
     $('pricingRulesTitle').textContent = `Service pricing — ${stripChannel(s)} (${channelOf(s)})`;
-    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bankRequiredFor(s) ? ' — pick an institution, then Add rates.' : ''}</div>
+    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bc.module ? ' · ' + esc(bc.module) : ' · no model chosen yet'}${bankRequiredFor(s) ? ' — pick an institution, then Add rates.' : ''}</div>
       <table class="compare-table">
         <thead><tr><th>Rate type</th>${banks.map(b => b === '' ? '<th>Published pricing</th>' : `<th class="pick-bank${b === selected ? ' picked' : ''}" data-pick-bank="${esc(b)}"><span>${esc(b)}</span>${b === key ? ' <span class="cell-hint">(current)</span>' : ''}${b === bestBank ? '<span class="compare-badge">Better pricing</span>' : ''}</th>`).join('')}</tr></thead>
         <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}</tbody>
@@ -1870,9 +1875,15 @@
     }
     const modelSel = e.target.closest('[data-model-select]');
     if (modelSel) {
-      const mbc = ensureBankConfig(serviceConfig[modelSel.dataset.service], modelSel.dataset.bank);
+      const msvc = modelSel.dataset.service, mbank = modelSel.dataset.bank;
+      const mbc = ensureBankConfig(serviceConfig[msvc], mbank);
+      // Rates entered at the old model's published pricing follow the new model's published pricing.
+      const oldTiers = ratesForService(msvc, mbc, mbank);
+      const atPublished = oldTiers.filter(t => { const e = mbc.pricing.get(t.key); return e && String(e.rate) === String(t.standard) && String(e.fee) === String(t.fixedFee); }).map(t => t.key);
       mbc.module = modelSel.value;
       if (mbc.module === 'PF') mbc.currencies = ['EGP'];
+      ratesForService(msvc, mbc, mbank).filter(t => atPublished.indexOf(t.key) !== -1)
+        .forEach(t => mbc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
       onSetupChanged();
       return;
     }

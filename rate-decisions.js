@@ -737,7 +737,7 @@ window.KashierRates = (function () {
 
   /* An application has one view, whatever its status: the onboarding form. */
   function applicationURL(leadId) {
-    return leadId ? 'merchant-onboarding.html?leadId=' + encodeURIComponent(leadId) : 'sales-leads.html';
+    return leadId ? 'merchant-onboarding.html?leadId=' + encodeURIComponent(leadId) : 'index.html';
   }
 
   /* ── Activity log ───────────────────────────────────────────────────────────────

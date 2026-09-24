@@ -1454,7 +1454,7 @@
   /* For a service settled through a bank the pricing rules are shown per institution and the
      salesperson picks the institution from here: Add rates sets it and fills its rates in. */
   function renderPricingRules() {
-    const { s, key, selected } = pricingRulesTarget;
+    const { s, key } = pricingRulesTarget;
     const cfg = serviceConfig[s];
     const bc = ensureBankConfig(cfg, key);
     const tiers = ratesForService(s, bc);
@@ -1464,6 +1464,9 @@
     const totals = banks.map(total);
     const bestTotal = Math.min.apply(null, totals);
     const bestBank = banks.length > 1 && totals.filter(x => x === bestTotal).length === 1 ? banks[totals.indexOf(bestTotal)] : null;
+    // Nothing is dimmed: with no institution set yet, the better bank (else the first) starts selected.
+    if (pricingRulesTarget.selected == null) pricingRulesTarget.selected = bestBank != null ? bestBank : banks[0];
+    const selected = pricingRulesTarget.selected;
     const cell = (t, bank) => { const r = pricingRuleFor(s, bank, t);
       const rs = banks.map(b => pricingRuleFor(s, b, t).standard);
       const best = banks.length > 1 && r.standard === Math.min.apply(null, rs) && rs.some(x => x !== r.standard);
@@ -1474,7 +1477,6 @@
         <thead><tr><th>Rate type</th>${banks.map(b => b === '' ? '<th>Published pricing</th>' : `<th class="pick-bank${b === selected ? ' picked' : ''}" data-pick-bank="${esc(b)}"><span>${esc(b)}</span>${b === key ? ' <span class="cell-hint">(current)</span>' : ''}${b === bestBank ? '<span class="compare-badge">Better pricing</span>' : ''}</th>`).join('')}</tr></thead>
         <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}</tbody>
       </table>`;
-    $('pricingRulesAdd').disabled = selected == null;
   }
   function openPricingRulesModal(s, key) {
     const cfg = serviceConfig[s];
@@ -1492,7 +1494,7 @@
     if (pick && pricingRulesTarget) { pricingRulesTarget.selected = pick.dataset.pickBank; renderPricingRules(); }
   });
   $('pricingRulesAdd').addEventListener('click', () => {
-    if (!pricingRulesTarget || pricingRulesTarget.selected == null) return;
+    if (!pricingRulesTarget) return;
     const { s, key, selected: to } = pricingRulesTarget, cfg = serviceConfig[s];
     if (bankRequiredFor(s) && to !== key) {
       const i = cfg.banks.indexOf(key);

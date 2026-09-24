@@ -530,17 +530,16 @@
   .compare-table th, .compare-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
   .compare-table .pick-bank { cursor: pointer; }
   .compare-table th.pick-bank:hover, .compare-table td.pick-bank:hover { background: var(--ocean-10); }
-  .bank-cards { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  .bank-card { flex: 1 1 200px; position: relative; text-align: left; font-family: inherit; background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px 10px 38px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
+  .bank-cards { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .bank-card { display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-size: 12px; background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px 3px 6px; cursor: pointer; line-height: 1.4; }
   .bank-card:hover { border-color: var(--cadet-05); background: var(--ocean-10); }
-  .bank-card:focus-visible { outline: 3px solid rgba(0,31,95,.25); }
+  .bank-card:focus-visible { outline: 2px solid rgba(0,31,95,.35); }
   .bank-card.on { border-color: var(--primary); background: var(--ocean-10); box-shadow: 0 0 0 1px var(--primary); }
-  .bank-card-check { position: absolute; left: 11px; top: 12px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .bank-card-check { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border); background: #fff; color: #fff; font-size: 8px; display: inline-flex; align-items: center; justify-content: center; }
   .bank-card.on .bank-card-check { background: var(--primary); border-color: var(--primary); }
-  .bank-card-name { font-weight: 700; font-size: 13.5px; color: var(--foreground); }
-  .bank-card-meta { font-size: 12px; color: var(--cadet-05); }
-  .bank-card-cur { font-size: 10.5px; font-weight: 700; color: var(--cadet-05); text-transform: uppercase; letter-spacing: .03em; }
-  .bank-card .compare-badge { margin-left: 0; align-self: flex-start; }
+  .bank-card-name { font-weight: 700; color: var(--foreground); }
+  .bank-card-meta, .bank-card-cur { font-size: 10.5px; color: var(--cadet-05); }
+  .bank-card .compare-badge { margin-left: 0; font-size: 9px; padding: 1px 6px; }
   .pick-chip { display: inline-block; margin-top: 6px; border: 1.5px solid var(--border); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; color: var(--primary); text-transform: none; letter-spacing: 0; background: #fff; }
   .pick-chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
   .compare-table th.pick-bank span { cursor: pointer; }
@@ -1497,11 +1496,10 @@
       return `<td class="${best ? 'better' : ''}${bank === selected ? ' picked' : ''}${bank ? ' pick-bank' : ''}"${bank ? ` data-pick-bank="${esc(bank)}"` : ''}><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% · Head ${esc(r.head)}%</div></td>`; };
     $('pricingRulesTitle').textContent = `Service pricing — ${stripChannel(s)} (${channelOf(s)})`;
     const avg = b => round2(total(b) / tiers.length);
-    const cards = banks[0] === '' ? '' : `<div class="bank-cards" role="radiogroup" aria-label="Institution">${banks.map(b => `<button type="button" class="bank-card${b === selected ? ' on' : ''}" role="radio" aria-checked="${b === selected}" data-pick-bank="${esc(b)}">
+    const cards = banks[0] === '' ? '' : `<div class="bank-cards" role="radiogroup" aria-label="Institution">${banks.map(b => `<button type="button" class="bank-card${b === selected ? ' on' : ''}" role="radio" aria-checked="${b === selected}" data-pick-bank="${esc(b)}" title="Average rate ${esc(avg(b))}%">
         <span class="bank-card-check">${b === selected ? '&#10003;' : ''}</span>
         <span class="bank-card-name">${esc(b)}</span>
-        <span class="bank-card-meta">Average rate ${esc(avg(b))}%</span>
-        ${b === bestBank ? '<span class="compare-badge">Better pricing</span>' : ''}${b === key ? '<span class="bank-card-cur">Current</span>' : ''}
+        ${b === bestBank ? '<span class="compare-badge">Better</span>' : ''}${b === key ? '<span class="bank-card-cur">current</span>' : ''}
       </button>`).join('')}</div>`;
     $('pricingRulesBody').innerHTML = cards + `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bc.module ? ' · ' + esc(bc.module) : ' · no model chosen yet'}${bankRequiredFor(s) ? ` — ${selected ? esc(selected) + ' selected' : 'choose an institution'} — Add rates applies its pricing.` : ''}</div>
       <table class="compare-table">

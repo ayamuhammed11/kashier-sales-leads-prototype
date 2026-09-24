@@ -1114,7 +1114,7 @@
   /* The keys that need their own settlement type + pricing for this service: one per selected
      bank when the service needs a bank, or a single '' key (no Financial Institution) otherwise. */
   function bankKeysFor(cfg, service) { return bankRequiredFor(service) ? cfg.banks : ['']; }
-  /* Supported Operations — extra capabilities a service can be switched on for, beyond its
+  /* Advanced Operations — extra capabilities a service can be switched on for, beyond its
      rates. Only services that actually have optional operations get the checklist. */
   const SUPPORTED_OPERATIONS = {
     'Online Card': ['Pay Non-3DS', 'MOTO', 'Auth & Cap', 'Recurring', 'Meeza Payments', 'Virtual Cards'],
@@ -1705,7 +1705,7 @@
         + (currencies ? `<div class="op-list"><div class="op-title">Accepted Currencies</div>${(editable && bc.module === 'PF' ? ['EGP'] : currencies).map(c => `<label class="op-item">
               <input type="checkbox" data-currency-check="${esc(s)}::${esc(k || '')}::${esc(c)}"${editable && bc.currencies.includes(c) ? ' checked' : ''}${editable && bc.module !== 'PF' ? '' : ' disabled'}>
               <span>${esc(c)}</span></label>`).join('')}${editable && bc.module === 'PF' ? '<div class="op-hint">PF settles in EGP only — pick PSP for other currencies.</div>' : ''}</div>` : '')
-        + (ops ? `<div class="op-list"><div class="op-title">Supported Operations</div>${ops.map(op => `<label class="op-item">
+        + (ops ? `<div class="op-list"><div class="op-title">Advanced Operations</div>${ops.map(op => `<label class="op-item">
               <input type="checkbox" data-op-check="${esc(s)}::${esc(k || '')}::${esc(op)}"${editable && bc.operations.includes(op) ? ' checked' : ''}${editable && bc.module ? '' : ' disabled'}>
               <span>${esc(op)}</span></label>`).join('')}</div>
             <div class="op-notes"><div class="op-title">Notes <span class="opt">(optional)</span></div>

@@ -2517,7 +2517,10 @@
     const isApprover = K.ROLES[myRole].approves.length > 0;
     approverView = isApprover && appMode === 'locked' && !!app && app.requests.some(r => K.canRoleAct(myRole, r.tier));
     approverRole = myRole; currentAppId = app ? app.id : '';
-    statusView = !approverView && isSales && appMode === 'locked' && !!app && app.requests.length > 0;
+    // A Sales Manager or Head of Sales whose own tier has nothing pending here (every line
+    // sits with the other tier, or is already decided) still sees the read-only status, same as
+    // the salesperson does — never just an empty column with no explanation.
+    statusView = !approverView && (isSales || isApprover) && appMode === 'locked' && !!app && app.requests.length > 0;
     const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
     const dateOf = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     /* Same format as the Kashier logs: action badge, when + relative time, who + role, then a

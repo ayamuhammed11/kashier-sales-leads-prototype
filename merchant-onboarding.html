@@ -2207,6 +2207,14 @@
        locked    — submitted (or viewed by anyone but the salesperson): filled in, dimmed, read-only
        returned  — sent back with feedback: filled in from the last submission and editable again */
   const K = window.KashierRates;
+  // The header shows whoever the "Viewing as" role simulator is currently set to, so a
+  // Sales Manager or Head of Sales reviewing rates sees their own name here, not the
+  // salesperson's — otherwise it looks like the role switch never took effect.
+  (function renderUser() {
+    const me = K.ROLES[K.getRole()];
+    document.querySelector('.user .name').textContent = me.name;
+    document.querySelector('.user .avatar').textContent = me.initials;
+  })();
   const SUBMITTED_STATUSES = ['rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
   let previousApp = null;   // the submitted version this form was filled in from
 

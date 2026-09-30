@@ -1575,7 +1575,10 @@
       const issues = [];
       if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website');
       if (criteria.posEnabled && !isDocDone(STORE_IMAGE_DOC)) issues.push('Upload the store image');
-      return issues.concat([...computeAggregatedDocs().keys()].filter(name => !isDocDone(name)).map(name => `Upload ${name}`));
+      // Each listed document is optional, but at least one of them has to be uploaded.
+      const listed = [...computeAggregatedDocs().keys()];
+      if (listed.length && !listed.some(isDocDone)) issues.push('Upload at least one document');
+      return issues;
     }
     return [];
   }
@@ -1758,13 +1761,13 @@
     if (criteria.posEnabled) {
       channel += `<div class="channel-extra">
         <div class="crit-label">Store Image<span class="req">*</span><span class="opt">(a clear photo of the storefront where the terminals will be used)</span></div>
-        ${reqItemHTML(STORE_IMAGE_DOC, ['POS activation'])}
+        ${reqItemHTML(STORE_IMAGE_DOC, ['POS activation'], true)}
       </div>`;
     }
     const docs = computeAggregatedDocs();
     const done = [...docs.keys()].filter(isDocDone).length;
     const list = docs.size
-      ? `<div class="setup-progress">${done} of ${docs.size} uploaded — each document is uploaded once, even when several services need it.</div>
+      ? `<div class="setup-progress">${done} of ${docs.size} uploaded — every document is optional, but upload at least one to continue. Each is uploaded once, even when several services use it.</div>
         ${[...docs.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')}`
       : '<div class="whn-empty">No documents are required for this setup.</div>';
     return channel + (channel ? '<div class="setup-docs-gap"></div>' : '') + list;
@@ -2036,7 +2039,7 @@
     const title = label ? `${esc(label)}: ${esc(f.name)}` : esc(f.name);
     return `<span class="doc-chip" data-label="${esc(label)}">${DOC_ICON}<span class="fname" title="${title}">${title}</span><button class="rm" type="button" aria-label="Remove file" title="Remove">${RM_ICON}</button></span>`;
   }
-  function reqItemHTML(name, via) {
+  function reqItemHTML(name, via, required) {
     const meta = DOC_META[name] || {};
     const store = docFiles.get(name);
     const slots = docSlotDefs(name);
@@ -2050,10 +2053,10 @@
       <div class="doc-row-icon">${WHN_DOC_ICON}</div>
       <div class="doc-row-info">
         <div class="doc-row-title">${esc(name)}${meta.ar ? `<span class="doc-row-ar">${esc(meta.ar)}</span>` : ''}</div>
-        <div class="doc-row-via">Required because: ${via.map(esc).join(', ')}</div>
+        <div class="doc-row-via">${required ? 'Required for' : 'Applies to'}: ${via.map(esc).join(', ')}</div>
       </div>
       <div class="doc-row-slots">${slots.map(slotHTML).join('')}</div>
-      <span class="status-pill${done ? ' success' : ''}"><span class="dot"></span>${done ? 'Uploaded' : 'Required'}</span>
+      <span class="status-pill${done ? ' success' : ''}"><span class="dot"></span>${done ? 'Uploaded' : required ? 'Required' : 'Optional'}</span>
     </div>`;
   }
   function wireDropzone(el) {
@@ -2286,6 +2289,8 @@
     const required = [...computeAggregatedDocs().keys()]
       .concat(criteria.posEnabled ? [STORE_IMAGE_DOC] : []);
     required.forEach(name => {
+      // A document left out of a real submission stays empty; seeded applications carry no record, so show them uploaded.
+      if (sentWith.has(name) && !sentWith.get(name)) return;
       const file = sentWith.get(name) || `${slug(name)}.pdf`;
       const slots = new Map();
       docSlotDefs(name).forEach(def => slots.set(def.label, { name: def.label ? `${slug(name)}-${slug(def.label)}.pdf` : file, size: 240000 }));

@@ -497,6 +497,14 @@
   .channel-extra + .channel-extra { margin-top: 12px; }
   .setup-docs-gap { height: 18px; }
 
+  /* Step 4 — primary payout method */
+  .payout-methods { margin: 9px 0 18px; }
+  .payout-grid { grid-template-columns: repeat(2, 1fr); }
+  .payout-select { width: 100%; }
+  .payout-empty { font-size: 13px; color: var(--cadet-05); }
+  .inp.invalid { border-color: var(--destructive); }
+  @media (max-width: 640px) { .payout-grid { grid-template-columns: 1fr; } }
+
   /* Step 3 — four-step service setup */
   .setup-stepper { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
   .setup-step { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border-radius: 10px; border: 1.5px solid var(--border);
@@ -815,6 +823,18 @@
           <div class="setup-stepper" id="setupStepper"></div>
           <div id="serviceSetupBody"></div>
         </div>
+      </div>
+
+      <!-- STEP 4 — Primary Payout Method: where the merchant's settlements are paid out -->
+      <div class="card" id="payoutCard">
+        <div class="card-head">
+          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
+          <div>
+            <h2>4. Primary Payout Method</h2>
+            <p class="ch-sub">Where the merchant receives their settlements. Add either a bank account or an e-wallet — it is required before the application can be submitted.</p>
+          </div>
+        </div>
+        <div class="card-body" id="payoutBody"></div>
       </div>
 
       <!-- Submit — just the checklist of what is left and the button; no separate summary section -->
@@ -2134,6 +2154,93 @@
   }
   /* Everything the application needs before it can be created, in the order the form asks
      for it. The Create button stays disabled until every item is done. */
+  /* ══════════ Step 4 — Primary payout method: a bank account or an e-wallet, required before submitting ══════════ */
+  const PAYOUT_BANKS = ['National Bank of Egypt', 'Banque Misr', 'Commercial International Bank (CIB)', 'QNB Alahli', 'Banque du Caire',
+    'Arab African International Bank', 'Alex Bank', 'HSBC Egypt', 'Faisal Islamic Bank', 'Abu Dhabi Islamic Bank (ADIB)'];
+  const PAYOUT_WALLETS = ['Vodafone Cash', 'Orange Cash', 'e& Cash', 'WE Pay'];
+  const payout = { method: '', bank: { bankName: '', holder: '', account: '', iban: '' }, wallet: { provider: '', number: '', holder: '' } };
+  const PAYOUT_RULES = {
+    bank: {
+      bankName: v => !!v, holder: v => v.trim().length >= 3,
+      account: v => /^\d{8,20}$/.test(v),
+      iban: v => /^EG\d{27}$/.test(v),
+    },
+    wallet: { provider: v => !!v, number: v => /^01[0125]\d{8}$/.test(v), holder: v => v.trim().length >= 3 },
+  };
+  const PAYOUT_HINTS = {
+    account: 'Enter the account number — 8 to 20 digits.',
+    iban: 'An Egyptian IBAN is EG followed by 27 digits (29 characters).',
+    number: 'Enter the 11-digit wallet mobile number, e.g. 01012345678.',
+  };
+  function payoutValid() {
+    const rules = PAYOUT_RULES[payout.method];
+    return !!rules && Object.keys(rules).every(k => rules[k](payout[payout.method][k]));
+  }
+  function payoutPayload() {
+    return payout.method ? Object.assign({ method: payout.method }, payout[payout.method]) : null;
+  }
+  function payoutField(group, key, label, placeholder, attrs) {
+    const v = payout[group][key];
+    const bad = v !== '' && !PAYOUT_RULES[group][key](v);
+    return `<div class="field">
+      <label class="lbl" for="po-${key}">${label}<span class="req">*</span></label>
+      <input class="inp${bad ? ' invalid' : ''}" id="po-${key}" data-payout="${group}.${key}" type="text" autocomplete="off" placeholder="${esc(placeholder)}" value="${esc(v)}" ${attrs || ''}>
+      ${PAYOUT_HINTS[key] ? `<div class="field-hint" data-payout-hint="${key}"${bad ? '' : ' hidden'}>${PAYOUT_HINTS[key]}</div>` : ''}
+    </div>`;
+  }
+  function payoutSelect(group, key, label, options, placeholder) {
+    return `<div class="field">
+      <label class="lbl" for="po-${key}">${label}<span class="req">*</span></label>
+      <select class="crit-select payout-select" id="po-${key}" data-payout="${group}.${key}">
+        <option value="">${esc(placeholder)}</option>
+        ${options.map(o => `<option value="${esc(o)}"${o === payout[group][key] ? ' selected' : ''}>${esc(o)}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+  function renderPayout() {
+    const m = payout.method;
+    $('payoutBody').innerHTML = `<div class="crit-label">Payout to<span class="req">*</span></div>
+      <div class="crit-chips payout-methods">
+        <button type="button" class="crit-chip${m === 'bank' ? ' on' : ''}" data-payout-method="bank">Bank Account</button>
+        <button type="button" class="crit-chip${m === 'wallet' ? ' on' : ''}" data-payout-method="wallet">E-Wallet</button>
+      </div>
+      ${m === 'bank' ? `<div class="details-grid payout-grid">
+          ${payoutSelect('bank', 'bankName', 'Bank', PAYOUT_BANKS, 'Select bank…')}
+          ${payoutField('bank', 'holder', 'Account Holder Name', 'As it appears on the bank account')}
+          ${payoutField('bank', 'account', 'Account Number', 'e.g. 1002345678901', 'inputmode="numeric" maxlength="20"')}
+          ${payoutField('bank', 'iban', 'IBAN', 'EG38 0003 0001 0000 0000 0000 0000 0', 'maxlength="36"')}
+        </div>`
+      : m === 'wallet' ? `<div class="details-grid payout-grid">
+          ${payoutSelect('wallet', 'provider', 'Wallet Provider', PAYOUT_WALLETS, 'Select provider…')}
+          ${payoutField('wallet', 'number', 'Wallet Mobile Number', 'e.g. 01012345678', 'inputmode="numeric" maxlength="11"')}
+          ${payoutField('wallet', 'holder', 'Wallet Holder Name', 'Name registered on the wallet')}
+        </div>`
+      : '<div class="payout-empty">Choose how the merchant is paid out to add its details.</div>'}`;
+  }
+  $('payoutBody').addEventListener('click', e => {
+    const b = e.target.closest('[data-payout-method]');
+    if (!b || b.disabled) return;
+    payout.method = b.dataset.payoutMethod;
+    renderPayout(); renderSubmitSummary();
+  });
+  function onPayoutInput(e) {
+    const el = e.target.closest('[data-payout]');
+    if (!el) return;
+    const [group, key] = el.dataset.payout.split('.');
+    let v = el.value;
+    if (key === 'account' || key === 'number') { v = v.replace(/\D/g, ''); if (v !== el.value) el.value = v; }
+    if (key === 'iban') v = v.toUpperCase().replace(/\s+/g, '');
+    payout[group][key] = v;
+    const bad = v !== '' && !PAYOUT_RULES[group][key](v);
+    el.classList.toggle('invalid', bad);
+    const hint = $('payoutBody').querySelector(`[data-payout-hint="${key}"]`);
+    if (hint) hint.hidden = !bad;
+    renderSubmitSummary();
+  }
+  $('payoutBody').addEventListener('input', onPayoutInput);
+  $('payoutBody').addEventListener('change', onPayoutInput);
+  renderPayout();
+
   function readinessChecks() {
     const hasContact = ['mBiz', 'mEmail', 'mPhone'].every(id => $(id).value.trim());
     const services = criteria.services;
@@ -2149,6 +2256,7 @@
     SETUP_STEPS.forEach((step, i) => {
       checks.push({ label: `Service setup — ${step.label}`, done: hasAnyService() && stepDone(i + 1) && canOpenStep(i + 1) });
     });
+    checks.push({ label: 'Primary payout method — bank account or e-wallet details', done: payoutValid() });
     checks.push({ label: 'Add a justification for every rate needing approval', done: needsJustificationLines().length === 0 });
     return checks;
   }
@@ -2243,6 +2351,11 @@
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';
     criteria.website = app.website || '';
+    if (app.payout && app.payout.method && payout[app.payout.method]) {
+      payout.method = app.payout.method;
+      Object.keys(payout[payout.method]).forEach(k => { payout[payout.method][k] = app.payout[k] || ''; });
+    }
+    renderPayout();
     syncServiceConfigs();
 
     (s.serviceConfigs || []).forEach(sc => {
@@ -2336,6 +2449,7 @@
         'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
         'Activities': filledAltIndustries().map(a => a.activity === a.industry ? a.activity : a.activity + ' (' + a.industry + ')').join('; '),
         'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
+        'Payout method': payoutValid() ? K.payoutLabel(payoutPayload()) : '',
       },
       services,
       docs: [...docFiles.keys()].filter(isDocDone).sort(),
@@ -2691,6 +2805,7 @@
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
     if (hasOnlineService()) qs.set('website', criteria.website.trim());
     if (filledAltIndustries().length) qs.set('altIndustries', JSON.stringify(filledAltIndustries()));
+    qs.set('payout', JSON.stringify(payoutPayload()));
     if (sourceLeadId) qs.set('leadId', sourceLeadId);
     if (sourceLeadMid) qs.set('mid', sourceLeadMid);
     // The Onboarding team reviews the uploaded documents on the merchant account.

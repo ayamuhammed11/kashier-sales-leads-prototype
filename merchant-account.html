@@ -712,6 +712,15 @@
       </div>`).join('')}`;
   }
 
+  function panelPayout(acct) {
+    const p = acct.app.payout;
+    if (!p || !p.method) return `<h2 class="section-title">Payout Method</h2><div class="kv-grid">${kv('Primary payout method', 'Not provided')}</div>`;
+    const rows = p.method === 'wallet'
+      ? kv('Method', 'E-Wallet') + kv('Wallet Provider', p.provider) + kv('Wallet Mobile Number', p.number) + kv('Wallet Holder Name', p.holder)
+      : kv('Method', 'Bank Account') + kv('Bank', p.bankName) + kv('Account Holder Name', p.holder) + kv('Account Number', p.account) + kv('IBAN', p.iban);
+    return `<h2 class="section-title">Payout Method <span style="font-size:12px;font-weight:600;color:var(--cadet-05)">Primary</span></h2><div class="kv-grid">${rows}</div>`;
+  }
+
   function panelPayment(acct) {
     const { app } = acct;
     const configs = app.summary.serviceConfigs || [];
@@ -784,7 +793,7 @@
 
   function renderPanel(acct) {
     const map = {
-      'Business Info': panelBusinessInfo, 'Documents': panelDocuments, 'Payment Configurations': panelPayment,
+      'Business Info': panelBusinessInfo, 'Documents': panelDocuments, 'Payment Configurations': panelPayment, 'Payout Method': panelPayout,
       'Terminals': panelTerminals, 'Logs': panelLogs,
     };
     $('panel').innerHTML = map[activeTab] ? map[activeTab](acct) : emptyPanel(activeTab);

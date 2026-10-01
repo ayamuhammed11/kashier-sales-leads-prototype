@@ -396,6 +396,19 @@ window.KashierRates = (function () {
     return 'merchant-onboarding.html?' + qs.toString();
   }
 
+  /* The seeded applications were submitted with a bank account as their primary payout method. */
+  function seededPayout(a) {
+    const n = String(a.id).replace(/\D/g, '').padStart(8, '0');
+    return { method: 'bank', bankName: 'National Bank of Egypt', holder: a.biz, account: '1002' + n, iban: 'EG38000300010000' + ('1002' + n).padStart(13, '0') };
+  }
+  /* One line for a payout method, with the account or wallet number masked to its last four digits. */
+  function payoutLabel(p) {
+    if (!p || !p.method) return '';
+    const tail = v => '\u2022\u2022\u2022\u2022 ' + String(v || '').slice(-4);
+    return p.method === 'wallet' ? 'E-wallet \u2014 ' + p.provider + ' \u00b7 ' + tail(p.number)
+      : 'Bank account \u2014 ' + p.bankName + ' \u00b7 ' + tail(p.account);
+  }
+
   /* Rebuild an application from its tracking link. */
   function parseApplication(leadId, url) {
     const qs = new URLSearchParams(String(url).split('?')[1] || '');
@@ -407,10 +420,13 @@ window.KashierRates = (function () {
     try { documents = JSON.parse(qs.get('documents') || '[]'); } catch (e) { documents = []; }
     let contracts = [];
     try { contracts = JSON.parse(qs.get('contracts') || '[]'); } catch (e) { contracts = []; }
+    let payout = null;
+    try { payout = JSON.parse(qs.get('payout') || 'null'); } catch (e) { payout = null; }
     return {
       id: qs.get('id') || '—', leadId: leadId || qs.get('leadId') || '', url: url,
       documents: documents,
       contracts: contracts,
+      payout: payout,
       mid: qs.get('mid') || '',
       website: qs.get('website') || '',
       altIndustries: (() => { try { return JSON.parse(qs.get('altIndustries') || '[]'); } catch (e) { return []; } })(),
@@ -446,7 +462,7 @@ window.KashierRates = (function () {
     });
     SEEDED.forEach(a => {
       if (seenLeads.has(a.leadId)) return;
-      apps.push(Object.assign({}, a, { url: seededURL(a) }));
+      apps.push(Object.assign({}, a, { url: seededURL(a), payout: a.payout || seededPayout(a) }));
     });
     const superseded = readStore('kashierSupersededApplications');
     Object.keys(superseded).forEach(appId => {
@@ -775,6 +791,7 @@ window.KashierRates = (function () {
         : 'None \u2014 every rate at published pricing' });
       const docs = (app.documents || []).length || Number(sm.docsDone || 0);
       if (docs) details.push({ label: 'Documents', value: docs + ' uploaded' });
+      if (app.payout && app.payout.method) details.push({ label: 'Payout method', value: payoutLabel(app.payout) });
       events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
         text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details });
 
@@ -830,7 +847,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, payoutLabel: payoutLabel,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

@@ -816,25 +816,13 @@
           <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
           <div>
             <h2>3. Service Setup</h2>
-            <p class="ch-sub">Choose which services to activate and set up their institution, model and fees in one table, then the documents it all requires, and optionally any contracts already signed.</p>
+            <p class="ch-sub">Choose which services to activate and set up their institution, model and fees in one table, then the documents it all requires, any contracts already signed, and the merchant's primary payout method.</p>
           </div>
         </div>
         <div class="card-body">
           <div class="setup-stepper" id="setupStepper"></div>
           <div id="serviceSetupBody"></div>
         </div>
-      </div>
-
-      <!-- STEP 4 — Primary Payout Method: where the merchant's settlements are paid out -->
-      <div class="card" id="payoutCard">
-        <div class="card-head">
-          <svg class="hi ch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
-          <div>
-            <h2>4. Primary Payout Method</h2>
-            <p class="ch-sub">Where the merchant receives their settlements. Add either a bank account or an e-wallet — it is required before the application can be submitted.</p>
-          </div>
-        </div>
-        <div class="card-body" id="payoutBody"></div>
       </div>
 
       <!-- Submit — just the checklist of what is left and the button; no separate summary section -->
@@ -1388,6 +1376,7 @@
     { label: 'Services & Pricing', hint: 'Institution, model and fees' },
     { label: 'Documents', hint: 'Everything the setup requires' },
     { label: 'Contracts', hint: 'Optional — any signed agreements' },
+    { label: 'Payout Method', hint: 'Bank account or e-wallet' },
   ];
   let setupStep = 1;
 
@@ -1600,6 +1589,7 @@
       if (listed.length && !listed.some(isDocDone)) issues.push('Upload at least one document');
       return issues;
     }
+    if (n === 4) return payoutValid() ? [] : [payout.method ? 'Complete the payout method details' : 'Choose the primary payout method'];
     return [];
   }
 
@@ -1816,7 +1806,7 @@
     while (setupStep > 1 && !canOpenStep(setupStep)) setupStep--;
     renderSetupStepper();
 
-    const body = [stepServicesTableHTML, stepDocumentsHTML, stepContractHTML][setupStep - 1]();
+    const body = [stepServicesTableHTML, stepDocumentsHTML, stepContractHTML, stepPayoutHTML][setupStep - 1]();
     const issues = appMode === 'locked' ? [] : stepIssues(setupStep);
     const last = setupStep === SETUP_STEPS.length;
     wrap.innerHTML = `
@@ -2154,7 +2144,7 @@
   }
   /* Everything the application needs before it can be created, in the order the form asks
      for it. The Create button stays disabled until every item is done. */
-  /* ══════════ Step 4 — Primary payout method: a bank account or an e-wallet, required before submitting ══════════ */
+  /* ══════════ Service setup step 4 — primary payout method: a bank account or an e-wallet, required before submitting ══════════ */
   const PAYOUT_BANKS = ['National Bank of Egypt', 'Banque Misr', 'Commercial International Bank (CIB)', 'QNB Alahli', 'Banque du Caire',
     'Arab African International Bank', 'Alex Bank', 'HSBC Egypt', 'Faisal Islamic Bank', 'Abu Dhabi Islamic Bank (ADIB)'];
   const PAYOUT_WALLETS = ['Vodafone Cash', 'Orange Cash', 'e& Cash', 'WE Pay'];
@@ -2195,9 +2185,10 @@
       </select>
     </div>`;
   }
-  function renderPayout() {
+  function stepPayoutHTML() {
     const m = payout.method;
-    $('payoutBody').innerHTML = `<div class="crit-label">Payout to<span class="req">*</span></div>
+    return `<div class="setup-contract-intro">Where the merchant receives their settlements. Add either a bank account or an e-wallet — it is required before the application can be submitted.</div>
+      <div class="crit-label">Payout to<span class="req">*</span></div>
       <div class="crit-chips payout-methods">
         <button type="button" class="crit-chip${m === 'bank' ? ' on' : ''}" data-payout-method="bank">Bank Account</button>
         <button type="button" class="crit-chip${m === 'wallet' ? ' on' : ''}" data-payout-method="wallet">E-Wallet</button>
@@ -2215,11 +2206,11 @@
         </div>`
       : '<div class="payout-empty">Choose how the merchant is paid out to add its details.</div>'}`;
   }
-  $('payoutBody').addEventListener('click', e => {
+  $('serviceSetupBody').addEventListener('click', e => {
     const b = e.target.closest('[data-payout-method]');
     if (!b || b.disabled) return;
     payout.method = b.dataset.payoutMethod;
-    renderPayout(); renderSubmitSummary();
+    onSetupChanged();
   });
   function onPayoutInput(e) {
     const el = e.target.closest('[data-payout]');
@@ -2230,13 +2221,12 @@
     payout[group][key] = v;
     const bad = v !== '' && !PAYOUT_RULES[group][key](v);
     el.classList.toggle('invalid', bad);
-    const hint = $('payoutBody').querySelector(`[data-payout-hint="${key}"]`);
+    const hint = $('serviceSetupBody').querySelector(`[data-payout-hint="${key}"]`);
     if (hint) hint.hidden = !bad;
-    renderSubmitSummary();
+    refreshStepChrome();
   }
-  $('payoutBody').addEventListener('input', onPayoutInput);
-  $('payoutBody').addEventListener('change', onPayoutInput);
-  renderPayout();
+  $('serviceSetupBody').addEventListener('input', onPayoutInput);
+  $('serviceSetupBody').addEventListener('change', onPayoutInput);
 
   function readinessChecks() {
     const hasContact = ['mBiz', 'mEmail', 'mPhone'].every(id => $(id).value.trim());
@@ -2253,7 +2243,6 @@
     SETUP_STEPS.forEach((step, i) => {
       checks.push({ label: `Service setup — ${step.label}`, done: hasAnyService() && stepDone(i + 1) && canOpenStep(i + 1) });
     });
-    checks.push({ label: 'Primary payout method — bank account or e-wallet details', done: payoutValid() });
     checks.push({ label: 'Add a justification for every rate needing approval', done: needsJustificationLines().length === 0 });
     return checks;
   }
@@ -2352,7 +2341,6 @@
       payout.method = app.payout.method;
       Object.keys(payout[payout.method]).forEach(k => { payout[payout.method][k] = app.payout[k] || ''; });
     }
-    renderPayout();
     syncServiceConfigs();
 
     (s.serviceConfigs || []).forEach(sc => {

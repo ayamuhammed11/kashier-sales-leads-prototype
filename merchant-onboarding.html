@@ -2145,18 +2145,24 @@
   /* ══════════ Service setup step 4 — primary payout method: a bank account or an e-wallet, required before submitting ══════════ */
   const PAYOUT_BANKS = ['National Bank of Egypt', 'Banque Misr', 'Commercial International Bank (CIB)', 'QNB Alahli', 'Banque du Caire',
     'Arab African International Bank', 'Alex Bank', 'HSBC Egypt', 'Faisal Islamic Bank', 'Abu Dhabi Islamic Bank (ADIB)'];
+  const PAYOUT_BRANCHES = ['Main Branch', 'Nasr City', 'Heliopolis', 'Maadi', 'Zamalek', 'Dokki', 'Mohandessin', 'Downtown Cairo', 'New Cairo',
+    '6th of October', 'Giza', 'Alexandria', 'Mansoura', 'Tanta', 'Port Said', 'Assiut', 'Aswan'];
+  // A holder name takes letters (any language), digits and spaces — no symbols.
+  const PAYOUT_NAME_SYMBOLS = /[^\p{L}\p{M}\p{N} ]/gu;
+  const payoutNameOK = v => v.trim().length >= 3 && !/[^\p{L}\p{M}\p{N} ]/u.test(v);
   const PAYOUT_WALLETS = ['Vodafone Cash', 'Orange Cash', 'e& Cash', 'WE Pay'];
   const payout = { method: '', bank: { bankName: '', branch: '', holder: '', account: '' }, wallet: { provider: '', number: '', holder: '' } };
   const PAYOUT_RULES = {
     bank: {
-      bankName: v => !!v, branch: v => v.trim().length >= 2, holder: v => v.trim().length >= 3,
+      bankName: v => !!v, branch: v => !!v, holder: payoutNameOK,
       account: v => /^\d{8,20}$/.test(v),
     },
-    wallet: { provider: v => !!v, number: v => /^01[0125]\d{8}$/.test(v), holder: v => v.trim().length >= 3 },
+    wallet: { provider: v => !!v, number: v => /^01[0125]\d{8}$/.test(v), holder: payoutNameOK },
   };
   const PAYOUT_HINTS = {
     account: 'Enter the account number — 8 to 20 digits.',
     number: 'Enter the 11-digit wallet mobile number, e.g. 01012345678.',
+    holder: 'Letters, numbers and spaces only — at least 3 characters.',
   };
   function payoutValid() {
     const rules = PAYOUT_RULES[payout.method];
@@ -2193,7 +2199,7 @@
       </div>
       ${m === 'bank' ? `<div class="details-grid payout-grid">
           ${payoutSelect('bank', 'bankName', 'Bank Name', PAYOUT_BANKS, 'Select bank…')}
-          ${payoutField('bank', 'branch', 'Bank Branch Name', 'e.g. Nasr City branch')}
+          ${payoutSelect('bank', 'branch', 'Bank Branch Name', PAYOUT_BRANCHES, 'Select branch…')}
           ${payoutField('bank', 'holder', 'Account Holder Name', 'As it appears on the bank account')}
           ${payoutField('bank', 'account', 'Account Number', 'e.g. 1002345678901', 'inputmode="numeric" maxlength="20"')}
         </div>`
@@ -2216,6 +2222,7 @@
     const [group, key] = el.dataset.payout.split('.');
     let v = el.value;
     if (key === 'account' || key === 'number') { v = v.replace(/\D/g, ''); if (v !== el.value) el.value = v; }
+    if (key === 'holder') { v = v.replace(PAYOUT_NAME_SYMBOLS, ''); if (v !== el.value) el.value = v; }
     payout[group][key] = v;
     const bad = v !== '' && !PAYOUT_RULES[group][key](v);
     el.classList.toggle('invalid', bad);

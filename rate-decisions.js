@@ -399,7 +399,7 @@ window.KashierRates = (function () {
   /* The seeded applications were submitted with a bank account as their primary payout method. */
   function seededPayout(a) {
     const n = String(a.id).replace(/\D/g, '').padStart(8, '0');
-    return { method: 'bank', bankName: 'National Bank of Egypt', holder: a.biz, account: '1002' + n, iban: 'EG38000300010000' + ('1002' + n).padStart(13, '0') };
+    return { method: 'bank', bankName: 'National Bank of Egypt', branch: 'Main branch', holder: a.biz, account: '1002' + n };
   }
   /* One line for a payout method, with the account or wallet number masked to its last four digits. */
   function payoutLabel(p) {

@@ -2158,18 +2158,16 @@
   const PAYOUT_BANKS = ['National Bank of Egypt', 'Banque Misr', 'Commercial International Bank (CIB)', 'QNB Alahli', 'Banque du Caire',
     'Arab African International Bank', 'Alex Bank', 'HSBC Egypt', 'Faisal Islamic Bank', 'Abu Dhabi Islamic Bank (ADIB)'];
   const PAYOUT_WALLETS = ['Vodafone Cash', 'Orange Cash', 'e& Cash', 'WE Pay'];
-  const payout = { method: '', bank: { bankName: '', holder: '', account: '', iban: '' }, wallet: { provider: '', number: '', holder: '' } };
+  const payout = { method: '', bank: { bankName: '', branch: '', holder: '', account: '' }, wallet: { provider: '', number: '', holder: '' } };
   const PAYOUT_RULES = {
     bank: {
-      bankName: v => !!v, holder: v => v.trim().length >= 3,
+      bankName: v => !!v, branch: v => v.trim().length >= 2, holder: v => v.trim().length >= 3,
       account: v => /^\d{8,20}$/.test(v),
-      iban: v => /^EG\d{27}$/.test(v),
     },
     wallet: { provider: v => !!v, number: v => /^01[0125]\d{8}$/.test(v), holder: v => v.trim().length >= 3 },
   };
   const PAYOUT_HINTS = {
     account: 'Enter the account number — 8 to 20 digits.',
-    iban: 'An Egyptian IBAN is EG followed by 27 digits (29 characters).',
     number: 'Enter the 11-digit wallet mobile number, e.g. 01012345678.',
   };
   function payoutValid() {
@@ -2205,10 +2203,10 @@
         <button type="button" class="crit-chip${m === 'wallet' ? ' on' : ''}" data-payout-method="wallet">E-Wallet</button>
       </div>
       ${m === 'bank' ? `<div class="details-grid payout-grid">
-          ${payoutSelect('bank', 'bankName', 'Bank', PAYOUT_BANKS, 'Select bank…')}
+          ${payoutSelect('bank', 'bankName', 'Bank Name', PAYOUT_BANKS, 'Select bank…')}
+          ${payoutField('bank', 'branch', 'Bank Branch Name', 'e.g. Nasr City branch')}
           ${payoutField('bank', 'holder', 'Account Holder Name', 'As it appears on the bank account')}
           ${payoutField('bank', 'account', 'Account Number', 'e.g. 1002345678901', 'inputmode="numeric" maxlength="20"')}
-          ${payoutField('bank', 'iban', 'IBAN', 'EG38 0003 0001 0000 0000 0000 0000 0', 'maxlength="36"')}
         </div>`
       : m === 'wallet' ? `<div class="details-grid payout-grid">
           ${payoutSelect('wallet', 'provider', 'Wallet Provider', PAYOUT_WALLETS, 'Select provider…')}
@@ -2229,7 +2227,6 @@
     const [group, key] = el.dataset.payout.split('.');
     let v = el.value;
     if (key === 'account' || key === 'number') { v = v.replace(/\D/g, ''); if (v !== el.value) el.value = v; }
-    if (key === 'iban') v = v.toUpperCase().replace(/\s+/g, '');
     payout[group][key] = v;
     const bad = v !== '' && !PAYOUT_RULES[group][key](v);
     el.classList.toggle('invalid', bad);

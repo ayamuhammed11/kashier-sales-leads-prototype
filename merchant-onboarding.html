@@ -825,14 +825,11 @@
         </div>
       </div>
 
-      <!-- Submit — just the checklist of what is left and the button; no separate summary section -->
+      <!-- What is still left before the application can be created; the button itself sits in the last setup step -->
       <div class="card" id="submitCard">
         <div class="card-body">
           <div class="submit-summary" id="submitSummary" hidden></div>
           <div class="submit-checklist" id="submitChecklist" hidden></div>
-          <div class="whn-actions" style="border-top:none; margin-top:0; padding-top:0;">
-            <button class="btn btn-primary" id="submitAppBtn">Create Merchant Application</button>
-          </div>
         </div>
       </div>
 
@@ -1814,9 +1811,10 @@
       ${body}
       <div class="whn-actions setup-nav">
         ${setupStep > 1 ? '<button type="button" class="btn btn-outline" id="setupBack">Back</button>' : ''}
-        <span class="setup-nav-status">${issues.length ? esc(issues[0]) + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '') : (appMode === 'locked' ? 'View only — use the steps above to look through the setup.' : last ? 'Service setup complete — create the application below.' : 'This step is complete.')}</span>
-        ${last ? '' : `<button type="button" class="btn btn-primary" id="setupNext"${issues.length ? ' disabled' : ''}>Continue to ${esc(SETUP_STEPS[setupStep].label)}</button>`}
+        <span class="setup-nav-status">${issues.length ? esc(issues[0]) + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '') : (appMode === 'locked' ? 'View only — use the steps above to look through the setup.' : last ? 'Service setup complete.' : 'This step is complete.')}</span>
+        ${last ? (appMode === 'locked' ? '' : `<button type="button" class="btn btn-primary" id="submitAppBtn">${appMode === 'returned' ? 'Resubmit Application' : 'Create Merchant Application'}</button>`) : `<button type="button" class="btn btn-primary" id="setupNext"${issues.length ? ' disabled' : ''}>Continue to ${esc(SETUP_STEPS[setupStep].label)}</button>`}
       </div>`;
+    syncSubmitButton();
     wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
     wrap.querySelectorAll('[data-contract-upload]').forEach(wireContractUpload);
   }
@@ -1964,7 +1962,7 @@
     const next = $('setupNext');
     if (status) status.textContent = issues.length
       ? issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '')
-      : (setupStep === SETUP_STEPS.length ? 'Service setup complete — create the application below.' : 'This step is complete.');
+      : (setupStep === SETUP_STEPS.length ? 'Service setup complete.' : 'This step is complete.');
     if (next) next.disabled = issues.length > 0;
     renderSubmitSummary();
   }
@@ -2247,6 +2245,14 @@
     return checks;
   }
 
+  /* The create button lives in the last setup step; it is enabled once nothing is left on the checklist. */
+  function syncSubmitButton() {
+    const btn = $('submitAppBtn');
+    if (!btn) return;
+    const left = readinessChecks().filter(c => !c.done).length;
+    btn.disabled = left > 0;
+    btn.title = left ? 'Complete the items listed below to create the application' : '';
+  }
   function renderSubmitSummary() {
     const biz = $('mBiz').value.trim();
     const { total, done } = currentDocStatus();
@@ -2262,8 +2268,8 @@
 
     const checks = readinessChecks();
     const remaining = checks.filter(c => !c.done);
-    $('submitAppBtn').disabled = remaining.length > 0;
-    $('submitAppBtn').title = remaining.length ? 'Complete the items listed above to create the application' : '';
+    syncSubmitButton();
+    $('submitCard').hidden = appMode === 'locked' || !remaining.length;
     $('submitChecklist').hidden = !remaining.length;
     $('submitChecklist').innerHTML = remaining.length ? `
       <div class="checklist-title">Complete ${remaining.length === 1 ? 'this' : `these ${remaining.length}`} to create the application</div>
@@ -2751,7 +2757,6 @@
       new MutationObserver(lock).observe(document.querySelector('.content'), { childList: true, subtree: true });
       lock();
     }
-    if (appMode === 'returned') $('submitAppBtn').textContent = 'Resubmit Application';
     editBaseline = snapshot();
     renderCriteria();
     renderServiceSetup();
@@ -2861,7 +2866,7 @@
       : ' — sent to the Onboarding team for review'));
     location.href = sourceLeadId ? K.applicationURL(sourceLeadId) : 'index.html';
   }
-  $('submitAppBtn').addEventListener('click', attemptSubmit);
+  $('serviceSetupBody').addEventListener('click', e => { if (e.target.closest('#submitAppBtn')) attemptSubmit(); });
 
   /* ══════════ Chrome ══════════ */
   $('hamburger').addEventListener('click', () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); });

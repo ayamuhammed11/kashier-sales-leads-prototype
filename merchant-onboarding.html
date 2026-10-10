@@ -2769,7 +2769,7 @@
       const rows = e.details || [];
       const changes = (e.status ? [{ label: e.status.label || 'Status', from: e.status.from, to: e.status.to }] : []).concat(rows.filter(r => r.from != null));
       const facts = rows.filter(r => r.from == null);
-      const system = !!e.system || e.who === 'Workflow Engine' || e.who === 'System';
+      const system = !!e.system || e.who === 'System';
       const dash = v => v === '' || v == null ? '\u2014' : v;
       const lines = changes.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v"><span class="from">${esc(dash(r.from))}</span><span class="arrow">\u2192</span>${esc(dash(r.to))}</span></div>`)
         .concat(facts.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v">${esc(dash(r.value))}</span></div>`));

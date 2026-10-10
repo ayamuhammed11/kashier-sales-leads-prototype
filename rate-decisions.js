@@ -989,7 +989,7 @@ window.KashierRates = (function () {
       if (need.length && need.every(r => d[r.id])) {
         const last = need.map(r => d[r.id].ts).sort().pop();
         const rejected = need.filter(r => d[r.id].decision === 'rejected').length;
-        events.push({ ts: last, who: 'Workflow Engine', role: 'System', system: true, action: rejected ? 'Returned' : 'Advanced', category: 'Application',
+        events.push({ ts: last, who: 'System', role: '', system: true, action: rejected ? 'Returned' : 'Advanced', category: 'Application',
           text: rejected ? 'Returned to the salesperson' : 'Every rate approved \u2014 sent to Underwriting Review',
           details: rejected ? [{ label: 'Rejected rates', value: rejected + ' of ' + need.length }, { label: 'Next step', value: app.actor + ' modifies the rejected rates and resubmits' }]
             : [{ label: 'Approved rates', value: String(need.length) }, { label: 'Next step', value: 'Underwriting Review by the Onboarding team' }],

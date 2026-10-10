@@ -2616,7 +2616,7 @@
 
     const head = document.querySelector('.page-head');
     const shown = status === 'application' && note && isSales ? 'returned' : status;
-    const LABELS = { new: 'New', application: 'New', returned: 'Rejected Rates', 'rate-approval': 'Waiting Rate Approval',
+    const LABELS = { new: 'New', application: 'New', returned: 'Rejected', 'rate-approval': 'Waiting Rate Approval',
       'onboarding-review': 'Underwriting Review', 'bank-submission': 'Bank Submission', activated: 'Live', lost: 'Canceled' };
 
     // CRM record — one click back to the lead in Zoho.
@@ -2668,7 +2668,7 @@
 
     // Tracking, on the same page: where the submitted application stands.
     /* Tracking as a pipeline: Submitted -> Rate Approval (only when rates needed it) ->
-       Underwriting Review -> Bank Submission -> Live, with where the application stands now. */
+       Underwriting Review -> Bank Submission, with where the application stands now. */
     const trackingHTML = () => {
       if (!(app && status !== 'new')) return '';
       const fmt = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -2691,9 +2691,10 @@
       }
       steps.push({ label: 'Underwriting Review', state: at >= 1 ? stateOf(1) : 'todo',
         sub: at === 1 && acct ? acct.meta.label : at > 1 ? 'Approved internally' : '' });
-      steps.push({ label: 'Bank Submission', state: at >= 2 ? stateOf(2) : 'todo',
+      // The application ends at Bank Submission: once the bank comes back and the account goes live,
+      // it is worked from the Merchant module, so there is no Live status here.
+      steps.push({ label: 'Bank Submission', state: at >= 2 ? (at >= 3 ? 'done' : stateOf(2)) : 'todo',
         sub: at === 2 && acct ? acct.meta.label : at > 2 ? 'Bank approval received' : '' });
-      steps.push({ label: 'Live', state: cur === 'activated' ? 'done' : 'todo', sub: cur === 'activated' ? 'Merchant is live' : '' });
       const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
       const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
       return `<div class="status-panel"><h2>Application Tracking</h2><div class="pipe">${steps.map((st, i) => `

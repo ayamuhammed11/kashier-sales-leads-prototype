@@ -264,15 +264,12 @@
   .lg-row-main.open .lg-chev { transform: rotate(180deg); }
   .lg-row-detail { display: none; } .lg-row-detail.open { display: table-row; }
   .lg-row-detail td { background: #FCFCFD; padding: 4px 10px 14px 142px; }
-  .lg-kv { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; font-size: 12.5px; }
-  .lg-kv .k { color: var(--cadet-05); } .lg-kv .v { color: var(--foreground); font-weight: 600; word-break: break-word; }
-  .lg-ba { width: 100%; max-width: 560px; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border-subtle); border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: #fff; }
-  .lg-ba th { text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: var(--cadet-base); background: var(--muted); padding: 7px 10px; }
-  .lg-ba td { padding: 8px 10px; font-size: 12.5px; border-top: 1px solid var(--border-subtle); vertical-align: top; word-break: break-word; }
-  .lg-ba td:first-child { width: 130px; color: var(--cadet-05); }
-  .lg-ba td.b { color: var(--cadet-base); background: var(--destructive-bg); }
-  .lg-ba td.a { color: var(--foreground); font-weight: 700; background: var(--success-bg); }
-  @media (max-width: 720px) { .lg-row-detail td { padding-left: 10px; } .lg-kv { grid-template-columns: 1fr; gap: 0; } .lg-kv .v { margin-bottom: 6px; } }
+  .lg-lines { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; line-height: 1.5; }
+  .lg-line .k { color: var(--cadet-05); } .lg-line .k::after { content: ': '; }
+  .lg-line .v { color: var(--foreground); font-weight: 600; word-break: break-word; }
+  .lg-line .from { color: var(--cadet-05); font-weight: 400; text-decoration: line-through; }
+  .lg-line .arrow { margin: 0 6px; color: var(--cadet-05); }
+  @media (max-width: 720px) { .lg-row-detail td { padding-left: 10px; } }
 
 
   .appr-line-rej { font-size: 12.5px; color: var(--destructive); background: var(--destructive-bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.45; }
@@ -1272,10 +1269,18 @@
   const channelOf = name => name.startsWith('POS ') ? 'POS' : 'Online';
   /* Activating or deactivating a service straight from the Services & Pricing table — there
      is no separate services picker any more. Activating any POS service switches POS on. */
+  /* Every setup action the salesperson takes is written to the activity log as its own entry, labeled
+     (Added, Changed, Removed, Uploaded), from the moment the application is opened for editing. */
+  let recordActions = false;
+  function logAction(action, text, details) {
+    if (!recordActions || !sourceLeadId) return;
+    K.logEvent(sourceLeadId, K.ROLES.sales.name, text, null, { action: action, category: 'Application', role: 'Salesperson', details: details || [] });
+  }
+  const whereOf = (s, bank) => s + (bank ? ' \u00b7 ' + bank : '');
   function setServiceActive(service, active) {
     const i = criteria.services.indexOf(service);
-    if (active && i === -1) criteria.services.push(service);
-    if (!active && i !== -1) criteria.services.splice(i, 1);
+    if (active && i === -1) { criteria.services.push(service); logAction('Added', 'Added service \u2014 ' + service); }
+    if (!active && i !== -1) { criteria.services.splice(i, 1); logAction('Removed', 'Removed service \u2014 ' + service); }
     syncServiceConfigs();
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS '));
     if (!criteria.posEnabled) criteria.posTerminals = '';
@@ -1575,6 +1580,7 @@
       const r = pricingRuleFor(s, to, t);
       bc.pricing.set(t.key, { rate: String(r.standard), fee: String(r.fee), note: '', tier: 'auto' });
     });
+    logAction('Added', 'Added rates from service pricing \u2014 ' + whereOf(s, bankRequiredFor(s) ? to : ''), bankRequiredFor(s) ? [{ label: 'Institution', value: to }] : []);
     closePricingRulesModal();
     onSetupChanged();
   });
@@ -1906,18 +1912,38 @@
     }
     const removeRow = e.target.closest('[data-contract-remove-row]');
     if (removeRow) {
+      const gone = contracts.find(c => c.id === Number(removeRow.dataset.contractRemoveRow));
       contracts = contracts.filter(c => c.id !== Number(removeRow.dataset.contractRemoveRow));
+      if (gone && (gone.label.trim() || gone.file)) logAction('Removed', 'Removed contract \u2014 ' + (gone.label.trim() || 'Unnamed contract'));
       onSetupChanged();
     }
   });
 
+  $('serviceSetupBody').addEventListener('focusin', e => {
+    if (e.target.matches('.rate-input, .fee-input, #mWebsite')) e.target.dataset.before = e.target.value;
+  });
   $('serviceSetupBody').addEventListener('change', e => {
+    const rf = e.target.closest('.rate-input, .fee-input');
+    if (rf && rf.dataset.key && rf.dataset.before !== undefined && rf.dataset.before !== rf.value) {
+      const sv = rf.dataset.service, bk = rf.dataset.bank, bcf = serviceConfig[sv] && serviceConfig[sv].bankConfigs[bk];
+      const tier = ratesForService(sv, bcf, bk).find(x => x.key === rf.dataset.key);
+      logAction('Changed', 'Changed ' + (rf.classList.contains('rate-input') ? 'fee' : 'flat fee') + ' \u2014 ' + whereOf(sv, bk) + ' \u00b7 ' + (tier ? tier.label : rf.dataset.key),
+        [{ label: rf.classList.contains('rate-input') ? 'Fees (%)' : 'Flat fee', from: rf.dataset.before, to: rf.value }]);
+      rf.dataset.before = rf.value;
+    }
+    if (e.target.id === 'mWebsite' && e.target.dataset.before !== undefined && e.target.dataset.before !== e.target.value) {
+      logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant website', [{ label: 'Website', from: e.target.dataset.before, to: e.target.value }]);
+      e.target.dataset.before = e.target.value;
+    }
     const svcToggle = e.target.closest('[data-service-toggle]');
     if (svcToggle) { setServiceActive(svcToggle.dataset.serviceToggle, svcToggle.checked); return; }
     const bankSel = e.target.closest('[data-bank-select]');
     if (bankSel) {
       const s = bankSel.dataset.service, cfg = serviceConfig[s];
       const cur = bankSel.dataset.current, val = bankSel.value;
+      if (cur && !val) logAction('Removed', 'Removed institution \u2014 ' + whereOf(s, cur));
+      else if (cur) logAction('Changed', 'Changed institution \u2014 ' + s, [{ label: 'Institution', from: cur, to: val }]);
+      else if (val) logAction('Added', 'Chose institution \u2014 ' + whereOf(s, val));
       if (cur) {
         const i = cfg.banks.indexOf(cur);
         if (!val) { cfg.banks.splice(i, 1); delete cfg.bankConfigs[cur]; }
@@ -1944,7 +1970,9 @@
       // Rates entered at the old model's published pricing follow the new model's published pricing.
       const oldTiers = ratesForService(msvc, mbc, mbank);
       const atPublished = oldTiers.filter(t => { const e = mbc.pricing.get(t.key); return e && String(e.rate) === String(t.standard) && String(e.fee) === String(t.fixedFee); }).map(t => t.key);
+      const oldModel = mbc.module;
       mbc.module = modelSel.value;
+      if (oldModel !== mbc.module) logAction(oldModel ? 'Changed' : 'Added', 'Set model \u2014 ' + whereOf(msvc, mbank), [{ label: 'Model', from: oldModel || '', to: mbc.module || '' }]);
       if (mbc.module === 'PF') mbc.currencies = ['EGP'];
       ratesForService(msvc, mbc, mbank).filter(t => atPublished.indexOf(t.key) !== -1)
         .forEach(t => mbc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
@@ -1956,6 +1984,7 @@
       const [svc, bank, op] = opCheck.dataset.opCheck.split('::');
       const bc = ensureBankConfig(serviceConfig[svc], bank);
       bc.operations = opCheck.checked ? bc.operations.concat(op) : bc.operations.filter(x => x !== op);
+      logAction(opCheck.checked ? 'Added' : 'Removed', (opCheck.checked ? 'Added' : 'Removed') + ' advanced operation \u2014 ' + whereOf(svc, bank) + ' \u00b7 ' + op);
       onSetupChanged();
       return;
     }
@@ -1963,6 +1992,7 @@
     if (curCheck) {
       const [svc, bank, cur] = curCheck.dataset.currencyCheck.split('::');
       const bc = ensureBankConfig(serviceConfig[svc], bank);
+      logAction(curCheck.checked ? 'Added' : 'Removed', (curCheck.checked ? 'Added' : 'Removed') + ' accepted currency \u2014 ' + whereOf(svc, bank) + ' \u00b7 ' + cur);
       if (curCheck.checked) {
         if (!bc.currencies.includes(cur)) bc.currencies = bc.currencies.concat(cur);
         // Any currency other than EGP needs PSP — PF only settles in EGP.
@@ -2101,6 +2131,7 @@
       const f = files[0];
       if (!docFiles.has(docName)) docFiles.set(docName, new Map());
       docFiles.get(docName).set(label, { name: f.name, size: f.size });
+      logAction('Uploaded', 'Uploaded document \u2014 ' + docName + (label ? ' (' + label + ')' : ''), [{ label: 'File', value: f.name }]);
       onDocFilesChanged();
     }
     input.addEventListener('change', e => { handle(e.target.files); e.target.value = ''; });
@@ -2115,7 +2146,7 @@
       const files = [...list]; if (!files.length) return;
       const f = files[0];
       const c = contracts.find(x => x.id === id);
-      if (c) c.file = { name: f.name, size: f.size };
+      if (c) { c.file = { name: f.name, size: f.size }; logAction('Uploaded', 'Uploaded contract \u2014 ' + (c.label.trim() || 'Unnamed contract'), [{ label: 'File', value: f.name }]); }
       onSetupChanged();
     }
     input.addEventListener('change', e => { handle(e.target.files); e.target.value = ''; });
@@ -2127,7 +2158,7 @@
     const contractRmBtn = e.target.closest('[data-contract-remove-file]');
     if (contractRmBtn) {
       const c = contracts.find(x => x.id === Number(contractRmBtn.dataset.contractRemoveFile));
-      if (c) c.file = null;
+      if (c && c.file) { logAction('Removed', 'Removed contract file \u2014 ' + (c.label.trim() || 'Unnamed contract'), [{ label: 'File', value: c.file.name }]); c.file = null; }
       onSetupChanged();
       return;
     }
@@ -2140,6 +2171,7 @@
     const label = chip.dataset.label || '';
     const store = docFiles.get(docName);
     if (store) { store.delete(label); if (!store.size) docFiles.delete(docName); }
+    logAction('Removed', 'Removed document \u2014 ' + docName + (label ? ' (' + label + ')' : ''));
     onDocFilesChanged();
   });
   function onDocFilesChanged() {
@@ -2273,17 +2305,19 @@
   }
   $('serviceSetupBody').addEventListener('click', e => {
     const add = e.target.closest('[data-payout-add]');
-    if (add) { payouts.push(newPayout(add.dataset.payoutAdd)); onSetupChanged(); return; }
+    if (add) { payouts.push(newPayout(add.dataset.payoutAdd)); logAction('Added', 'Added payout method \u2014 ' + PAYOUT_LABEL[add.dataset.payoutAdd]); onSetupChanged(); return; }
     const rm = e.target.closest('[data-payout-remove]');
     if (rm) {
-      const wasPrimary = (payouts.find(p => p.id === Number(rm.dataset.payoutRemove)) || {}).primary;
+      const gone = payouts.find(p => p.id === Number(rm.dataset.payoutRemove)) || {};
+      const wasPrimary = gone.primary;
+      logAction('Removed', 'Removed payout method \u2014 ' + (gone.method ? PAYOUT_LABEL[gone.method] : '') + (gone.name ? ' (' + gone.name + ')' : '') + (wasPrimary ? ' \u00b7 was primary' : ''));
       payouts = payouts.filter(p => p.id !== Number(rm.dataset.payoutRemove));
       if (wasPrimary && payouts.length) { payouts[0].primary = true; payouts[0].trusted = false; }
       onSetupChanged(); return;
     }
     const mk = e.target.closest('[data-payout-primary]');
     if (mk) {
-      payouts.forEach(p => { p.primary = p.id === Number(mk.dataset.payoutPrimary); if (p.primary) p.trusted = false; });
+      payouts.forEach(p => { p.primary = p.id === Number(mk.dataset.payoutPrimary); if (p.primary) { p.trusted = false; logAction('Changed', 'Set primary payout method \u2014 ' + PAYOUT_LABEL[p.method] + (p.name ? ' (' + p.name + ')' : '')); } });
       onSetupChanged();
     }
   });
@@ -2291,7 +2325,7 @@
     const tr = e.target.closest('[data-payout-trust]');
     if (tr) {
       const p = payouts.find(x => x.id === Number(tr.dataset.payoutTrust));
-      if (p) p.trusted = tr.checked;
+      if (p) { p.trusted = tr.checked; logAction('Changed', (tr.checked ? 'Marked payout method as trusted' : 'Unmarked payout method as trusted') + ' \u2014 ' + PAYOUT_LABEL[p.method] + (p.name ? ' (' + p.name + ')' : '')); }
       onSetupChanged(); return;
     }
     const el = e.target.closest('[data-payout]');
@@ -2604,7 +2638,6 @@
     if (appMode === 'edit' && status === 'new') {
       overrides[sourceLeadId] = 'application';
       K.writeStore('kashierLeadStatusOverrides', overrides);
-      K.logEvent(sourceLeadId, K.ROLES.sales.name, 'Started the onboarding application', null, { action: 'Started', category: 'Application', role: 'Salesperson', details: [{ label: 'Merchant', value: p.get('leadBiz') || '' }] });
     }
     if (appMode !== 'edit' && app) { previousApp = app; fillFromApplication(app); }
 
@@ -2736,7 +2769,7 @@
     /* Same format as the Kashier logs: action badge, when + relative time, who + role, then a
        breakdown of exactly what happened. */
     const SYSTEM_AV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122"/></svg>';
-    const ACTION_CLASS = { Started: 'info', Added: 'info', Changed: 'info', Advanced: 'info', Submitted: 'pending', Resubmitted: 'pending',
+    const ACTION_CLASS = { Added: 'info', Changed: 'info', Uploaded: 'info', Removed: 'waiting', Advanced: 'info', Submitted: 'pending', Resubmitted: 'pending',
       Approved: 'approved', Live: 'approved', Rejected: 'rejected', Returned: 'rejected', Canceled: 'rejected' };
     const initialsOfName = n => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
     const stampOf = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
@@ -2761,10 +2794,10 @@
           <div class="lg-who"><div class="lg-who-name">${esc(e.who || '')}</div><div class="lg-who-role">${esc(e.role || '')}</div></div></div></td>
         <td><div class="lg-text"><span>${esc(e.text)}</span>${has ? `<span class="lg-chev">${CHEV}</span>` : ''}</div></td>
       </tr>`;
-      const beforeAfter = changes.length ? `<table class="lg-ba"><thead><tr><th>Changed</th><th>Before</th><th>After</th></tr></thead><tbody>${changes.map(r =>
-        `<tr><td>${esc(r.label)}</td><td class="b">${esc(r.from === '' || r.from == null ? '\u2014' : r.from)}</td><td class="a">${esc(r.to === '' || r.to == null ? '\u2014' : r.to)}</td></tr>`).join('')}</tbody></table>` : '';
-      const detail = has ? `<tr class="lg-row-detail" data-lg-detail="${i}"><td colspan="4">${beforeAfter}${facts.length ? `<div class="lg-kv">${facts.map(r =>
-        `<span class="k">${esc(r.label)}</span><span class="v">${esc(r.value == null || r.value === '' ? '\u2014' : r.value)}</span>`).join('')}</div>` : ''}</td></tr>` : '';
+      const dash = v => v === '' || v == null ? '\u2014' : v;
+      const lines = changes.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v"><span class="from">${esc(dash(r.from))}</span><span class="arrow">\u2192</span>${esc(dash(r.to))}</span></div>`)
+        .concat(facts.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v">${esc(dash(r.value))}</span></div>`));
+      const detail = has ? `<tr class="lg-row-detail" data-lg-detail="${i}"><td colspan="4"><div class="lg-lines">${lines.join('')}</div></td></tr>` : '';
       return main + detail;
     };
     const renderLog = () => {
@@ -2845,6 +2878,7 @@
       lock();
     }
     editBaseline = snapshot();
+    recordActions = isSales && (appMode === 'edit' || appMode === 'returned');
     renderCriteria();
     renderServiceSetup();
     renderSubmitSummary();
@@ -2945,7 +2979,7 @@
     if (sourceLeadId && editBaseline) {
       const T = new Date(qs.get('ts')).getTime();
       const firstTime = !Object.keys(editBaseline.services).length && !editBaseline.docs.length;
-      diffSnapshots(editBaseline, snapshot()).forEach((ev, i) =>
+      diffSnapshots(editBaseline, snapshot()).filter(ev => ['Business details', 'Industry'].includes(ev.category) && !/^(Payout methods|Website)/.test(ev.text)).forEach((ev, i) =>
         K.logEvent(sourceLeadId, K.ROLES.sales.name, ev.text, new Date(T - 1000 - i).toISOString(),
           { action: firstTime ? 'Added' : 'Changed', category: ev.category, role: 'Salesperson', details: ev.details }));
     }

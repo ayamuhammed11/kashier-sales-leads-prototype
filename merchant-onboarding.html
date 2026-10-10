@@ -2264,8 +2264,8 @@
       </select>
     </div>`;
   }
-  /* After submission: where the method stands — approved by Ops, then verified by the merchant with an OTP. */
-  const PAYOUT_PROGRESS = { 'pending-ops': ['pending', 'Awaiting Ops approval'], 'awaiting-merchant': ['info', 'Awaiting merchant verification'], verified: ['approved', 'Verified'], rejected: ['rejected', 'Rejected by Ops'] };
+  /* After submission: the Ops decision on the method. The merchant's own email and OTP check happens apart from the application. */
+  const PAYOUT_PROGRESS = { 'pending-ops': ['pending', 'Awaiting Ops approval'], 'awaiting-merchant': ['approved', 'Approved by Ops'], verified: ['approved', 'Approved by Ops'], rejected: ['rejected', 'Rejected by Ops'] };
   function payoutProgressHTML(p) {
     if (appMode !== 'locked') return '';
     const app = K.loadApplications().filter(a => a.leadId === sourceLeadId && !a.superseded)[0];
@@ -2274,7 +2274,7 @@
     const mine = p.primary ? states.filter(x => x.primary)[0] : states.filter(x => !x.primary)[payouts.filter(q => !q.primary).indexOf(p)];
     if (!mine) return '';
     const v = mine.verification, [cls, label] = PAYOUT_PROGRESS[v.state];
-    const note = v.state === 'rejected' ? ' \u2014 ' + esc(v.reason) : v.state === 'awaiting-merchant' ? ' \u2014 code emailed to ' + esc(v.email) : '';
+    const note = v.state === 'rejected' ? ' \u2014 ' + esc(v.reason) : '';
     return `<div class="payout-progress"><span class="lg-badge ${cls}"><span class="dot"></span>${label}</span><span class="payout-progress-note">${note}</span></div>`;
   }
   function payoutCardHTML(p, i) {

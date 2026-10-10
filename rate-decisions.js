@@ -1007,7 +1007,7 @@ window.KashierRates = (function () {
         status: { from: 'Bank Submission', to: 'Live' } });
     });
     // Opening an application is not an action, so older "Started" entries are not shown.
-    (readStore('kashierApplicationLog')[leadId] || []).filter(e => e.action !== 'Started').forEach(e => events.push(Object.assign({ action: 'Note', category: 'Application', role: '' }, e)));
+    (readStore('kashierApplicationLog')[leadId] || []).filter(e => e.action !== 'Started' && e.action !== 'Assigned').forEach(e => events.push(Object.assign({ action: 'Note', category: 'Application', role: '' }, e)));
     return events.sort((x, y) => new Date(y.ts) - new Date(x.ts));
   }
 

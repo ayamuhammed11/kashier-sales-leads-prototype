@@ -428,22 +428,13 @@
   }
   applyStoredStatuses();
 
-  /* Every application has a full log from its first moment: the CRM assigning the lead to its salesperson, and — for a
+  /* Every application has its full log: for a
      canceled lead — the cancelation. Written once per lead, so it is there whichever status the application is opened in. */
   (function seedLeadLogs() {
     const K = window.KashierRates, store = K.readStore('kashierApplicationLog');
-    const apps = K.loadApplications();
     let changed = false;
     LEADS.forEach(l => {
       const list = store[l.id] = store[l.id] || [];
-      if (!list.some(e => e.action === 'Assigned')) {
-        const app = apps.filter(a => a.leadId === l.id && !a.superseded)[0];
-        let at = new Date(l.assigned + 'T09:00:00.000Z').getTime();
-        if (app && at >= new Date(app.ts).getTime()) at = new Date(app.ts).getTime() - 2 * 86400000;
-        list.push({ ts: new Date(at).toISOString(), who: 'Zoho CRM', text: 'Lead assigned to ' + l.owner, action: 'Assigned', category: 'Application', role: 'CRM', system: true,
-          details: [{ label: 'Merchant', value: l.biz }, { label: 'Industry', value: l.industry }, { label: 'Contact', value: l.contact }, { label: 'Lead', value: l.id }] });
-        changed = true;
-      }
       if (l.status === 'lost' && !list.some(e => e.action === 'Canceled')) {
         list.push({ ts: new Date(l.lastActivity + 'T12:00:00.000Z').toISOString(), who: l.owner, text: 'Application canceled', action: 'Canceled', category: 'Application', role: 'Salesperson',
           details: [{ label: 'Comment', value: 'The merchant decided not to go ahead.' }], status: { from: 'New', to: 'Canceled' } });

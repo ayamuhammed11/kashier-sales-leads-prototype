@@ -176,6 +176,7 @@
     color: var(--foreground); font-family: inherit; font-size: 13px; padding: 0 10px; color-scheme: light; cursor: pointer; }
   .wait-sub { margin-top: 5px; }
   .returned-sub { color: var(--destructive); font-weight: 600; }
+  .reject-why { white-space: normal; max-width: 250px; color: var(--cadet-base); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   /* Four columns, so the rate queue needs far less width than the leads table. */
   .rate-table { min-width: 720px; }
   .rate-table .row-action { width: 1%; }
@@ -421,7 +422,9 @@
   function applyStoredStatuses() {
     let store = {};
     try { store = JSON.parse(localStorage.getItem('kashierLeadStatusOverrides') || '{}'); } catch (e) { /* storage unavailable */ }
-    LEADS.forEach(l => { if (store[l.id] && STATUS_META[store[l.id]]) l.status = store[l.id]; });
+    // 'application' (opened, or sent back to the salesperson) has no tab of its own but still has to be honoured:
+    // statusOf() turns it into New or Rejected.
+    LEADS.forEach(l => { if (store[l.id] && (STATUS_META[store[l.id]] || store[l.id] === 'application')) l.status = store[l.id]; });
   }
   applyStoredStatuses();
   // A live merchant has moved on from Sales — it's worked from the Merchant module from here.
@@ -510,6 +513,17 @@
   const leadHead = () => `<tr><th>Merchant</th><th>MID</th><th>Contact</th><th>Status</th>
     ${isApprover() ? '<th>Salesperson</th>' : ''}<th>Assigned</th><th>Last Activity</th><th></th></tr>`;
 
+  /* Under a Rejected application's badge: who rejected it and why, so the filter answers it at a glance. */
+  function rejectionCellHTML(l) {
+    const w = window.KashierRates.rejectionInfo(l.id);
+    if (!w) return `<div class="cell-sub wait-sub returned-sub">Action required</div>`;
+    const why = w.kind === 'underwriting' ? w.reason
+      : w.items.length ? `${w.items[0].rate}: ${w.items[0].reason}${w.items.length > 1 ? ` (+${w.items.length - 1} more)` : ''}` : '';
+    const full = w.kind === 'underwriting' ? w.reason : w.items.map(i => `${i.rate}: ${i.reason}`).join('\n');
+    return `<div class="cell-sub wait-sub returned-sub">${w.kind === 'underwriting' ? 'Rejected by Underwriting' : `Rates rejected \u2014 ${w.items.length}`}</div>
+      ${why ? `<div class="cell-sub reject-why" title="${esc(full)}">${esc(why)}</div>` : ''}`;
+  }
+
   function renderTable() {
     const rows = filteredLeads();
     $('tableHead').innerHTML = leadHead();
@@ -563,7 +577,7 @@
         </td>
         <td>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
-          ${statusOf(l) === 'returned' ? `<div class="cell-sub wait-sub returned-sub">Action required — ${returnedLeads[l.id].kind === 'onboarding' ? 'update &amp; resubmit' : 'modify rejected rates'}</div>` : ''}
+          ${statusOf(l) === 'returned' ? rejectionCellHTML(l) : ''}
         </td>
         ${isApprover() ? `<td>${esc(l.owner)}</td>` : ''}
         <td>${fmtDate(l.assigned)}</td>

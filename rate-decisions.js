@@ -1011,6 +1011,22 @@ window.KashierRates = (function () {
     return events.sort((x, y) => new Date(y.ts) - new Date(x.ts));
   }
 
+  /* Why an application is back with the salesperson. It is either rejected by the Onboarding team after
+     underwriting review (one reason), or one or more of its rates were rejected by the approvers (a reason each). */
+  function rejectionInfo(leadId) {
+    const app = loadApplications().filter(a => a.leadId === leadId && !a.superseded)[0];
+    if (!app) return null;
+    const rec = accountRecord(app);
+    if (rec.status === 'rejected') {
+      return { kind: 'underwriting', title: 'Rejected by Underwriting', by: rec.by, role: 'Onboarding Team', ts: rec.ts, reason: rec.reason || '', items: [] };
+    }
+    const d = decisionsFor(app.id);
+    const items = app.requests.filter(r => d[r.id] && d[r.id].decision === 'rejected').map(r => ({
+      rate: r.rate, service: r.service, bank: r.bank, by: d[r.id].by, role: d[r.id].roleLabel, ts: d[r.id].ts, reason: d[r.id].reason || '' }));
+    if (!items.length) return null;
+    return { kind: 'rates', title: 'Rates rejected', by: items[0].by, role: items[0].role, ts: items.map(i => i.ts).sort().pop(), reason: '', items: items };
+  }
+
   /* Rate requests are reviewed on the application's own view too. */
   function requestURL(appId, tier) {
     const a = loadApplications().filter(x => x.id === appId)[0];
@@ -1026,7 +1042,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, payoutLabel: payoutLabel, payoutList: payoutList,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

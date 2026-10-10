@@ -2651,6 +2651,22 @@
       </div>`;
     }
 
+    // Sent back to the salesperson: say who rejected it and why, right at the top of the application.
+    if (appMode === 'returned') {
+      const w = K.rejectionInfo(sourceLeadId);
+      const when = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>';
+      let title = 'This application was sent back to you', lines = [esc(note ? note.text : '')];
+      if (w && w.kind === 'underwriting') {
+        title = 'Rejected by the Underwriting team \u2014 update the application and resubmit it';
+        lines = [`<b>Reason:</b> ${esc(w.reason || 'No reason was given.')}`, `${esc(w.by)}${w.role ? ' \u00b7 ' + esc(w.role) : ''} \u00b7 ${esc(when(w.ts))}`];
+      } else if (w && w.kind === 'rates') {
+        title = `${w.items.length} rate${w.items.length === 1 ? '' : 's'} rejected \u2014 change them and resubmit`;
+        lines = w.items.map(i => `<b>${esc(i.rate)}</b> (${esc(i.service)}${i.bank ? ' \u00b7 ' + esc(i.bank) : ''}): ${esc(i.reason || 'No reason was given.')} \u2014 ${esc(i.by)}${i.role ? ', ' + esc(i.role) : ''}, ${esc(when(i.ts))}`);
+      }
+      banner = `<div class="app-mode-banner returned">${X}<div class="amb-text"><b>${title}</b>${lines.map(l => `<span>${l}</span>`).join('')}</div></div>`;
+    }
+
     const head = document.querySelector('.page-head');
     const shown = status === 'application' && note && isSales ? 'returned' : status;
     const LABELS = { new: 'New', application: 'New', returned: 'Rejected', 'rate-approval': 'Waiting Rate Approval',
@@ -2724,8 +2740,9 @@
         steps.push({ label: 'Rate Approval', state: st,
           sub: `${approved} approved${rejected ? ` · ${rejected} rejected` : ''}${open ? ` · ${open} to review` : ''}` });
       }
-      steps.push({ label: 'Underwriting Review', state: at >= 1 ? stateOf(1) : 'todo',
-        sub: at === 1 && acct ? acct.meta.label : at > 1 ? 'Approved internally' : '' });
+      const uwRejected = (K.rejectionInfo(sourceLeadId) || {}).kind === 'underwriting';
+      steps.push({ label: 'Underwriting Review', state: uwRejected ? 'bad' : at >= 1 ? stateOf(1) : 'todo',
+        sub: uwRejected ? 'Rejected' : at === 1 && acct ? acct.meta.label : at > 1 ? 'Approved internally' : '' });
       // The application ends at Bank Submission: once the bank comes back and the account goes live,
       // it is worked from the Merchant module, so there is no Live status here.
       steps.push({ label: 'Bank Submission', state: at >= 2 ? (at >= 3 ? 'done' : stateOf(2)) : 'todo',

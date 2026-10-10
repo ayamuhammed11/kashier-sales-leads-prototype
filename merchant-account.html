@@ -381,6 +381,51 @@
   .log-text { font-size: 14px; color: var(--foreground); }
   .log-meta { font-size: 12.5px; color: var(--cadet-05); margin-top: 2px; }
 
+  /* Sub-tabs (Tabs pattern: underline, primary when active) */
+  .subtabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin: 28px 0 16px; }
+  .subtab { display: flex; align-items: center; gap: 8px; padding: 10px 20px; margin-bottom: -2px; font-family: inherit; font-size: 14px; font-weight: 600;
+    color: #637373; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: color .12s ease; }
+  .subtab:hover { color: var(--foreground); }
+  .subtab:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .subtab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .subtab.active .mx-count { background: var(--ocean-10); color: var(--primary); }
+
+  /* Payout change activity — Card (border-subtle, 4px), Data Table header, Alert tokens */
+  .pc-item { background: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+    display: flex; flex-direction: column; gap: 16px; }
+  .pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+  .pc-title { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; line-height: 1.2; color: var(--cadet-base); }
+  .pc-meta { font-size: 12px; color: var(--cadet-04); margin-top: 4px; }
+  .pc-account { display: flex; flex-direction: column; gap: 8px; }
+  .pc-account + .pc-account { padding-top: 16px; border-top: 1px solid var(--border-subtle); }
+  .pc-account-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pc-account-name > span:not(.badge) { font-size: 12px; color: var(--cadet-04); }
+  .pc-account-name > .pc-accid { font-weight: 600; color: var(--cadet-base); letter-spacing: .2px; }
+  .pc-title .badge { margin-inline-start: 8px; vertical-align: middle; }
+  .pc-title .pc-accid { display: block; font-family: 'Noto Sans', Arial, sans-serif; font-size: 12px; font-weight: 400; color: var(--cadet-04); margin-top: 2px; }
+  .pc-tablewrap { border-radius: var(--radius); overflow: hidden; overflow-x: auto;
+    box-shadow: 0 0 0 1px rgba(152,161,178,.1), 0 1px 4px 0 rgba(69,75,87,.12), 0 0 2px 0 rgba(0,0,0,.08); }
+  .pc-table { width: 100%; border-collapse: collapse; background: #fff; }
+  .pc-table th { height: 40px; padding: 0 8px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .44px;
+    color: #464F60; background: rgba(245,246,246,.75); border-bottom: 1px solid #E9EDF5; }
+  .pc-table td { height: 49px; padding: 0 8px; font-size: 14px; color: var(--foreground); vertical-align: middle; word-break: break-word; }
+  .pc-table tbody tr:nth-child(even) { background: rgba(248,249,249,.75); }
+  .pc-field { width: 30%; color: var(--cadet-base); }
+  .pc-old { color: var(--cadet-02); }
+  .pc-new { font-weight: 600; }
+  .pc-table tr.changed td { background: var(--ocean-10); }
+  .pc-flag { margin-inline-start: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: var(--primary); }
+  .pc-none { color: var(--cadet-05); }
+  .pc-outcome { border: 1px solid; border-radius: 5px; padding: 12px; font-size: 14px; line-height: 1.35; }
+  .pc-outcome.pending { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+  .pc-outcome.approved { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+  .pc-outcome.rejected { background: var(--destructive-bg); border-color: var(--destructive-border); color: var(--destructive); }
+  .pc-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .pc-reason { margin-top: 6px; }
+  .alert.error { background: var(--destructive-bg); border-color: var(--destructive-border); color: var(--destructive); }
+
   /* Merchants list */
   .mx-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--border-subtle); margin-bottom: 16px; }
   .mx-tab { display: flex; align-items: center; gap: 8px; padding: 11px 14px; font-family: inherit; font-size: 13px; font-weight: 600;
@@ -470,15 +515,6 @@
         <svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
       </button>
       <div class="topbar-right">
-        <div class="role-switch">
-          <label for="roleSelect">Viewing as</label>
-          <select id="roleSelect">
-            <option value="sales">Salesperson</option>
-            <option value="manager">Sales Manager</option>
-            <option value="head">Head of Sales</option>
-            <option value="onboarding">Onboarding Team</option>
-          </select>
-        </div>
         <button class="lang">عربي</button>
         <div class="user">
           <span class="name" id="userName">Aya Muhammed</span>
@@ -564,6 +600,22 @@
     </div>
   </div>
 
+  <!-- Payout change ✗ -->
+  <div class="mx-backdrop" id="pcRejectModal">
+    <div class="mx-modal">
+      <div class="mx-modal-head"><h3>Reject account change</h3><button class="mx-close" data-close>&#10005;</button></div>
+      <div class="mx-modal-body">
+        <p>This account keeps its current payout details. Say why the change was rejected.</p>
+        <textarea id="pcRejectReason" placeholder="e.g. The account holder name does not match the business owner."></textarea>
+        <div class="mx-err" id="pcRejectError" hidden>Add a reason for the rejection.</div>
+      </div>
+      <div class="mx-modal-foot">
+        <button class="btn btn-outline btn-sm" data-close>Cancel</button>
+        <button class="btn btn-danger btn-sm" id="pcRejectConfirm">Reject</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Stage 2 -->
   <div class="mx-backdrop" id="liveModal">
     <div class="mx-modal">
@@ -586,7 +638,8 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
   const K = window.KashierRates;
   const { ROLES, TIER_OWNER } = K;
-  let role = K.getRole();
+  // This page is the Onboarding team's: it always opens as them, with no role switch.
+  const role = 'onboarding';
   const APP_ID = new URLSearchParams(location.search).get('app') || '';
 
   const TABS = ['Business Info', 'Change Requests', 'Documents', 'Payment Configurations', 'Payout Method',
@@ -649,7 +702,7 @@
     const [tone, html] = notes[status];
     $('stageNote').className = 'stage-note ' + tone;
     $('stageNote').innerHTML = ICON.info + `<div>${html}</div>`;
-    $('stageNote').hidden = false;
+    $('stageNote').hidden = status === 'live';
   }
 
   function pendingRateSummary(app) {
@@ -712,13 +765,74 @@
       </div>`).join('')}`;
   }
 
-  function panelPayout(acct) {
-    const p = acct.app.payout;
-    if (!p || !p.method) return `<h2 class="section-title">Payout Method</h2><div class="kv-grid">${kv('Primary payout method', 'Not provided')}</div>`;
-    const rows = p.method === 'wallet'
+  let payoutTab = 'new';
+  const PC_STATE = { pending: ['warning', 'Pending'], approved: ['success', 'Approved'], rejected: ['error', 'Rejected'], partial: ['primary', 'Partially approved'] };
+
+  function payoutRows(p) {
+    return p.method === 'wallet'
       ? kv('Method', 'E-Wallet') + kv('Wallet Provider', p.provider) + kv('Wallet Mobile Number', p.number) + kv('Wallet Holder Name', p.holder)
       : kv('Method', 'Bank Account') + kv('Bank Name', p.bankName) + kv('Bank Branch Name', p.branch) + kv('Account Holder Name', p.holder) + kv('Account Number', p.account);
-    return `<h2 class="section-title">Payout Method <span style="font-size:12px;font-weight:600;color:var(--cadet-05)">Primary</span></h2><div class="kv-grid">${rows}</div>`;
+  }
+
+  /* One account's change request: its name and ACC ID, the full old and new details with the changed
+     fields marked, who asked, and who decided it and why. */
+  function payoutChangeItem(r, canDecide) {
+    const it = r.items[0], [tone, label] = PC_STATE[r.state];
+    const gate = canDecide ? '' : ' disabled';
+    const rows = K.payoutCompare(it.from, it.to).map(d => `<tr${d.changed ? ' class="changed"' : ''}>
+        <td class="pc-field">${esc(d.label)}</td>
+        <td class="pc-old">${d.from ? esc(d.from) : '<span class="pc-none">Not set</span>'}</td>
+        <td class="pc-new">${esc(d.to)}${d.changed ? '<span class="pc-flag">Changed</span>' : ''}</td></tr>`).join('');
+    const outcome = r.state === 'pending'
+      ? `<div class="pc-actions">
+          <button class="btn btn-danger-outline btn-sm" type="button" data-pc-reject="${esc(it.id)}"${gate}>Reject</button>
+          <button class="btn btn-success btn-sm" type="button" data-pc-approve="${esc(it.id)}"${gate}>Approve</button>
+        </div>`
+      : `<div class="pc-outcome ${it.state}">
+          <div><b>${it.state === 'approved' ? 'Approved' : 'Rejected'}</b> by ${esc(it.decidedBy)} · ${esc(fmtDateTime(it.decidedTs))}</div>
+          ${it.state === 'rejected' ? `<div class="pc-reason"><b>Reason:</b> ${esc(it.reason)}</div>` : ''}
+        </div>`;
+    return `<div class="pc-item">
+      <div class="pc-head">
+        <div><div class="pc-title">${esc(it.account)}${it.primary ? '<span class="badge success">Primary</span>' : ''}<span class="pc-accid">${esc(it.accId)}</span></div>
+          <div class="pc-meta"><b>${esc(r.ref)}</b> · Requested by the merchant · ${esc(fmtDateTime(r.ts))}</div></div>
+        <span class="badge ${tone}"><span class="dot"></span>${label}</span>
+      </div>
+      <div class="pc-tablewrap"><table class="pc-table"><thead><tr><th>Field</th><th>Old</th><th>New</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${outcome}
+    </div>`;
+  }
+  const PAYOUT_LABEL = { bank: 'Bank Account', wallet: 'E-Wallet' };
+
+  /* One account as it stands now, with when and by which request it last changed. */
+  function payoutCurrentCard(a) {
+    return `<div class="pc-item">
+      <div class="pc-head">
+        <div><div class="pc-title">${esc(a.account)}${a.primary ? '<span class="badge success">Primary</span>' : a.trusted ? '<span class="badge primary">Trusted</span>' : ''}<span class="pc-accid">${esc(a.accId)}</span></div>
+          <div class="pc-meta">${a.updatedTs ? `Updated ${esc(fmtDateTime(a.updatedTs))} · <b>${esc(a.ref)}</b>` : 'As submitted with the application'}</div></div>
+        <span class="badge primary">${esc(PAYOUT_LABEL[a.details.method])}</span>
+      </div>
+      <div class="kv-grid">${payoutRows(a.details)}</div>
+    </div>`;
+  }
+
+  function panelPayout(acct) {
+    const p = K.currentPayout(acct.app);
+    if (!p || !p.method) return `<h2 class="section-title">Payout Method</h2><div class="kv-grid">${kv('Payout methods', 'None were added with this application')}</div>`;
+    const changes = K.payoutChanges(acct.app);
+    const accounts = K.payoutAccounts(acct.app);
+    const pending = changes.filter(r => r.state === 'pending'), history = changes.filter(r => r.state !== 'pending');
+    return `<h2 class="section-title">Payout Method</h2>
+      <div class="subtabs" role="tablist" style="margin-top:0">
+        <button class="subtab${payoutTab === 'new' ? ' active' : ''}" role="tab" data-ptab="new">New Request${pending.length ? `<span class="mx-count">${pending.length}</span>` : ''}</button>
+        <button class="subtab${payoutTab === 'history' ? ' active' : ''}" role="tab" data-ptab="history">History of Changes<span class="mx-count">${history.length}</span></button>
+        <button class="subtab${payoutTab === 'current' ? ' active' : ''}" role="tab" data-ptab="current">Current Payout Method${accounts.length > 1 ? 's' : ''}<span class="mx-count">${accounts.length}</span></button>
+      </div>
+      ${payoutTab === 'current' ? accounts.map(payoutCurrentCard).join('') : payoutTab === 'new'
+        ? (pending.length ? pending.map(r => payoutChangeItem(r, isOnboarding())).join('')
+          : `<div class="panel-empty" style="padding:30px 20px">${ICON.empty}<h3>No pending request</h3><p>There is no payout change waiting for a decision.</p></div>`)
+        : (history.length ? history.map(r => payoutChangeItem(r, isOnboarding())).join('')
+          : `<div class="panel-empty" style="padding:30px 20px">${ICON.empty}<h3>No payout changes yet</h3><p>The payout method is still the one submitted with the application.</p></div>`)}`;
   }
 
   function panelPayment(acct) {
@@ -816,6 +930,38 @@
     render();
   });
 
+  /* ── Payout change decisions ── */
+  let pcRejectId = '';
+  $('panel').addEventListener('click', e => {
+    const pt = e.target.closest('[data-ptab]');
+    if (pt) { payoutTab = pt.dataset.ptab; render(); return; }
+    const acct = current();
+    if (!acct || !isOnboarding()) return;
+    const ok = e.target.closest('[data-pc-approve]'), no = e.target.closest('[data-pc-reject]');
+    if (ok && K.decidePayoutChange({ app: acct.app, id: ok.dataset.pcApprove, role, decision: 'approved' })) {
+      render();
+      toast('Account approved.');
+    } else if (no) {
+      pcRejectId = no.dataset.pcReject;
+      $('pcRejectReason').value = '';
+      $('pcRejectReason').classList.remove('invalid');
+      $('pcRejectError').hidden = true;
+      open('pcRejectModal');
+      $('pcRejectReason').focus();
+    }
+  });
+  $('pcRejectReason').addEventListener('input', () => { $('pcRejectReason').classList.remove('invalid'); $('pcRejectError').hidden = true; });
+  $('pcRejectConfirm').addEventListener('click', () => {
+    const reason = $('pcRejectReason').value.trim();
+    if (!reason) { $('pcRejectReason').classList.add('invalid'); $('pcRejectError').hidden = false; $('pcRejectReason').focus(); return; }
+    const acct = current();
+    closeAll();
+    if (acct && K.decidePayoutChange({ app: acct.app, id: pcRejectId, role, decision: 'rejected', reason })) {
+      render();
+      toast('Account rejected.');
+    }
+  });
+
   /* ── Stage actions ── */
   function open(id) { $(id).classList.add('open'); }
   function closeAll() { document.querySelectorAll('.mx-backdrop').forEach(m => m.classList.remove('open')); }
@@ -885,18 +1031,7 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  function renderRole() {
-    $('roleSelect').value = role;
-    $('userName').textContent = ROLES[role].name;
-  }
-  $('roleSelect').addEventListener('change', e => {
-    role = e.target.value;
-    K.setRole(role);
-    renderRole();
-    render();
-  });
-
-  renderRole();
+  $('userName').textContent = ROLES[role].name;
   render();
 
   // Sidebar collapsible sections

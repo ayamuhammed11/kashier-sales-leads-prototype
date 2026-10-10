@@ -401,6 +401,12 @@ window.KashierRates = (function () {
     const n = String(a.id).replace(/\D/g, '').padStart(8, '0');
     return { method: 'bank', bankName: 'National Bank of Egypt', branch: 'Main Branch', holder: String(a.biz).replace(/[^\p{L}\p{M}\p{N} ]/gu, '').replace(/ +/g, ' ').trim(), account: '1002' + n };
   }
+  /* Every payout method submitted with the application, the primary first. Older applications carry only the primary. */
+  function payoutList(app) {
+    const list = (app.payouts || []).filter(p => p && p.method);
+    if (list.length) return list.slice().sort((a, b) => (b.primary ? 1 : 0) - (a.primary ? 1 : 0));
+    return app.payout && app.payout.method ? [Object.assign({ primary: true, trusted: false }, app.payout)] : [];
+  }
   /* One line for a payout method, with the account or wallet number masked to its last four digits. */
   function payoutLabel(p) {
     if (!p || !p.method) return '';
@@ -420,13 +426,16 @@ window.KashierRates = (function () {
     try { documents = JSON.parse(qs.get('documents') || '[]'); } catch (e) { documents = []; }
     let contracts = [];
     try { contracts = JSON.parse(qs.get('contracts') || '[]'); } catch (e) { contracts = []; }
-    let payout = null;
+    let payout = null, payouts = [];
     try { payout = JSON.parse(qs.get('payout') || 'null'); } catch (e) { payout = null; }
+    try { payouts = JSON.parse(qs.get('payouts') || '[]'); } catch (e) { payouts = []; }
+    if (!payout) payout = payouts.filter(p => p.primary)[0] || null;
     return {
       id: qs.get('id') || '—', leadId: leadId || qs.get('leadId') || '', url: url,
       documents: documents,
       contracts: contracts,
       payout: payout,
+      payouts: payouts,
       mid: qs.get('mid') || '',
       website: qs.get('website') || '',
       altIndustries: (() => { try { return JSON.parse(qs.get('altIndustries') || '[]'); } catch (e) { return []; } })(),
@@ -726,6 +735,168 @@ window.KashierRates = (function () {
     return 'live';
   }
 
+  /* ── Payout method changes ───────────────────────────────────────────────────────
+     A change request moves the account from one payout method to another and is decided by the
+     Onboarding team. The activity keeps every request — who raised it, what changed, who decided it,
+     when, and the reason when it was rejected. The payout in force is the submitted one with every
+     approved request applied in order. The demo accounts carry a short seeded history. */
+  const PAYOUT_FIELDS = {
+    bank:   [['bankName', 'Bank Name'], ['branch', 'Bank Branch Name'], ['holder', 'Account Holder Name'], ['account', 'Account Number']],
+    wallet: [['provider', 'Wallet Provider'], ['number', 'Wallet Mobile Number'], ['holder', 'Wallet Holder Name']],
+  };
+  const PAYOUT_METHOD_LABEL = { bank: 'Bank Account', wallet: 'E-Wallet' };
+
+  /* A merchant's payout accounts: the primary one, then any added later, each with a name and an ACC ID. */
+  const POS_SEED = { method: 'wallet', provider: 'Vodafone Cash', number: '01012345678', holder: 'Hassan Ibrahim' };
+  function accountIds(app) {
+    const code = String(midFor(app) || '').replace(/^MID-/, '') || String(app.id).replace(/\D/g, '').padStart(8, '0');
+    const id = k => 'ACC-' + code + '-0' + k;
+    return { primary: id(1), pos: id(2), korba: id(3), at: id };
+  }
+  function korbaSeed(app) {
+    return { method: 'bank', bankName: 'Banque Misr', branch: 'Giza', holder: 'Hassan Ibrahim', account: '5006' + String(app.id).replace(/\D/g, '').padStart(8, '0') };
+  }
+
+  function seededPayoutChanges(app) {
+    const status = accountStatusFor(app);
+    if (status !== 'pending-configurations' && status !== 'live') return [];
+    const base = app.payout;
+    if (!base || base.method !== 'bank') return [];
+    const t0 = new Date(app.ts).getTime(), now = Date.now(), DAY = 86400000;
+    const at = days => new Date(Math.min(t0 + days * DAY + 36e5 * 3, now)).toISOString();
+    const n = String(app.id).replace(/\D/g, '').padStart(8, '0');
+    const afterBranch = Object.assign({}, base, { branch: 'Maadi' });
+    const pos = POS_SEED, korba = korbaSeed(app), ids = accountIds(app);
+    const P = { account: 'Primary Account', accId: ids.primary };
+    const POS = { account: 'POS', accId: ids.pos }, KORBA = { account: 'POS-Branch Korba', accId: ids.korba };
+    const by = ROLES.onboarding.name;
+    // A request lists the accounts it changes; each account is decided on its own.
+    const reqs = [
+      { id: app.id + '::pc1', ref: 'PCR-' + n + '-01', ts: at(3), by: app.biz, items: [
+        { ...P, from: base, to: afterBranch, decision: 'approved', decidedBy: by, decidedTs: at(4) }] },
+      { id: app.id + '::pc2', ref: 'PCR-' + n + '-02', ts: at(8), by: app.biz, items: [
+        { ...P, from: afterBranch,
+          to: { method: 'wallet', provider: 'Vodafone Cash', number: '01012345678', holder: 'Hassan Ibrahim' },
+          decision: 'rejected', decidedBy: by, decidedTs: at(9),
+          reason: 'The wallet holder name does not match the registered business owner. Resubmit with the owner’s name or keep the bank account.' }] },
+    ];
+    // Newer requests from the merchant, still waiting on the Onboarding team.
+    reqs.push({ id: app.id + '::pc4', ref: 'PCR-' + n + '-04', ts: at(16), by: app.biz, items: [
+      { ...P, from: afterBranch, to: Object.assign({}, afterBranch, { holder: afterBranch.holder + ' Trading', account: '3004' + n }) }] });
+    if (status === 'live') {
+      reqs.push({ id: app.id + '::pc5', ref: 'PCR-' + n + '-05', ts: at(18), by: app.biz, items: [
+        { ...POS, from: pos,
+          to: { method: 'bank', bankName: 'Commercial International Bank (CIB)', branch: 'Nasr City', holder: pos.holder, account: '4005' + n } }] });
+      reqs.push({ id: app.id + '::pc6', ref: 'PCR-' + n + '-06', ts: at(19), by: app.biz, items: [
+        { ...KORBA, from: korba, to: Object.assign({}, korba, { branch: 'Dokki', account: '6007' + n }) }] });
+      // More requests from the merchant, each on one account.
+      const more = [
+        [8, 20, P, afterBranch, Object.assign({}, afterBranch, { holder: afterBranch.holder + ' LLC' })],
+        [9, 21, POS, pos, Object.assign({}, pos, { number: '01098765432' })],
+        [10, 22, KORBA, korba, Object.assign({}, korba, { holder: 'Hassan Ibrahim Mostafa' })],
+        [11, 23, P, afterBranch, Object.assign({}, afterBranch, { bankName: 'Commercial International Bank (CIB)', branch: 'Zamalek', account: '7008' + n })],
+        [12, 24, KORBA, korba, { method: 'wallet', provider: 'WE Pay', number: '01512345678', holder: 'Hassan Ibrahim' }],
+      ];
+      more.forEach(m => reqs.push({ id: app.id + '::pc' + m[0], ref: 'PCR-' + n + '-' + String(m[0]).padStart(2, '0'), ts: at(m[1]), by: app.biz,
+        items: [{ account: m[2].account, accId: m[2].accId, from: m[3], to: m[4] }] }));
+      // Each account is its own request, with its own ID and decision.
+      reqs.push({ id: app.id + '::pc3', ref: 'PCR-' + n + '-03', ts: at(14), by: app.biz, items: [
+        { ...P, from: afterBranch, to: Object.assign({}, afterBranch, { bankName: 'Banque Misr', branch: 'Heliopolis', account: '2003' + n }) }] });
+      reqs.push({ id: app.id + '::pc7', ref: 'PCR-' + n + '-07', ts: at(15), by: app.biz, items: [
+        { ...POS, from: pos, to: Object.assign({}, pos, { provider: 'Orange Cash', number: '01211122233' }) }] });
+    }
+    return reqs;
+  }
+
+  /* Every payout change request on the account, newest first, with each account's decision applied.
+     A request is pending while any of its accounts awaits a decision; once all are decided it is
+     approved, rejected, or partial when the accounts went different ways. */
+  function payoutChanges(app) {
+    const decided = readStore('kashierPayoutDecisions')[app.id] || {};
+    return seededPayoutChanges(app).map(r => {
+      const items = r.items.map((it, i) => {
+        const out = Object.assign({}, it, { id: r.id + '::' + i, primary: it.accId === accountIds(app).primary });
+        const d = decided[out.id];
+        if (d) { out.decision = d.decision; out.decidedBy = d.by; out.decidedTs = d.ts; out.reason = d.reason || ''; }
+        out.state = out.decision || 'pending';
+        return out;
+      });
+      const nOk = items.filter(i => i.state === 'approved').length, nNo = items.filter(i => i.state === 'rejected').length;
+      const state = nOk + nNo < items.length ? 'pending' : !nNo ? 'approved' : !nOk ? 'rejected' : 'partial';
+      const stamps = items.map(i => i.decidedTs).filter(Boolean).sort();
+      return Object.assign({}, r, { items: items, state: state, decidedTs: stamps[stamps.length - 1] || '',
+        decidedBy: (items.filter(i => i.decidedTs).sort((a, b) => new Date(b.decidedTs) - new Date(a.decidedTs))[0] || {}).decidedBy });
+    }).sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  }
+
+  /* The primary payout in force: the submitted one with each approved change applied, oldest first. */
+  function currentPayout(app) {
+    const approved = [];
+    payoutChanges(app).forEach(r => r.items.forEach(i => { if (i.state === 'approved' && i.primary) approved.push(i); }));
+    approved.sort((a, b) => new Date(a.decidedTs) - new Date(b.decidedTs));
+    return approved.length ? approved[approved.length - 1].to : app.payout;
+  }
+
+  /* The payout accounts in force now, each with when and by which request it last changed. */
+  function payoutAccounts(app) {
+    const changes = payoutChanges(app).slice().reverse();   // oldest first
+    const latest = accId => {
+      let hit = null;
+      changes.forEach(r => r.items.forEach(i => {
+        if (i.accId === accId && i.state === 'approved' && (!hit || new Date(i.decidedTs) >= new Date(hit.item.decidedTs))) hit = { item: i, ref: r.ref };
+      }));
+      return hit;
+    };
+    const ids = accountIds(app), defs = [];
+    if (app.payout && app.payout.method) defs.push({ account: 'Primary Account', accId: ids.primary, primary: true, details: app.payout });
+    // Other methods the salesperson added with the application; the POS demo accounts stand in only when there are none.
+    const extras = payoutList(app).filter(p => !p.primary);
+    extras.forEach((p, i) => defs.push({ account: 'Payout Account ' + (i + 2), accId: ids.at(i + 2), primary: false, trusted: !!p.trusted, details: p }));
+    if (accountStatusFor(app) === 'live' && !extras.length) {
+      defs.push({ account: 'POS', accId: ids.pos, primary: false, details: POS_SEED });
+      defs.push({ account: 'POS-Branch Korba', accId: ids.korba, primary: false, details: korbaSeed(app) });
+    }
+    return defs.map(d => {
+      const hit = latest(d.accId);
+      return Object.assign({}, d, { details: hit ? hit.item.to : d.details, updatedTs: hit ? hit.item.decidedTs : '', ref: hit ? hit.ref : '' });
+    });
+  }
+
+  /* Field-by-field difference between two payout methods; only what changed. */
+  function payoutDiff(from, to) {
+    const rows = [];
+    if (!from || from.method !== to.method) rows.push({ label: 'Method', from: from ? PAYOUT_METHOD_LABEL[from.method] : '', to: PAYOUT_METHOD_LABEL[to.method] });
+    PAYOUT_FIELDS[to.method].forEach(([k, label]) => {
+      const was = from && from.method === to.method ? from[k] : '';
+      if (was !== to[k]) rows.push({ label: label, from: was || '', to: to[k] });
+    });
+    return rows;
+  }
+
+  /* Every field of an account, old beside new, with the ones that changed marked. */
+  function payoutCompare(from, to) {
+    const rows = [{ label: 'Method', from: from ? PAYOUT_METHOD_LABEL[from.method] : '', to: PAYOUT_METHOD_LABEL[to.method] }];
+    PAYOUT_FIELDS[to.method].forEach(([k, label]) => {
+      rows.push({ label: label, from: from && from.method === to.method ? from[k] : '', to: to[k] });
+    });
+    rows.forEach(r => { r.changed = r.from !== r.to; });
+    return rows;
+  }
+
+  /* Decide one account of a request, by its item id. */
+  function decidePayoutChange(opts) {
+    let item = null;
+    payoutChanges(opts.app).forEach(r => r.items.forEach(i => { if (i.id === opts.id) item = i; }));
+    const reason = String(opts.reason || '').trim();
+    if (opts.role !== 'onboarding' || !item || item.state !== 'pending') return null;
+    if (opts.decision === 'rejected' && !reason) return null;
+    const all = readStore('kashierPayoutDecisions');
+    (all[opts.app.id] = all[opts.app.id] || {})[item.id] = {
+      decision: opts.decision, by: ROLES.onboarding.name, ts: new Date().toISOString(), reason: opts.decision === 'rejected' ? reason : '' };
+    writeStore('kashierPayoutDecisions', all);
+    return opts.decision;
+  }
+
   /* What happened to the account, oldest first — the Logs tab. */
   function accountLog(app) {
     const events = [{ ts: app.ts, who: app.actor, text: 'Application submitted by Sales' }];
@@ -791,7 +962,8 @@ window.KashierRates = (function () {
         : 'None \u2014 every rate at published pricing' });
       const docs = (app.documents || []).length || Number(sm.docsDone || 0);
       if (docs) details.push({ label: 'Documents', value: docs + ' uploaded' });
-      if (app.payout && app.payout.method) details.push({ label: 'Payout method', value: payoutLabel(app.payout) });
+      payoutList(app).forEach((p, i) => details.push({ label: payoutList(app).length > 1 ? 'Payout method ' + (i + 1) : 'Payout method',
+        value: payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : p.trusted ? ' (trusted)' : '') }));
       events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
         text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details });
 
@@ -847,9 +1019,10 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, payoutLabel: payoutLabel,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,
+    payoutChanges: payoutChanges, payoutAccounts: payoutAccounts, currentPayout: currentPayout, payoutDiff: payoutDiff, payoutCompare: payoutCompare, decidePayoutChange: decidePayoutChange,
   };
 })();

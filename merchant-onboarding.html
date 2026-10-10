@@ -1824,7 +1824,7 @@
       <div class="whn-actions setup-nav">
         ${setupStep > 1 ? '<button type="button" class="btn btn-outline" id="setupBack">Back</button>' : ''}
         <span class="setup-nav-status">${issues.length ? esc(issues[0]) + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '') : (appMode === 'locked' ? 'View only — use the steps above to look through the setup.' : last ? 'Service setup complete.' : 'This step is complete.')}</span>
-        ${last ? (appMode === 'locked' ? '' : `<button type="button" class="btn btn-primary" id="submitAppBtn">${appMode === 'returned' ? 'Resubmit Application' : 'Create Merchant Application'}</button>`) : `<button type="button" class="btn btn-primary" id="setupNext"${issues.length ? ' disabled' : ''}>Continue to ${esc(SETUP_STEPS[setupStep].label)}</button>`}
+        ${last ? (appMode === 'locked' ? '' : `<button type="button" class="btn btn-primary" id="submitAppBtn">${appMode === 'returned' ? 'Resubmit Application' : 'Submit Merchant Application'}</button>`) : `<button type="button" class="btn btn-primary" id="setupNext"${issues.length ? ' disabled' : ''}>Continue to ${esc(SETUP_STEPS[setupStep].label)}</button>`}
       </div>`;
     syncSubmitButton();
     wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
@@ -2326,7 +2326,7 @@
     if (!btn) return;
     const left = readinessChecks().filter(c => !c.done).length;
     btn.disabled = left > 0;
-    btn.title = left ? 'Complete the items listed below to create the application' : '';
+    btn.title = left ? 'Complete the items listed below to submit the application' : '';
   }
   function renderSubmitSummary() {
     const biz = $('mBiz').value.trim();
@@ -2347,7 +2347,7 @@
     $('submitCard').hidden = appMode === 'locked' || !remaining.length;
     $('submitChecklist').hidden = !remaining.length;
     $('submitChecklist').innerHTML = remaining.length ? `
-      <div class="checklist-title">Complete ${remaining.length === 1 ? 'this' : `these ${remaining.length}`} to create the application</div>
+      <div class="checklist-title">Complete ${remaining.length === 1 ? 'this' : `these ${remaining.length}`} to submit the application</div>
       ${checks.map(c => `<div class="check-item${c.done ? ' done' : ''}">
         ${c.done
           ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>'
@@ -2679,10 +2679,9 @@
       const rejected = app.requests.filter(r => decisions[r.id] && decisions[r.id].decision === 'rejected').length;
       const open = total - approved - rejected;
       const acct = K.findAccount(app.id);
-      const order = ['rate-approval', 'onboarding-review', 'activated'];
+      const order = ['rate-approval', 'onboarding-review', 'bank-submission', 'activated'];
       // 'application' after a review means the rates came back rejected — the pipeline stalls at rate approval.
-      // Waiting on the bank is still part of Underwriting Review; there is no stage of its own for it.
-      const at = cur === 'application' ? 0 : cur === 'bank-submission' ? 1 : order.indexOf(cur);
+      const at = cur === 'application' ? 0 : order.indexOf(cur);
       const stateOf = i => at === -1 ? 'todo' : i < at ? 'done' : i === at ? 'current' : 'todo';
       const steps = [{ label: 'Submitted', state: 'done', sub: `${fmt(app.ts)} by ${app.actor}<br>${app.id}` }];
       if (total) {
@@ -2691,7 +2690,9 @@
           sub: `${approved} approved${rejected ? ` · ${rejected} rejected` : ''}${open ? ` · ${open} to review` : ''}` });
       }
       steps.push({ label: 'Underwriting Review', state: at >= 1 ? stateOf(1) : 'todo',
-        sub: at >= 1 && acct ? acct.meta.label : '' });
+        sub: at === 1 && acct ? acct.meta.label : at > 1 ? 'Approved internally' : '' });
+      steps.push({ label: 'Bank Submission', state: at >= 2 ? stateOf(2) : 'todo',
+        sub: at === 2 && acct ? acct.meta.label : at > 2 ? 'Bank approval received' : '' });
       steps.push({ label: 'Live', state: cur === 'activated' ? 'done' : 'todo', sub: cur === 'activated' ? 'Merchant is live' : '' });
       const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
       const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';

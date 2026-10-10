@@ -237,10 +237,8 @@
   .lg-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; }
   .lg-table thead th { height: 42px; padding: 0 10px; background: var(--muted); border-bottom: 1px solid var(--border-subtle); font-size: 11px;
     font-weight: 700; color: var(--cadet-base); text-transform: uppercase; letter-spacing: .3px; text-align: left; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
-  .lg-table tbody td { padding: 12px 10px; font-size: 13px; color: var(--foreground); vertical-align: middle; border-bottom: 1px solid var(--border-subtle); }
+  .lg-table tbody td { padding: 12px 10px; font-size: 13px; color: var(--foreground); vertical-align: top; border-bottom: 1px solid var(--border-subtle); }
   .lg-table .c-when { width: 132px; } .lg-table .c-action { width: 112px; } .lg-table .c-by { width: 168px; }
-  .lg-row-main.has-details { cursor: pointer; }
-  .lg-row-main.has-details:hover { background: var(--primary-10); }
   .lg-abs { font-size: 12.5px; color: var(--foreground); } .lg-rel { font-size: 11px; color: var(--cadet-05); margin-top: 2px; }
   .lg-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .3px; padding: 4px 9px; white-space: nowrap; }
@@ -257,19 +255,12 @@
   .lg-av svg { width: 13px; height: 13px; }
   .lg-who { min-width: 0; } .lg-who-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .lg-who-role { font-size: 11px; color: var(--cadet-05); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lg-text { display: flex; align-items: center; gap: 8px; line-height: 1.45; }
-  .lg-text > span:first-child { flex: 1; min-width: 0; }
-  .lg-chev { width: 16px; height: 16px; color: var(--cadet-05); flex-shrink: 0; display: flex; transition: transform .15s ease; }
-  .lg-chev svg { width: 16px; height: 16px; }
-  .lg-row-main.open .lg-chev { transform: rotate(180deg); }
-  .lg-row-detail { display: none; } .lg-row-detail.open { display: table-row; }
-  .lg-row-detail td { background: #FCFCFD; padding: 4px 10px 14px 142px; }
-  .lg-lines { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; line-height: 1.5; }
+  .lg-text { line-height: 1.45; }
+  .lg-lines { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; font-size: 12.5px; line-height: 1.5; }
   .lg-line .k { color: var(--cadet-05); } .lg-line .k::after { content: ': '; }
   .lg-line .v { color: var(--foreground); font-weight: 600; word-break: break-word; }
   .lg-line .from { color: var(--cadet-05); font-weight: 400; text-decoration: line-through; }
   .lg-line .arrow { margin: 0 6px; color: var(--cadet-05); }
-  @media (max-width: 720px) { .lg-row-detail td { padding-left: 10px; } }
 
 
   .appr-line-rej { font-size: 12.5px; color: var(--destructive); background: var(--destructive-bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.45; }
@@ -2683,12 +2674,6 @@
     const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
     $('viewLogsBtn').addEventListener('click', openLogs);
-    const toggleLog = row => {
-      const on = row.classList.toggle('open'); row.setAttribute('aria-expanded', on);
-      const d = $('logDrawerBody').querySelector(`[data-lg-detail="${row.dataset.lgRow}"]`); if (d) d.classList.toggle('open', on);
-    };
-    $('logDrawerBody').addEventListener('click', e => { const r = e.target.closest('.lg-row-main.has-details'); if (r) toggleLog(r); });
-    $('logDrawerBody').addEventListener('keydown', e => { const r = e.target.closest('.lg-row-main.has-details'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleLog(r); } });
     $('logDrawerClose').addEventListener('click', closeLogs);
     $('logDrawerOverlay').addEventListener('click', e => { if (e.target === $('logDrawerOverlay')) closeLogs(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogs(); });
@@ -2780,25 +2765,21 @@
       }
       return 'just now';
     };
-    const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
-    const logRowsHTML = (e, i) => {
+    const logRowsHTML = e => {
       const rows = e.details || [];
       const changes = (e.status ? [{ label: e.status.label || 'Status', from: e.status.from, to: e.status.to }] : []).concat(rows.filter(r => r.from != null));
       const facts = rows.filter(r => r.from == null);
-      const has = changes.length + facts.length > 0;
       const system = !!e.system || e.who === 'Workflow Engine' || e.who === 'System';
-      const main = `<tr class="lg-row-main${has ? ' has-details' : ''}" data-lg-row="${i}"${has ? ' tabindex="0" role="button" aria-expanded="false"' : ''}>
+      const dash = v => v === '' || v == null ? '\u2014' : v;
+      const lines = changes.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v"><span class="from">${esc(dash(r.from))}</span><span class="arrow">\u2192</span>${esc(dash(r.to))}</span></div>`)
+        .concat(facts.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v">${esc(dash(r.value))}</span></div>`));
+      return `<tr class="lg-row-main">
         <td><div class="lg-abs">${esc(stampOf(e.ts))}</div><div class="lg-rel">${esc(agoOf(e.ts))}</div></td>
         <td><span class="lg-badge ${ACTION_CLASS[e.action] || 'waiting'}"><span class="dot"></span>${esc(e.action || 'Note')}</span></td>
         <td><div class="lg-actor"><div class="lg-av${system ? ' system' : ''}">${system ? SYSTEM_AV : esc(initialsOfName(e.who))}</div>
           <div class="lg-who"><div class="lg-who-name">${esc(e.who || '')}</div><div class="lg-who-role">${esc(e.role || '')}</div></div></div></td>
-        <td><div class="lg-text"><span>${esc(e.text)}</span>${has ? `<span class="lg-chev">${CHEV}</span>` : ''}</div></td>
+        <td><div class="lg-text">${esc(e.text)}</div>${lines.length ? `<div class="lg-lines">${lines.join('')}</div>` : ''}</td>
       </tr>`;
-      const dash = v => v === '' || v == null ? '\u2014' : v;
-      const lines = changes.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v"><span class="from">${esc(dash(r.from))}</span><span class="arrow">\u2192</span>${esc(dash(r.to))}</span></div>`)
-        .concat(facts.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v">${esc(dash(r.value))}</span></div>`));
-      const detail = has ? `<tr class="lg-row-detail" data-lg-detail="${i}"><td colspan="4"><div class="lg-lines">${lines.join('')}</div></td></tr>` : '';
-      return main + detail;
     };
     const renderLog = () => {
       const all = K.applicationLog(sourceLeadId);

@@ -423,6 +423,16 @@
   .pc-outcome.approved { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
   .pc-outcome.rejected { background: var(--destructive-bg); border-color: var(--destructive-border); color: var(--destructive); }
   .pc-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .pv { margin-top: 12px; border: 1px solid #E4E7EC; border-radius: 5px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; line-height: 1.4; }
+  .pv .pv-text { flex: 1; min-width: 220px; color: var(--cadet-05); } .pv .pv-text b { color: var(--foreground); }
+  .pv.rejected { background: var(--destructive-bg); border-color: var(--destructive-border); } .pv.rejected .pv-text, .pv.rejected .pv-text b { color: var(--destructive); }
+  .pv.verified { background: var(--success-bg); border-color: var(--success-border); } .pv.verified .pv-text, .pv.verified .pv-text b { color: var(--success-text); }
+  .pv-note { margin: 0 0 12px; padding: 10px 12px; border-radius: 5px; background: #FFF8E6; border: 1px solid #F5D88A; font-size: 13px; }
+  .em-card { border: 1px solid #E4E7EC; border-radius: 6px; background: #fff; margin-bottom: 14px; font-size: 13px; line-height: 1.5; }
+  .em-head { padding: 10px 14px; border-bottom: 1px solid #E4E7EC; background: #F8F9FB; color: var(--cadet-05); } .em-head b { color: var(--foreground); }
+  .em-body { padding: 14px; } .em-code { font-size: 26px; font-weight: 700; letter-spacing: 6px; margin: 10px 0; color: var(--foreground); }
+  .otp-input { width: 100%; height: 40px; border: 1px solid #D0D5DD; border-radius: 5px; padding: 0 12px; font-size: 18px; letter-spacing: 6px; text-align: center; }
+  .otp-input.invalid { border-color: var(--destructive); }
   .pc-reason { margin-top: 6px; }
   .alert.error { background: var(--destructive-bg); border-color: var(--destructive-border); color: var(--destructive); }
 
@@ -616,6 +626,34 @@
     </div>
   </div>
 
+  <!-- Payout method rejected (submitted with the application) -->
+  <div class="mx-backdrop" id="pmRejectModal">
+    <div class="mx-modal">
+      <div class="mx-modal-head"><h3>Reject payout method</h3><button class="mx-close" data-close>&#10005;</button></div>
+      <div class="mx-modal-body">
+        <p>The merchant does not get a verification email for this method. Say why it was rejected.</p>
+        <textarea id="pmRejectReason" placeholder="e.g. The account holder name does not match the business owner."></textarea>
+        <div class="mx-err" id="pmRejectError" hidden>Add a reason for the rejection.</div>
+      </div>
+      <div class="mx-modal-foot">
+        <button class="btn btn-outline btn-sm" data-close>Cancel</button>
+        <button class="btn btn-danger btn-sm" id="pmRejectConfirm">Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Merchant verification: the email and the OTP page, simulated -->
+  <div class="mx-backdrop" id="pmVerifyModal">
+    <div class="mx-modal">
+      <div class="mx-modal-head"><h3>Verify payout method</h3><button class="mx-close" data-close>&#10005;</button></div>
+      <div class="mx-modal-body" id="pmVerifyBody"></div>
+      <div class="mx-modal-foot">
+        <button class="btn btn-outline btn-sm" data-close>Close</button>
+        <button class="btn btn-primary btn-sm" id="pmVerifyConfirm">Verify</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Stage 2 -->
   <div class="mx-backdrop" id="liveModal">
     <div class="mx-modal">
@@ -765,7 +803,7 @@
       </div>`).join('')}`;
   }
 
-  let payoutTab = 'new';
+  let payoutTab = 'new', payoutTabChosen = false;
   const PC_STATE = { pending: ['warning', 'Pending'], approved: ['success', 'Approved'], rejected: ['error', 'Rejected'], partial: ['primary', 'Partially approved'] };
 
   function payoutRows(p) {
@@ -805,14 +843,33 @@
   const PAYOUT_LABEL = { bank: 'Bank Account', wallet: 'E-Wallet' };
 
   /* One account as it stands now, with when and by which request it last changed. */
-  function payoutCurrentCard(a) {
+  const PV_STATE = { 'pending-ops': ['warning', 'Awaiting Ops approval'], 'awaiting-merchant': ['primary', 'Awaiting merchant verification'], verified: ['success', 'Verified'], rejected: ['error', 'Rejected'] };
+  function verificationBlock(a, acct) {
+    const v = a.verification, em = esc(v.email || 'the contact email');
+    if (v.state === 'pending-ops') {
+      const canAct = isOnboarding() && acct.status === 'submitted';
+      return `<div class="pv"><div class="pv-text">${acct.status === 'submitted' ? 'The Onboarding team has to approve this payout method. Then the merchant verifies it by email and OTP.' : 'It is reviewed by the Onboarding team once the application reaches Underwriting Review.'}</div>
+        ${canAct ? `<div class="pc-actions"><button class="btn btn-danger-outline btn-sm" type="button" data-pm-reject="${esc(a.accId)}">Reject</button><button class="btn btn-success btn-sm" type="button" data-pm-approve="${esc(a.accId)}">Approve</button></div>` : ''}</div>`;
+    }
+    if (v.state === 'awaiting-merchant') {
+      return `<div class="pv"><div class="pv-text"><b>Approved</b> by ${esc(v.opsBy)} · ${esc(fmtDateTime(v.opsTs))}<br>Verification email with an OTP sent to <b>${em}</b> · ${esc(fmtDateTime(v.sentTs))}. Waiting for the merchant.</div>
+        <button class="btn btn-outline btn-sm" type="button" data-pm-verify="${esc(a.accId)}">Open the merchant's email</button></div>`;
+    }
+    if (v.state === 'verified') {
+      return `<div class="pv verified"><div class="pv-text"><b>Verified by the merchant</b> · ${esc(fmtDateTime(v.verifiedTs))}<br>Approved by ${esc(v.opsBy)} · ${esc(fmtDateTime(v.opsTs))} · confirmed with email and OTP sent to ${em}</div></div>`;
+    }
+    return `<div class="pv rejected"><div class="pv-text"><b>Rejected</b> by ${esc(v.opsBy)} · ${esc(fmtDateTime(v.opsTs))}<br><b>Reason:</b> ${esc(v.reason)}</div></div>`;
+  }
+  function payoutCurrentCard(a, acct) {
+    const [pvTone, pvLabel] = PV_STATE[a.verification.state];
     return `<div class="pc-item">
       <div class="pc-head">
         <div><div class="pc-title">${esc(a.account)}${a.primary ? '<span class="badge success">Primary</span>' : a.trusted ? '<span class="badge primary">Trusted</span>' : ''}<span class="pc-accid">${esc(a.accId)}</span></div>
           <div class="pc-meta">${a.updatedTs ? `Updated ${esc(fmtDateTime(a.updatedTs))} · <b>${esc(a.ref)}</b>` : 'As submitted with the application'}</div></div>
-        <span class="badge primary">${esc(PAYOUT_LABEL[a.details.method])}</span>
+        <span class="badge ${pvTone}"><span class="dot"></span>${pvLabel}</span>
       </div>
       <div class="kv-grid">${payoutRows(a.details)}</div>
+      ${verificationBlock(a, acct)}
     </div>`;
   }
 
@@ -820,7 +877,9 @@
     const p = K.currentPayout(acct.app);
     if (!p || !p.method) return `<h2 class="section-title">Payout Method</h2><div class="kv-grid">${kv('Payout methods', 'None were added with this application')}</div>`;
     const changes = K.payoutChanges(acct.app);
-    const accounts = K.payoutAccounts(acct.app);
+    const accounts = K.payoutMethodStates(acct.app);
+    const needOps = isOnboarding() && acct.status === 'submitted' ? accounts.filter(a => a.verification.state === 'pending-ops').length : 0;
+    if (!payoutTabChosen) { payoutTabChosen = true; if (needOps && !changes.some(r => r.state === 'pending')) payoutTab = 'current'; }
     const pending = changes.filter(r => r.state === 'pending'), history = changes.filter(r => r.state !== 'pending');
     return `<h2 class="section-title">Payout Method</h2>
       <div class="subtabs" role="tablist" style="margin-top:0">
@@ -828,7 +887,8 @@
         <button class="subtab${payoutTab === 'history' ? ' active' : ''}" role="tab" data-ptab="history">History of Changes<span class="mx-count">${history.length}</span></button>
         <button class="subtab${payoutTab === 'current' ? ' active' : ''}" role="tab" data-ptab="current">Current Payout Method${accounts.length > 1 ? 's' : ''}<span class="mx-count">${accounts.length}</span></button>
       </div>
-      ${payoutTab === 'current' ? accounts.map(payoutCurrentCard).join('') : payoutTab === 'new'
+      ${needOps ? `<div class="pv-note"><b>${needOps} payout method${needOps === 1 ? '' : 's'} waiting for your approval.</b> Open Current Payout Methods to approve or reject ${needOps === 1 ? 'it' : 'them'}.</div>` : ''}
+      ${payoutTab === 'current' ? accounts.map(a => payoutCurrentCard(a, acct)).join('') : payoutTab === 'new'
         ? (pending.length ? pending.map(r => payoutChangeItem(r, isOnboarding())).join('')
           : `<div class="panel-empty" style="padding:30px 20px">${ICON.empty}<h3>No pending request</h3><p>There is no payout change waiting for a decision.</p></div>`)
         : (history.length ? history.map(r => payoutChangeItem(r, isOnboarding())).join('')
@@ -931,12 +991,21 @@
   });
 
   /* ── Payout change decisions ── */
-  let pcRejectId = '';
+  let pcRejectId = '', pmRejectId = '', pmVerifyId = '';
   $('panel').addEventListener('click', e => {
     const pt = e.target.closest('[data-ptab]');
-    if (pt) { payoutTab = pt.dataset.ptab; render(); return; }
+    if (pt) { payoutTab = pt.dataset.ptab; payoutTabChosen = true; render(); return; }
     const acct = current();
+    const pmv = acct && e.target.closest('[data-pm-verify]');
+    if (pmv) { openVerify(pmv.dataset.pmVerify); return; }
     if (!acct || !isOnboarding()) return;
+    const pmOk = e.target.closest('[data-pm-approve]'), pmNo = e.target.closest('[data-pm-reject]');
+    if (pmOk && K.reviewPayoutMethod({ app: acct.app, accId: pmOk.dataset.pmApprove, role, decision: 'approved' })) {
+      render(); toast('Payout method approved. The merchant was emailed a verification code.'); return;
+    } else if (pmNo) {
+      pmRejectId = pmNo.dataset.pmReject; $('pmRejectReason').value = ''; $('pmRejectReason').classList.remove('invalid'); $('pmRejectError').hidden = true;
+      open('pmRejectModal'); $('pmRejectReason').focus(); return;
+    }
     const ok = e.target.closest('[data-pc-approve]'), no = e.target.closest('[data-pc-reject]');
     if (ok && K.decidePayoutChange({ app: acct.app, id: ok.dataset.pcApprove, role, decision: 'approved' })) {
       render();
@@ -949,6 +1018,39 @@
       open('pcRejectModal');
       $('pcRejectReason').focus();
     }
+  });
+  $('pmRejectReason').addEventListener('input', () => { $('pmRejectReason').classList.remove('invalid'); $('pmRejectError').hidden = true; });
+  $('pmRejectConfirm').addEventListener('click', () => {
+    const reason = $('pmRejectReason').value.trim();
+    if (!reason) { $('pmRejectReason').classList.add('invalid'); $('pmRejectError').hidden = false; $('pmRejectReason').focus(); return; }
+    const acct = current();
+    closeAll();
+    if (acct && K.reviewPayoutMethod({ app: acct.app, accId: pmRejectId, role, decision: 'rejected', reason })) { render(); toast('Payout method rejected.'); }
+  });
+
+  /* The merchant's side, simulated: the email they receive and the page where they type the code. */
+  function openVerify(accId) {
+    const acct = current(); if (!acct) return;
+    const v = K.payoutVerification(acct.app, accId), a = K.payoutAccounts(acct.app).filter(x => x.accId === accId)[0];
+    pmVerifyId = accId;
+    $('pmVerifyBody').innerHTML = `<div class="em-card">
+        <div class="em-head"><div><b>From:</b> Kashier &lt;no-reply@kashier.io&gt;</div><div><b>To:</b> ${esc(v.email)}</div><div><b>Subject:</b> Confirm your payout method</div></div>
+        <div class="em-body">Hello ${esc(acct.app.biz)},<br>Our team approved the ${esc(PAYOUT_LABEL[a.details.method])} you added (${esc(a.account)}). Enter this code to confirm it is yours:
+          <div class="em-code">${esc(v.otp)}</div>The code works for ${K.OTP_MINUTES} minutes. If this was not you, ignore this email.</div>
+      </div>
+      <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Enter the code from the email</label>
+      <input class="otp-input" id="pmOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••">
+      <div class="mx-err" id="pmOtpError" hidden></div>
+      <div style="margin-top:10px;font-size:13px"><button class="btn btn-ghost btn-sm" type="button" id="pmOtpResend">Send a new code</button></div>`;
+    open('pmVerifyModal'); $('pmOtp').focus();
+  }
+  $('pmVerifyBody').addEventListener('input', e => { if (e.target.id === 'pmOtp') { e.target.value = e.target.value.replace(/\D/g, ''); e.target.classList.remove('invalid'); $('pmOtpError').hidden = true; } });
+  $('pmVerifyBody').addEventListener('click', e => { if (e.target.closest('#pmOtpResend')) { const acct = current(); if (acct && K.resendPayoutOtp(acct.app, pmVerifyId)) { openVerify(pmVerifyId); toast('A new code was emailed.'); } } });
+  $('pmVerifyConfirm').addEventListener('click', () => {
+    const acct = current(); if (!acct) return;
+    const r = K.verifyPayoutOtp(acct.app, pmVerifyId, $('pmOtp').value);
+    if (r.error) { $('pmOtp').classList.add('invalid'); $('pmOtpError').textContent = r.error; $('pmOtpError').hidden = false; return; }
+    closeAll(); render(); toast('Payout method verified by the merchant.');
   });
   $('pcRejectReason').addEventListener('input', () => { $('pcRejectReason').classList.remove('invalid'); $('pcRejectError').hidden = true; });
   $('pcRejectConfirm').addEventListener('click', () => {

@@ -862,6 +862,81 @@ window.KashierRates = (function () {
     });
   }
 
+  /* ── Payout method verification ─────────────────────────────────────────────────
+     Every payout method submitted with the application is checked twice: the Onboarding team approves it,
+     then the merchant confirms it from the email sent to the contact address, with a one-time code (OTP).
+     States: pending-ops → awaiting-merchant → verified, or rejected (by Ops, with a reason). */
+  const OTP_MINUTES = 10, OTP_TRIES = 3;
+  const seedOtp = key => { let h = 7; String(key).split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) % 900000; }); return String(100000 + h); };
+  const newOtp = () => String(100000 + Math.floor(Math.random() * 900000));
+  function payoutVerification(app, accId) {
+    const rec = (readStore('kashierPayoutVerification')[app.id] || {})[accId];
+    const email = (app.summary && app.summary.email) || '';
+    if (rec) return Object.assign({ email: email }, rec);
+    const st = accountStatusFor(app);
+    if (st === 'live') return { state: 'verified', email: email, verifiedTs: (accountRecord(app).ts || app.ts), opsBy: ROLES.onboarding.name, opsTs: app.ts };
+    if (st === 'pending-configurations') {
+      const t = accountRecord(app).approvedTs || accountRecord(app).ts || app.ts;
+      return { state: 'awaiting-merchant', email: email, opsBy: ROLES.onboarding.name, opsTs: t, sentTs: t, otp: seedOtp(app.id + accId), tries: 0, seeded: true };
+    }
+    return { state: 'pending-ops', email: email };
+  }
+  function savePayoutVerification(app, accId, rec) {
+    const all = readStore('kashierPayoutVerification');
+    (all[app.id] = all[app.id] || {})[accId] = rec;
+    writeStore('kashierPayoutVerification', all);
+  }
+  const payoutWho = (app, accId) => { const a = payoutAccounts(app).filter(x => x.accId === accId)[0]; return a ? a.account + ' (' + payoutLabel(a.details) + ')' : 'Payout method'; };
+  /* The Onboarding team approves or rejects a submitted payout method. Approving sends the merchant the verification email. */
+  function reviewPayoutMethod(opts) {
+    const app = opts.app, v = payoutVerification(app, opts.accId), reason = String(opts.reason || '').trim();
+    if (opts.role !== 'onboarding' || v.state !== 'pending-ops') return null;
+    if (opts.decision === 'rejected' && !reason) return null;
+    const now = new Date().toISOString(), who = ROLES.onboarding.name, label = payoutWho(app, opts.accId);
+    if (opts.decision === 'approved') {
+      savePayoutVerification(app, opts.accId, { state: 'awaiting-merchant', opsBy: who, opsTs: now, sentTs: now, otp: newOtp(), tries: 0 });
+      logEvent(app.leadId, who, 'Payout method approved \u2014 ' + label, now, { action: 'Approved', category: 'Payout', role: 'Onboarding Team',
+        details: [{ label: 'Next step', value: 'The merchant verifies it with the OTP emailed to ' + (app.summary.email || 'the contact email') }] });
+      logEvent(app.leadId, 'System', 'Verification email sent to ' + (app.summary.email || 'the merchant') + ' \u2014 ' + label, now, { action: 'Sent', category: 'Payout', role: '', system: true,
+        details: [{ label: 'Code valid for', value: OTP_MINUTES + ' minutes' }] });
+    } else {
+      savePayoutVerification(app, opts.accId, { state: 'rejected', opsBy: who, opsTs: now, reason: reason });
+      logEvent(app.leadId, who, 'Payout method rejected \u2014 ' + label, now, { action: 'Rejected', category: 'Payout', role: 'Onboarding Team', details: [{ label: 'Reason', value: reason }] });
+    }
+    return opts.decision;
+  }
+  /* A new code, after one expired or the tries ran out. */
+  function resendPayoutOtp(app, accId) {
+    const v = payoutVerification(app, accId);
+    if (v.state !== 'awaiting-merchant') return null;
+    const now = new Date().toISOString();
+    savePayoutVerification(app, accId, Object.assign({}, v, { sentTs: now, otp: newOtp(), tries: 0, seeded: false }));
+    logEvent(app.leadId, 'System', 'Verification email sent again to ' + (app.summary.email || 'the merchant') + ' \u2014 ' + payoutWho(app, accId), now,
+      { action: 'Sent', category: 'Payout', role: '', system: true, details: [{ label: 'Code valid for', value: OTP_MINUTES + ' minutes' }] });
+    return true;
+  }
+  /* The merchant enters the code from the email. Returns { ok } or { error }. */
+  function verifyPayoutOtp(app, accId, code) {
+    const v = payoutVerification(app, accId);
+    if (v.state !== 'awaiting-merchant') return { error: 'This payout method is not waiting for verification.' };
+    if (v.tries >= OTP_TRIES) return { error: 'Too many wrong codes. Ask for a new code.', locked: true };
+    if (Date.now() - new Date(v.sentTs).getTime() > OTP_MINUTES * 60000 && !v.seeded) return { error: 'This code has expired. Ask for a new code.', expired: true };
+    if (String(code).trim() !== v.otp) {
+      const left = OTP_TRIES - (v.tries + 1);
+      savePayoutVerification(app, accId, Object.assign({}, v, { tries: v.tries + 1 }));
+      return { error: left > 0 ? 'That code is not right. ' + left + ' ' + (left === 1 ? 'try' : 'tries') + ' left.' : 'Too many wrong codes. Ask for a new code.', locked: left <= 0 };
+    }
+    const now = new Date().toISOString();
+    savePayoutVerification(app, accId, { state: 'verified', opsBy: v.opsBy, opsTs: v.opsTs, sentTs: v.sentTs, verifiedTs: now });
+    logEvent(app.leadId, app.biz, 'Payout method verified by the merchant \u2014 ' + payoutWho(app, accId), now, { action: 'Verified', category: 'Payout', role: 'Merchant',
+      details: [{ label: 'Verified with', value: 'Email and OTP sent to ' + (app.summary.email || 'the contact email') }] });
+    return { ok: true };
+  }
+  /* The submission's own payout methods with where each stands — what the salesperson and the account page show. */
+  function payoutMethodStates(app) {
+    return payoutAccounts(app).map(a => Object.assign({}, a, { verification: payoutVerification(app, a.accId) }));
+  }
+
   /* Field-by-field difference between two payout methods; only what changed. */
   function payoutDiff(from, to) {
     const rows = [];
@@ -918,6 +993,7 @@ window.KashierRates = (function () {
     if (rec.approvedTs) events.push({ ts: rec.approvedTs, who: rec.by, text: 'Approved internally and sent to the bank' });
     if (rec.status === 'rejected') events.push({ ts: rec.ts, who: rec.by, text: 'Application rejected — ' + rec.reason });
     if (rec.status === 'live') events.push({ ts: rec.ts, who: rec.by, text: 'Bank/vendor approval received — account is live' });
+    (readStore('kashierApplicationLog')[app.leadId] || []).filter(e => e.category === 'Payout').forEach(e => events.push({ ts: e.ts, who: e.who, text: e.text }));
     return events.sort((a, b) => new Date(a.ts) - new Date(b.ts));
   }
 
@@ -1046,6 +1122,6 @@ window.KashierRates = (function () {
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,
-    payoutChanges: payoutChanges, payoutAccounts: payoutAccounts, currentPayout: currentPayout, payoutDiff: payoutDiff, payoutCompare: payoutCompare, decidePayoutChange: decidePayoutChange,
+    payoutChanges: payoutChanges, payoutAccounts: payoutAccounts, payoutMethodStates: payoutMethodStates, payoutVerification: payoutVerification, reviewPayoutMethod: reviewPayoutMethod, verifyPayoutOtp: verifyPayoutOtp, resendPayoutOtp: resendPayoutOtp, OTP_MINUTES: OTP_MINUTES, currentPayout: currentPayout, payoutDiff: payoutDiff, payoutCompare: payoutCompare, decidePayoutChange: decidePayoutChange,
   };
 })();

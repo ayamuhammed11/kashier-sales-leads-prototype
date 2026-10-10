@@ -2176,33 +2176,42 @@
     account: 'Enter the account number — 8 to 20 digits.',
     number: 'Enter the 11-digit wallet mobile number, e.g. 01012345678.',
     holder: 'Letters, numbers and spaces only — at least 3 characters.',
+    name: 'Give this method a name so it can be told apart, e.g. POS. Letters, numbers, spaces and hyphens — at least 2 characters.',
   };
   let payouts = [];   // [{ id, method, primary, trusted, bankName, branch, holder, account | provider, number }]
   let nextPayoutId = 1;
-  const payoutComplete = p => Object.keys(PAYOUT_RULES[p.method]).every(k => PAYOUT_RULES[p.method][k](p[k] || ''));
+  // From the second method on, the salesperson names it (the primary is simply "Primary Account").
+  const PAYOUT_NAME_CHARS = /[^\p{L}\p{M}\p{N} -]/gu;
+  const payoutNameValid = v => v.trim().length >= 2;
+  const payoutRule = (p, key) => key === 'name' ? payoutNameValid : PAYOUT_RULES[p.method][key];
+  const payoutFieldsDone = p => Object.keys(PAYOUT_RULES[p.method]).every(k => PAYOUT_RULES[p.method][k](p[k] || ''));
+  const payoutComplete = p => payoutFieldsDone(p) && (p.primary || payoutNameValid(p.name || ''));
   function newPayout(method) {
-    return Object.assign({ id: nextPayoutId++, method: method, primary: !payouts.length, trusted: false },
+    return Object.assign({ id: nextPayoutId++, method: method, primary: !payouts.length, trusted: false, name: '' },
       method === 'bank' ? { bankName: '', branch: '', holder: '', account: '' } : { provider: '', number: '', holder: '' });
   }
   /* One method as it is sent with the application. */
   function payoutOut(p) {
-    const o = { method: p.method, primary: !!p.primary, trusted: !p.primary && !!p.trusted };
+    const o = { method: p.method, primary: !!p.primary, trusted: !p.primary && !!p.trusted, name: p.primary ? '' : (p.name || '').trim() };
     Object.keys(PAYOUT_RULES[p.method]).forEach(k => { o[k] = p[k] || ''; });
     return o;
   }
   function payoutsPayload() { return payouts.filter(payoutComplete).map(payoutOut); }
   function payoutIssues() {
     const out = [];
-    payouts.forEach((p, i) => { if (!payoutComplete(p)) out.push(`Complete payout method ${i + 1}, or remove it`); });
+    payouts.forEach((p, i) => {
+      if (!payoutFieldsDone(p)) out.push(`Complete payout method ${i + 1}, or remove it`);
+      else if (!p.primary && !payoutNameValid(p.name || '')) out.push(`Name payout method ${i + 1}`);
+    });
     return out;
   }
   /* A one-line summary of every method, for the change log. */
   function payoutsSummary() {
-    return payoutsPayload().map(p => K.payoutLabel(p) + (p.primary ? ' (primary)' : p.trusted ? ' (trusted)' : '')).join('; ');
+    return payoutsPayload().map(p => (p.name ? p.name + ': ' : '') + K.payoutLabel(p) + (p.primary ? ' (primary)' : p.trusted ? ' (trusted)' : '')).join('; ');
   }
   function payoutField(p, key, label, placeholder, attrs) {
     const v = p[key];
-    const bad = v !== '' && !PAYOUT_RULES[p.method][key](v);
+    const bad = v !== '' && !payoutRule(p, key)(v);
     return `<div class="field">
       <label class="lbl" for="po-${p.id}-${key}">${label}<span class="req">*</span></label>
       <input class="inp${bad ? ' invalid' : ''}" id="po-${p.id}-${key}" data-payout="${p.id}.${key}" type="text" autocomplete="off" placeholder="${esc(placeholder)}" value="${esc(v)}" ${attrs || ''}>
@@ -2219,17 +2228,18 @@
     </div>`;
   }
   function payoutCardHTML(p, i) {
-    const fields = p.method === 'bank' ? `
+    const nameField = p.primary ? '' : payoutField(p, 'name', 'Payout Method Name', 'e.g. POS or Branch Korba', 'maxlength="40"');
+    const fields = nameField + (p.method === 'bank' ? `
         ${payoutSelect(p, 'bankName', 'Bank Name', PAYOUT_BANKS, 'Select bank…')}
         ${payoutSelect(p, 'branch', 'Bank Branch Name', PAYOUT_BRANCHES, 'Select branch…')}
         ${payoutField(p, 'holder', 'Account Holder Name', 'As it appears on the bank account')}
         ${payoutField(p, 'account', 'Account Number', 'e.g. 1002345678901', 'inputmode="numeric" maxlength="20"')}` : `
         ${payoutSelect(p, 'provider', 'Wallet Provider', PAYOUT_WALLETS, 'Select provider…')}
         ${payoutField(p, 'number', 'Wallet Mobile Number', 'e.g. 01012345678', 'inputmode="numeric" maxlength="11"')}
-        ${payoutField(p, 'holder', 'Wallet Holder Name', 'Name registered on the wallet')}`;
+        ${payoutField(p, 'holder', 'Wallet Holder Name', 'Name registered on the wallet')}`);
     return `<div class="payout-card${p.primary ? ' is-primary' : ''}" data-payout-card="${p.id}">
       <div class="payout-card-head">
-        <div class="payout-card-title">Payout method ${i + 1} <span class="payout-type">${PAYOUT_LABEL[p.method]}</span>
+        <div class="payout-card-title">Payout method ${i + 1}<span data-payout-titlename="${p.id}">${!p.primary && (p.name || '').trim() ? ' — ' + esc(p.name.trim()) : ''}</span> <span class="payout-type">${PAYOUT_LABEL[p.method]}</span>
           ${p.primary ? '<span class="payout-badge primary">Primary</span>' : p.trusted ? '<span class="payout-badge trusted">Trusted</span>' : ''}</div>
         <div class="payout-card-actions">
           ${p.primary ? '' : `<label class="payout-trust"><input type="checkbox" data-payout-trust="${p.id}"${p.trusted ? ' checked' : ''}> Trusted</label>
@@ -2279,8 +2289,10 @@
     let v = el.value;
     if (key === 'account' || key === 'number') { v = v.replace(/\D/g, ''); if (v !== el.value) el.value = v; }
     if (key === 'holder') { v = v.replace(PAYOUT_NAME_SYMBOLS, ''); if (v !== el.value) el.value = v; }
+    if (key === 'name') { v = v.replace(PAYOUT_NAME_CHARS, ''); if (v !== el.value) el.value = v; }
     p[key] = v;
-    const bad = v !== '' && !PAYOUT_RULES[p.method][key](v);
+    if (key === 'name') { const t = $('serviceSetupBody').querySelector(`[data-payout-titlename="${id}"]`); if (t) t.textContent = v.trim() ? ' — ' + v.trim() : ''; }
+    const bad = v !== '' && !payoutRule(p, key)(v);
     el.classList.toggle('invalid', bad);
     const hint = $('serviceSetupBody').querySelector(`[data-payout-hint="${id}.${key}"]`);
     if (hint) hint.hidden = !bad;

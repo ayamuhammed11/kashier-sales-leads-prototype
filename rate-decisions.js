@@ -851,7 +851,7 @@ window.KashierRates = (function () {
     if (app.payout && app.payout.method) defs.push({ account: 'Primary Account', accId: ids.primary, primary: true, details: app.payout });
     // Other methods the salesperson added with the application; the POS demo accounts stand in only when there are none.
     const extras = payoutList(app).filter(p => !p.primary);
-    extras.forEach((p, i) => defs.push({ account: 'Payout Account ' + (i + 2), accId: ids.at(i + 2), primary: false, trusted: !!p.trusted, details: p }));
+    extras.forEach((p, i) => defs.push({ account: (p.name || '').trim() || 'Payout Account ' + (i + 2), accId: ids.at(i + 2), primary: false, trusted: !!p.trusted, details: p }));
     if (accountStatusFor(app) === 'live' && !extras.length) {
       defs.push({ account: 'POS', accId: ids.pos, primary: false, details: POS_SEED });
       defs.push({ account: 'POS-Branch Korba', accId: ids.korba, primary: false, details: korbaSeed(app) });
@@ -963,7 +963,7 @@ window.KashierRates = (function () {
       const docs = (app.documents || []).length || Number(sm.docsDone || 0);
       if (docs) details.push({ label: 'Documents', value: docs + ' uploaded' });
       payoutList(app).forEach((p, i) => details.push({ label: payoutList(app).length > 1 ? 'Payout method ' + (i + 1) : 'Payout method',
-        value: payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : p.trusted ? ' (trusted)' : '') }));
+        value: (p.name ? p.name + ' — ' : '') + payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : p.trusted ? ' (trusted)' : '') }));
       events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
         text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details });
 

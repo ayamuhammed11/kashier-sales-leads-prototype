@@ -244,6 +244,108 @@ window.KashierRates = (function () {
         'Online Bank Installments::Bank Misr::12-month': { decision: 'rejected', reason: 'A 12-month plan under 3% is not viable — resubmit at 3% or above.', by: 'Tarek Fahmy', roleLabel: 'Head of Sales', ts: '2026-09-08T10:30:00.000Z' },
       },
     },
+    {
+      id: 'APP-00000011', leadId: 'L-028', website: 'https://portsaidmarine.com', biz: 'Port Said Marine Supplies', actor: 'Mostafa Khaled',
+      ts: '2026-09-14T09:20:00.000Z',
+      summary: {
+        email: 'hany@portsaidmarine.com', phone: '+20 100 321 4455',
+        entity: 'Registered Business', industry: 'Retail',
+        services: ['Online Card'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
+        ],
+        posTerminals: '', docsDone: '3', docsTotal: '3',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'port-said-marine-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'port-said-marine-id.pdf' },
+      ],
+      requests: [
+        { id: 'Online Card::National Bank of Egypt::national-onus', service: 'Online Card', bank: 'National Bank of Egypt',
+          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1.5, standardFee: 2,
+          note: 'Long-standing supplier to shipping agents, steady monthly volume.' },
+        { id: 'Online Card::National Bank of Egypt::national-offus', service: 'Online Card', bank: 'National Bank of Egypt',
+          rate: 'National — Off-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1, standard: 1.5, requestedFee: 1, standardFee: 2,
+          note: 'Matching the rate their current provider offers.' },
+      ],
+      seedDecisions: {
+        'Online Card::National Bank of Egypt::national-onus': { decision: 'approved', reason: '', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-14T13:10:00.000Z' },
+        'Online Card::National Bank of Egypt::national-offus': { decision: 'rejected', reason: 'Off-us at 1% is below cost — 1.3% is the lowest we can offer for this volume.', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-14T13:15:00.000Z' },
+      },
+    },
+    {
+      id: 'APP-00000012', leadId: 'L-029', website: 'https://luxorheritagetours.com', biz: 'Luxor Heritage Tours', actor: 'Mostafa Khaled',
+      ts: '2026-09-15T10:05:00.000Z',
+      summary: {
+        email: 'sherine@luxorheritagetours.com', phone: '+20 109 765 4321',
+        entity: 'Registered Business', industry: 'Travel & Tourism',
+        services: ['Online Card', 'Online Bank Installments'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
+          { service: 'Online Bank Installments', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
+        ],
+        posTerminals: '', docsDone: '3', docsTotal: '3',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'luxor-heritage-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'luxor-heritage-id.pdf' },
+      ],
+      requests: [
+        { id: 'Online Card::Bank Misr::international', service: 'Online Card', bank: 'Bank Misr',
+          rate: 'International rate — EGP', tier: 'manager', from: 2, to: 2.5, requested: 1.8, standard: 2.5, requestedFee: 1.5, standardFee: 3,
+          note: 'Most bookings are paid by tourists with foreign cards.' },
+        { id: 'Online Bank Installments::Bank Misr::6-month', service: 'Online Bank Installments', bank: 'Bank Misr',
+          rate: '6-month plan', tier: 'head', from: 2, to: 3, requested: 1.5, standard: 3, requestedFee: 2, standardFee: 2,
+          note: 'Multi-day tour packages paid in installments.' },
+      ],
+      seedDecisions: {
+        'Online Card::Bank Misr::international': { decision: 'rejected', reason: 'International cards cost more to process — 2.2% is the lowest we can approve.', by: 'Nadia Salah', roleLabel: 'Sales Manager', ts: '2026-09-15T12:40:00.000Z' },
+        'Online Bank Installments::Bank Misr::6-month': { decision: 'rejected', reason: 'A 6-month plan under 2.5% is not viable — resubmit at 2.5% or above.', by: 'Tarek Fahmy', roleLabel: 'Head of Sales', ts: '2026-09-16T09:30:00.000Z' },
+      },
+    },
+    {
+      id: 'APP-00000013', leadId: 'L-030', website: 'https://maadifitness.com', biz: 'Maadi Fitness Club', actor: 'Mostafa Khaled',
+      ts: '2026-09-10T11:30:00.000Z',
+      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-12T10:45:00.000Z', reason: 'The commercial register expired in June 2026. Upload a valid register and resubmit.' },
+      summary: {
+        email: 'ramy@maadifitness.com', phone: '+20 106 222 3344',
+        entity: 'Registered Business', industry: 'Health & Fitness',
+        services: ['Online Card'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
+        ],
+        posTerminals: '', docsDone: '3', docsTotal: '3',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'maadi-fitness-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'maadi-fitness-id.pdf' },
+      ],
+      requests: [],
+    },
+    {
+      id: 'APP-00000014', leadId: 'L-031', website: 'https://fayoumorganic.com', biz: 'Fayoum Organic Farms', actor: 'Mostafa Khaled',
+      ts: '2026-09-11T14:10:00.000Z',
+      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-13T15:20:00.000Z', reason: 'The activity on the tax card is wholesale trading, which does not match the Agriculture industry selected. Correct the industry or the documents.' },
+      summary: {
+        email: 'mona@fayoumorganic.com', phone: '+20 111 556 6778',
+        entity: 'Registered Business', industry: 'Agriculture',
+        services: ['Online Card', 'POS Card'],
+        serviceConfigs: [
+          { service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
+          { service: 'POS Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
+        ],
+        posTerminals: '', docsDone: '3', docsTotal: '3',
+      },
+      documents: [
+        { name: 'Commercial Register', file: 'fayoum-organic-cr.pdf' },
+        { name: 'Tax Card', file: 'tax-card.pdf' },
+        { name: 'Owner National ID', file: 'fayoum-organic-id.pdf' },
+      ],
+      requests: [],
+    },
     // Applications already past rate approval, one at each onboarding stage.
     {
       id: 'APP-00000006', leadId: 'L-006', website: 'https://zamalekhotel.com', biz: 'Zamalek Boutique Hotel', actor: 'Mostafa Khaled',
@@ -364,6 +466,25 @@ window.KashierRates = (function () {
     writeStore('kashierRateDecisions', all);
   })();
 
+  /* A seeded application the Onboarding team already rejected goes back to its salesperson the way a real
+     rejection does: the lead is Rejected and carries the reason. Written once per application. */
+  (function seedRejectedAccounts() {
+    SEEDED.forEach(app => {
+      if (!app.seedAccount || app.seedAccount.status !== 'rejected') return;
+      const statuses = readStore('kashierAppStatus');
+      if (statuses[app.id]) return;
+      statuses[app.id] = 'rejected-by-onboarding';
+      writeStore('kashierAppStatus', statuses);
+      const leads = readStore('kashierLeadStatusOverrides');
+      leads[app.leadId] = 'application';
+      writeStore('kashierLeadStatusOverrides', leads);
+      const notes = readStore('kashierLeadReturnNote');
+      notes[app.leadId] = { ts: app.seedAccount.ts, kind: 'onboarding',
+        text: 'Application rejected by the Onboarding team (' + app.seedAccount.by + '): ' + app.seedAccount.reason };
+      writeStore('kashierLeadReturnNote', notes);
+    });
+  })();
+
   /* Kashier MIDs are issued with the lead in CRM; applications carry the lead's MID. */
   const LEAD_MIDS = {
     'L-001': 'MID-10237-114', 'L-002': 'MID-10589-227', 'L-003': 'MID-11042-350', 'L-004': 'MID-20458-771',
@@ -374,6 +495,7 @@ window.KashierRates = (function () {
     'L-018': 'MID-11902-118', 'L-019': 'MID-11915-229', 'L-020': 'MID-11928-330', 'L-021': 'MID-11941-441',
     'L-022': 'MID-11954-552', 'L-023': 'MID-11967-663', 'L-024': 'MID-11980-774', 'L-025': 'MID-11993-885',
     'L-026': 'MID-12006-996', 'L-027': 'MID-12019-007',
+    'L-028': 'MID-12031-118', 'L-029': 'MID-12044-229', 'L-030': 'MID-12057-330', 'L-031': 'MID-12070-441',
   };
 
   /* The seeded applications have no stored tracking link, so rebuild the one the lead page

@@ -266,7 +266,12 @@
   .lg-row-detail td { background: #FCFCFD; padding: 4px 10px 14px 142px; }
   .lg-kv { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; font-size: 12.5px; }
   .lg-kv .k { color: var(--cadet-05); } .lg-kv .v { color: var(--foreground); font-weight: 600; word-break: break-word; }
-  .lg-from { color: var(--cadet-05); text-decoration: line-through; font-weight: 400; } .lg-arrow { margin: 0 5px; color: var(--cadet-05); } .lg-to { font-weight: 700; }
+  .lg-ba { width: 100%; max-width: 560px; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border-subtle); border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: #fff; }
+  .lg-ba th { text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: var(--cadet-base); background: var(--muted); padding: 7px 10px; }
+  .lg-ba td { padding: 8px 10px; font-size: 12.5px; border-top: 1px solid var(--border-subtle); vertical-align: top; word-break: break-word; }
+  .lg-ba td:first-child { width: 130px; color: var(--cadet-05); }
+  .lg-ba td.b { color: var(--cadet-base); background: var(--destructive-bg); }
+  .lg-ba td.a { color: var(--foreground); font-weight: 700; background: var(--success-bg); }
   @media (max-width: 720px) { .lg-row-detail td { padding-left: 10px; } .lg-kv { grid-template-columns: 1fr; gap: 0; } .lg-kv .v { margin-bottom: 6px; } }
 
 
@@ -2672,7 +2677,8 @@
         if (!reason) { $('lostReason').classList.add('invalid'); $('lostReason').focus(); return; }
         const o = K.readStore('kashierLeadStatusOverrides'); o[sourceLeadId] = 'lost'; K.writeStore('kashierLeadStatusOverrides', o);
         const lr = K.readStore('kashierLeadLostReason'); lr[sourceLeadId] = { text: reason, by: K.ROLES[K.getRole()].name, ts: new Date().toISOString() }; K.writeStore('kashierLeadLostReason', lr);
-        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Application canceled', null, { action: 'Canceled', category: 'Application', role: K.ROLES[K.getRole()].label, details: [{ label: 'Comment', value: reason }] });
+        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, 'Application canceled', null, { action: 'Canceled', category: 'Application', role: K.ROLES[K.getRole()].label, details: [{ label: 'Comment', value: reason }],
+          status: { from: LABELS[status] || status, to: 'Canceled' } });
         location.reload();
       });
     }
@@ -2741,12 +2747,12 @@
       }
       return 'just now';
     };
-    const detailValue = r => r.from != null
-      ? `<span class="lg-from">${esc(r.from)}</span><span class="lg-arrow">\u2192</span><span class="lg-to">${esc(r.to)}</span>`
-      : esc(r.value == null || r.value === '' ? '\u2014' : r.value);
     const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
     const logRowsHTML = (e, i) => {
-      const has = (e.details || []).length > 0;
+      const rows = e.details || [];
+      const changes = (e.status ? [{ label: e.status.label || 'Status', from: e.status.from, to: e.status.to }] : []).concat(rows.filter(r => r.from != null));
+      const facts = rows.filter(r => r.from == null);
+      const has = changes.length + facts.length > 0;
       const system = !!e.system || e.who === 'Workflow Engine' || e.who === 'System';
       const main = `<tr class="lg-row-main${has ? ' has-details' : ''}" data-lg-row="${i}"${has ? ' tabindex="0" role="button" aria-expanded="false"' : ''}>
         <td><div class="lg-abs">${esc(stampOf(e.ts))}</div><div class="lg-rel">${esc(agoOf(e.ts))}</div></td>
@@ -2755,8 +2761,10 @@
           <div class="lg-who"><div class="lg-who-name">${esc(e.who || '')}</div><div class="lg-who-role">${esc(e.role || '')}</div></div></div></td>
         <td><div class="lg-text"><span>${esc(e.text)}</span>${has ? `<span class="lg-chev">${CHEV}</span>` : ''}</div></td>
       </tr>`;
-      const detail = has ? `<tr class="lg-row-detail" data-lg-detail="${i}"><td colspan="4"><div class="lg-kv">${e.details.map(r =>
-        `<span class="k">${esc(r.label)}</span><span class="v">${detailValue(r)}</span>`).join('')}</div></td></tr>` : '';
+      const beforeAfter = changes.length ? `<table class="lg-ba"><thead><tr><th>Changed</th><th>Before</th><th>After</th></tr></thead><tbody>${changes.map(r =>
+        `<tr><td>${esc(r.label)}</td><td class="b">${esc(r.from === '' || r.from == null ? '\u2014' : r.from)}</td><td class="a">${esc(r.to === '' || r.to == null ? '\u2014' : r.to)}</td></tr>`).join('')}</tbody></table>` : '';
+      const detail = has ? `<tr class="lg-row-detail" data-lg-detail="${i}"><td colspan="4">${beforeAfter}${facts.length ? `<div class="lg-kv">${facts.map(r =>
+        `<span class="k">${esc(r.label)}</span><span class="v">${esc(r.value == null || r.value === '' ? '\u2014' : r.value)}</span>`).join('')}</div>` : ''}</td></tr>` : '';
       return main + detail;
     };
     const renderLog = () => {

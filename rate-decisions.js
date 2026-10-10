@@ -965,7 +965,8 @@ window.KashierRates = (function () {
       payoutList(app).forEach((p, i) => details.push({ label: payoutList(app).length > 1 ? 'Payout method ' + (i + 1) : 'Payout method',
         value: (p.name ? p.name + ' — ' : '') + payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : p.trusted ? ' (trusted)' : '') }));
       events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
-        text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details });
+        text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details,
+        status: { from: replaces[app.id] ? 'Rejected' : 'New', to: need.length ? 'Waiting Rate Approval' : 'Underwriting Review' } });
 
       const d = decisionsFor(app.id);
       // Approvals carried over from the version this one replaces are already in the log once.
@@ -982,7 +983,8 @@ window.KashierRates = (function () {
         if (r.note) det.push({ label: 'Salesperson justification', value: r.note });
         if (dec.reason) det.push({ label: 'Decision comment', value: dec.reason });
         events.push({ ts: dec.ts, who: dec.by, role: dec.roleLabel, action: dec.decision === 'approved' ? 'Approved' : 'Rejected',
-          category: 'Rates', text: r.rate, details: det });
+          category: 'Rates', text: r.rate, details: det,
+          status: { label: 'Rate decision', from: 'Pending', to: dec.decision === 'approved' ? 'Approved' : 'Rejected' } });
       });
       if (need.length && need.every(r => d[r.id])) {
         const last = need.map(r => d[r.id].ts).sort().pop();
@@ -990,15 +992,19 @@ window.KashierRates = (function () {
         events.push({ ts: last, who: 'Workflow Engine', role: 'System', system: true, action: rejected ? 'Returned' : 'Advanced', category: 'Application',
           text: rejected ? 'Returned to the salesperson' : 'Every rate approved \u2014 sent to Underwriting Review',
           details: rejected ? [{ label: 'Rejected rates', value: rejected + ' of ' + need.length }, { label: 'Next step', value: app.actor + ' modifies the rejected rates and resubmits' }]
-            : [{ label: 'Approved rates', value: String(need.length) }, { label: 'Next step', value: 'Underwriting Review by the Onboarding team' }] });
+            : [{ label: 'Approved rates', value: String(need.length) }, { label: 'Next step', value: 'Underwriting Review by the Onboarding team' }],
+          status: { from: 'Waiting Rate Approval', to: rejected ? 'Rejected' : 'Underwriting Review' } });
       }
       const rec = accountRecord(app);
       if (rec.approvedTs) events.push({ ts: rec.approvedTs, who: rec.by, role: 'Onboarding Team', action: 'Approved', category: 'Underwriting',
-        text: 'Approved internally and sent to the bank', details: [{ label: 'Application', value: app.id }] });
+        text: 'Approved internally and sent to the bank', details: [{ label: 'Application', value: app.id }],
+        status: { from: 'Underwriting Review', to: 'Bank Submission' } });
       if (rec.status === 'rejected') events.push({ ts: rec.ts, who: rec.by, role: 'Onboarding Team', action: 'Rejected', category: 'Underwriting',
-        text: 'Application rejected by the Onboarding team', details: [{ label: 'Application', value: app.id }, { label: 'Reason', value: rec.reason || '\u2014' }] });
+        text: 'Application rejected by the Onboarding team', details: [{ label: 'Application', value: app.id }, { label: 'Reason', value: rec.reason || '\u2014' }],
+        status: { from: 'Underwriting Review', to: 'Rejected' } });
       if (rec.status === 'live') events.push({ ts: rec.ts, who: rec.by, role: 'Onboarding Team', action: 'Live', category: 'Underwriting',
-        text: 'Bank/vendor approval received \u2014 account is live', details: [{ label: 'Application', value: app.id }] });
+        text: 'Bank/vendor approval received \u2014 account is live', details: [{ label: 'Application', value: app.id }],
+        status: { from: 'Bank Submission', to: 'Live' } });
     });
     (readStore('kashierApplicationLog')[leadId] || []).forEach(e => events.push(Object.assign({ action: 'Note', category: 'Application', role: '' }, e)));
     return events.sort((x, y) => new Date(y.ts) - new Date(x.ts));

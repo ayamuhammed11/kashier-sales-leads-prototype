@@ -230,36 +230,44 @@
   .alt-add { font-size: 13px; }
 
 
-  /* Activity log — simple and compact: one line per event, details on demand */
-  .drawer { width: 440px; }
-  .lg-item { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
-  .lg-item:last-child { border-bottom: none; }
-  .lg-head { display: flex; align-items: center; gap: 8px; }
-  .lg-item.has-details .lg-head { cursor: pointer; }
-  .lg-ico { width: 18px; height: 18px; color: var(--cadet-base); flex-shrink: 0; display: flex; }
-  .lg-ico svg { width: 18px; height: 18px; }
-  .lg-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--foreground); line-height: 1.3; }
-  .lg-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .3px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
+  /* Activity log — the Kashier logs table in a drawer: When, Action, Performed By, Details */
+  .drawer { width: 760px; }
+  .drawer-body.lg-body { padding: 0; }
+  .lg-scroll { overflow-x: auto; }
+  .lg-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; }
+  .lg-table thead th { height: 42px; padding: 0 10px; background: var(--muted); border-bottom: 1px solid var(--border-subtle); font-size: 11px;
+    font-weight: 700; color: var(--cadet-base); text-transform: uppercase; letter-spacing: .3px; text-align: left; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+  .lg-table tbody td { padding: 12px 10px; font-size: 13px; color: var(--foreground); vertical-align: middle; border-bottom: 1px solid var(--border-subtle); }
+  .lg-table .c-when { width: 132px; } .lg-table .c-action { width: 112px; } .lg-table .c-by { width: 168px; }
+  .lg-row-main.has-details { cursor: pointer; }
+  .lg-row-main.has-details:hover { background: var(--primary-10); }
+  .lg-abs { font-size: 12.5px; color: var(--foreground); } .lg-rel { font-size: 11px; color: var(--cadet-05); margin-top: 2px; }
+  .lg-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .3px; padding: 4px 9px; white-space: nowrap; }
   .lg-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
   .lg-badge.pending  { background: var(--warning-bg); color: #92620A; }
   .lg-badge.approved { background: var(--success-bg); color: var(--success-text); }
   .lg-badge.rejected { background: var(--destructive-bg); color: var(--destructive); }
   .lg-badge.info     { background: var(--ocean-10); color: var(--primary); }
   .lg-badge.waiting  { background: var(--pill-bg); color: var(--pill-text); }
+  .lg-actor { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .lg-av { width: 26px; height: 26px; border-radius: 50%; background: #E7ECF7; color: var(--primary); display: flex; align-items: center; justify-content: center;
+    font-size: 10.5px; font-weight: 700; flex-shrink: 0; }
+  .lg-av.system { background: var(--accent-10); color: #006A66; }
+  .lg-av svg { width: 13px; height: 13px; }
+  .lg-who { min-width: 0; } .lg-who-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lg-who-role { font-size: 11px; color: var(--cadet-05); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lg-text { display: flex; align-items: center; gap: 8px; line-height: 1.45; }
+  .lg-text > span:first-child { flex: 1; min-width: 0; }
   .lg-chev { width: 16px; height: 16px; color: var(--cadet-05); flex-shrink: 0; display: flex; transition: transform .15s ease; }
   .lg-chev svg { width: 16px; height: 16px; }
-  .lg-item.open .lg-chev { transform: rotate(180deg); }
-  .lg-meta { margin: 1px 0 0 26px; font-size: 11.5px; color: var(--cadet-05); }
-  .lg-details { display: none; margin: 6px 0 2px 26px; border-left: 2px solid var(--border); padding-left: 10px; }
-  .lg-item.open .lg-details { display: block; }
-  .lg-row { display: flex; gap: 6px; padding: 1px 0; font-size: 12px; line-height: 1.45; }
-  .lg-lbl { flex: 0 0 auto; color: var(--cadet-05); }
-  .lg-lbl::after { content: ':'; }
-  .lg-val { color: var(--foreground); font-weight: 600; word-break: break-word; }
-  .lg-from { color: var(--cadet-05); text-decoration: line-through; font-weight: 400; }
-  .lg-arrow { margin: 0 4px; color: var(--cadet-05); }
-  .lg-to { color: var(--foreground); font-weight: 700; }
+  .lg-row-main.open .lg-chev { transform: rotate(180deg); }
+  .lg-row-detail { display: none; } .lg-row-detail.open { display: table-row; }
+  .lg-row-detail td { background: #FCFCFD; padding: 4px 10px 14px 142px; }
+  .lg-kv { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; font-size: 12.5px; }
+  .lg-kv .k { color: var(--cadet-05); } .lg-kv .v { color: var(--foreground); font-weight: 600; word-break: break-word; }
+  .lg-from { color: var(--cadet-05); text-decoration: line-through; font-weight: 400; } .lg-arrow { margin: 0 5px; color: var(--cadet-05); } .lg-to { font-weight: 700; }
+  @media (max-width: 720px) { .lg-row-detail td { padding-left: 10px; } .lg-kv { grid-template-columns: 1fr; gap: 0; } .lg-kv .v { margin-bottom: 6px; } }
 
 
   .appr-line-rej { font-size: 12.5px; color: var(--destructive); background: var(--destructive-bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.45; }
@@ -856,7 +864,7 @@
         <div><h3>Activity Log</h3><p class="drawer-sub" id="logDrawerSub"></p></div>
         <button class="btn-icon" id="logDrawerClose" aria-label="Close">&#10005;</button>
       </div>
-      <div class="drawer-body" id="logDrawerBody"></div>
+      <div class="drawer-body lg-body" id="logDrawerBody"></div>
     </aside>
   </div>
 
@@ -2637,9 +2645,12 @@
     const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
     $('viewLogsBtn').addEventListener('click', openLogs);
-    const toggleLog = head => { const it = head.closest('.lg-item'); const on = it.classList.toggle('open'); head.setAttribute('aria-expanded', on); };
-    $('logDrawerBody').addEventListener('click', e => { const h = e.target.closest('[data-lg-toggle]'); if (h) toggleLog(h); });
-    $('logDrawerBody').addEventListener('keydown', e => { const h = e.target.closest('[data-lg-toggle]'); if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleLog(h); } });
+    const toggleLog = row => {
+      const on = row.classList.toggle('open'); row.setAttribute('aria-expanded', on);
+      const d = $('logDrawerBody').querySelector(`[data-lg-detail="${row.dataset.lgRow}"]`); if (d) d.classList.toggle('open', on);
+    };
+    $('logDrawerBody').addEventListener('click', e => { const r = e.target.closest('.lg-row-main.has-details'); if (r) toggleLog(r); });
+    $('logDrawerBody').addEventListener('keydown', e => { const r = e.target.closest('.lg-row-main.has-details'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleLog(r); } });
     $('logDrawerClose').addEventListener('click', closeLogs);
     $('logDrawerOverlay').addEventListener('click', e => { if (e.target === $('logDrawerOverlay')) closeLogs(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLogs(); });
@@ -2718,17 +2729,6 @@
     const dateOf = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     /* Same format as the Kashier logs: action badge, when + relative time, who + role, then a
        breakdown of exactly what happened. */
-    const LOG_ICON = {
-      'Application': 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
-      'Rates': 'M9 14.25 15 8.25m-5.25.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm6 6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-      'Pricing': 'M9 14.25 15 8.25m-5.25.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm6 6a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
-      'Services': 'M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z',
-      'Documents': 'm18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13',
-      'Business details': 'M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z',
-      'Industry': 'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z',
-      'Underwriting': 'M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z',
-    };
-    const logIcon = c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="${LOG_ICON[c] || LOG_ICON.Application}"/></svg>`;
     const SYSTEM_AV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122"/></svg>';
     const ACTION_CLASS = { Started: 'info', Added: 'info', Changed: 'info', Advanced: 'info', Submitted: 'pending', Resubmitted: 'pending',
       Approved: 'approved', Live: 'approved', Rejected: 'rejected', Returned: 'rejected', Canceled: 'rejected' };
@@ -2745,23 +2745,27 @@
       ? `<span class="lg-from">${esc(r.from)}</span><span class="lg-arrow">\u2192</span><span class="lg-to">${esc(r.to)}</span>`
       : esc(r.value == null || r.value === '' ? '\u2014' : r.value);
     const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
-    const logEntryHTML = e => {
+    const logRowsHTML = (e, i) => {
       const has = (e.details || []).length > 0;
-      return `<div class="lg-item${has ? ' has-details' : ''}">
-        <div class="lg-head"${has ? ' data-lg-toggle role="button" tabindex="0" aria-expanded="false"' : ''}>
-          <span class="lg-ico" title="${esc(e.category || 'Application')}">${logIcon(e.category)}</span>
-          <span class="lg-title">${esc(e.text)}</span>
-          <span class="lg-badge ${ACTION_CLASS[e.action] || 'waiting'}"><span class="dot"></span>${esc(e.action || 'Note')}</span>
-          ${has ? `<span class="lg-chev">${CHEV}</span>` : ''}
-        </div>
-        <div class="lg-meta">${esc(e.who || '')}${e.role ? ` · ${esc(e.role)}` : ''} · ${esc(stampOf(e.ts))}</div>
-        ${has ? `<div class="lg-details">${e.details.map(r => `<div class="lg-row"><span class="lg-lbl">${esc(r.label)}</span><span class="lg-val">${detailValue(r)}</span></div>`).join('')}</div>` : ''}
-      </div>`;
+      const system = !!e.system || e.who === 'Workflow Engine' || e.who === 'System';
+      const main = `<tr class="lg-row-main${has ? ' has-details' : ''}" data-lg-row="${i}"${has ? ' tabindex="0" role="button" aria-expanded="false"' : ''}>
+        <td><div class="lg-abs">${esc(stampOf(e.ts))}</div><div class="lg-rel">${esc(agoOf(e.ts))}</div></td>
+        <td><span class="lg-badge ${ACTION_CLASS[e.action] || 'waiting'}"><span class="dot"></span>${esc(e.action || 'Note')}</span></td>
+        <td><div class="lg-actor"><div class="lg-av${system ? ' system' : ''}">${system ? SYSTEM_AV : esc(initialsOfName(e.who))}</div>
+          <div class="lg-who"><div class="lg-who-name">${esc(e.who || '')}</div><div class="lg-who-role">${esc(e.role || '')}</div></div></div></td>
+        <td><div class="lg-text"><span>${esc(e.text)}</span>${has ? `<span class="lg-chev">${CHEV}</span>` : ''}</div></td>
+      </tr>`;
+      const detail = has ? `<tr class="lg-row-detail" data-lg-detail="${i}"><td colspan="4"><div class="lg-kv">${e.details.map(r =>
+        `<span class="k">${esc(r.label)}</span><span class="v">${detailValue(r)}</span>`).join('')}</div></td></tr>` : '';
+      return main + detail;
     };
     const renderLog = () => {
       const all = K.applicationLog(sourceLeadId);
-      $('logDrawerSub').textContent = `${$('mBiz').value || 'This application'} · ${all.length} event${all.length === 1 ? '' : 's'}`;
-      $('logDrawerBody').innerHTML = all.length ? all.map(logEntryHTML).join('') : '<div class="log-empty">No log entries found.</div>';
+      $('logDrawerSub').textContent = `${$('mBiz').value || 'This application'} \u00b7 ${all.length} event${all.length === 1 ? '' : 's'}`;
+      $('logDrawerBody').innerHTML = all.length
+        ? `<div class="lg-scroll"><table class="lg-table"><thead><tr><th class="c-when">When</th><th class="c-action">Action</th><th class="c-by">Performed By</th><th>Details</th></tr></thead>
+            <tbody>${all.map(logRowsHTML).join('')}</tbody></table></div>`
+        : '<div class="log-empty" style="padding:22px">No log entries found.</div>';
     };
     const renderHosts = () => {
       $('trackingHost').innerHTML = trackingHTML();

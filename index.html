@@ -427,6 +427,36 @@
     LEADS.forEach(l => { if (store[l.id] && (STATUS_META[store[l.id]] || store[l.id] === 'application')) l.status = store[l.id]; });
   }
   applyStoredStatuses();
+
+  /* Every application has a full log from its first moment: the CRM assigning the lead to its salesperson, and — for a
+     canceled lead — the cancelation. Written once per lead, so it is there whichever status the application is opened in. */
+  (function seedLeadLogs() {
+    const K = window.KashierRates, store = K.readStore('kashierApplicationLog');
+    const apps = K.loadApplications();
+    let changed = false;
+    LEADS.forEach(l => {
+      const list = store[l.id] = store[l.id] || [];
+      if (!list.some(e => e.action === 'Assigned')) {
+        const app = apps.filter(a => a.leadId === l.id && !a.superseded)[0];
+        let at = new Date(l.assigned + 'T09:00:00.000Z').getTime();
+        if (app && at >= new Date(app.ts).getTime()) at = new Date(app.ts).getTime() - 2 * 86400000;
+        list.push({ ts: new Date(at).toISOString(), who: 'Zoho CRM', text: 'Lead assigned to ' + l.owner, action: 'Assigned', category: 'Application', role: 'CRM', system: true,
+          details: [{ label: 'Merchant', value: l.biz }, { label: 'Industry', value: l.industry }, { label: 'Contact', value: l.contact }, { label: 'Lead', value: l.id }] });
+        changed = true;
+      }
+      if (l.status === 'lost' && !list.some(e => e.action === 'Canceled')) {
+        list.push({ ts: new Date(l.lastActivity + 'T12:00:00.000Z').toISOString(), who: l.owner, text: 'Application canceled', action: 'Canceled', category: 'Application', role: 'Salesperson',
+          details: [{ label: 'Comment', value: 'The merchant decided not to go ahead.' }], status: { from: 'New', to: 'Canceled' } });
+        changed = true;
+      }
+    });
+    if (changed) K.writeStore('kashierApplicationLog', store);
+    // A canceled lead has to stay canceled when its application is opened, which only knows the saved statuses.
+    const saved = K.readStore('kashierLeadStatusOverrides');
+    let savedChanged = false;
+    LEADS.forEach(l => { if (l.status === 'lost' && saved[l.id] !== 'lost') { saved[l.id] = 'lost'; savedChanged = true; } });
+    if (savedChanged) K.writeStore('kashierLeadStatusOverrides', saved);
+  })();
   // A live merchant has moved on from Sales — it's worked from the Merchant module from here.
   LEADS = LEADS.filter(l => l.status !== 'activated');
 

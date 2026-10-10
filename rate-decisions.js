@@ -271,7 +271,7 @@ window.KashierRates = (function () {
     {
       id: 'APP-00000010', leadId: 'L-010', website: 'https://aswanrealty.com', biz: 'Aswan Realty Partners', actor: 'Mostafa Khaled',
       ts: '2026-09-02T13:40:00.000Z',
-      seedAccount: { status: 'pending-configurations', by: 'Rana Adel', ts: '2026-09-07T09:30:00.000Z' },
+      seedAccount: { status: 'pending-configurations', by: 'Rana Adel', ts: '2026-09-07T09:30:00.000Z', approvedTs: '2026-09-07T09:30:00.000Z' },
       summary: {
         email: 'farida@aswanrealty.com', phone: '+20 111 012 3456',
         entity: 'Registered Business', industry: 'Real Estate',

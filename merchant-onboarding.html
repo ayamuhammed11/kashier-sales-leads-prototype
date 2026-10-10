@@ -2632,7 +2632,7 @@
         <span class="status-badge ${esc(shown)}"><span class="dot"></span>${esc(LABELS[shown] || shown)}</span>
         <button type="button" class="btn btn-outline btn-sm" id="viewLogsBtn">View Logs</button>
       </div>
-      ${canLose ? '<button type="button" class="btn btn-outline btn-sm btn-cancel-app" id="markLostBtn">Cancel</button>' : ''}
+      ${canLose ? '<button type="button" class="btn btn-outline btn-sm btn-cancel-app" id="markLostBtn">Cancel Application</button>' : ''}
     </div>`);
     const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');

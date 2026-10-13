@@ -230,16 +230,24 @@
   .alt-add { font-size: 13px; }
 
 
-  /* Activity log — the Kashier logs table in a drawer: When, Action, Performed By, Details */
-  .drawer { width: 760px; }
-  .drawer-body.lg-body { padding: 0; }
-  .lg-scroll { overflow-x: auto; }
-  .lg-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; }
-  .lg-table thead th { height: 42px; padding: 0 10px; background: var(--muted); border-bottom: 1px solid var(--border-subtle); font-size: 11px;
-    font-weight: 700; color: var(--cadet-base); text-transform: uppercase; letter-spacing: .3px; text-align: left; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
-  .lg-table tbody td { padding: 12px 10px; font-size: 13px; color: var(--foreground); vertical-align: top; border-bottom: 1px solid var(--border-subtle); }
-  .lg-table .c-when { width: 140px; } .lg-table .c-action { width: 104px; } .lg-table .c-by { width: 130px; }
-  .lg-abs { font-size: 12.5px; color: var(--foreground); } .lg-rel { font-size: 11px; color: var(--cadet-05); margin-top: 2px; }
+  /* Activity log — the Kashier Events feed in a drawer: one card per event, with a round icon, the timestamp and the sentence */
+  .drawer { width: 640px; }
+  .drawer-body.lg-body { padding: 16px 20px; background: #fff; }
+  .ev-title { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 22px; font-weight: 700; color: var(--cadet-base); padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+  .ev-title svg { width: 20px; height: 20px; color: var(--cadet-05); }
+  .ev-card { display: flex; gap: 14px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 14px 14px 12px; margin-bottom: 12px; background: #fff; }
+  .ev-ic { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #E1E3E6; color: #4B5563; }
+  .ev-ic svg { width: 18px; height: 18px; }
+  .ev-ic.add { background: #43A047; color: #fff; } .ev-ic.del { background: #A8001C; color: #fff; } .ev-ic.ok { color: #2E7D32; } .ev-ic.no { color: #B3261E; }
+  .ev-main { min-width: 0; flex: 1; }
+  .ev-when { font-size: 13.5px; color: var(--cadet-05); margin-bottom: 4px; }
+  .ev-line { font-size: 14px; line-height: 1.55; color: var(--cadet-05); word-break: break-word; margin-bottom: 4px; }
+  .ev-line b { color: var(--foreground); font-weight: 700; }
+  .ev-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 4px 4px; font-size: 13px; color: var(--cadet-05); }
+  .ev-pager { display: flex; align-items: center; gap: 10px; }
+  .ev-pager select { height: 28px; border: 0; background: transparent; font-size: 14px; color: var(--foreground); cursor: pointer; }
+  .ev-pbtn { width: 30px; height: 28px; border: 1px solid #C9CDD3; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; color: var(--foreground); }
+  .ev-pbtn:disabled { opacity: .4; cursor: default; }
   .payout-progress { margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--cadet-05); }
   .lg-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .3px; padding: 4px 9px; white-space: nowrap; }
@@ -249,19 +257,6 @@
   .lg-badge.rejected { background: var(--destructive-bg); color: var(--destructive); }
   .lg-badge.info     { background: var(--ocean-10); color: var(--primary); }
   .lg-badge.waiting  { background: var(--pill-bg); color: var(--pill-text); }
-  .lg-actor { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .lg-av { width: 26px; height: 26px; border-radius: 50%; background: #E7ECF7; color: var(--primary); display: flex; align-items: center; justify-content: center;
-    font-size: 10.5px; font-weight: 700; flex-shrink: 0; }
-  .lg-av.system { background: var(--accent-10); color: #006A66; }
-  .lg-av svg { width: 13px; height: 13px; }
-  .lg-who { min-width: 0; } .lg-who-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lg-who-role { font-size: 11px; color: var(--cadet-05); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lg-text { line-height: 1.45; }
-  .lg-lines { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; line-height: 1.5; }
-  .lg-line .k { color: var(--cadet-05); } .lg-line .k::after { content: ': '; }
-  .lg-line .v { color: var(--foreground); font-weight: 600; word-break: break-word; }
-  .lg-line .from { color: var(--cadet-05); font-weight: 400; text-decoration: line-through; }
-  .lg-line .arrow { margin: 0 6px; color: var(--cadet-05); }
 
 
   .appr-line-rej { font-size: 12.5px; color: var(--destructive); background: var(--destructive-bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; line-height: 1.45; }
@@ -2686,7 +2681,7 @@
       </div>
       ${canLose ? '<button type="button" class="btn btn-outline btn-sm btn-cancel-app" id="markLostBtn">Cancel Application</button>' : ''}
     </div>`);
-    const openLogs = () => { renderLog(); $('logDrawerOverlay').classList.add('open'); };
+    const openLogs = () => { logPage = 1; renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
     $('viewLogsBtn').addEventListener('click', openLogs);
     $('logDrawerClose').addEventListener('click', closeLogs);
@@ -2768,33 +2763,74 @@
     const money = (pct, fee) => [pct != null ? pct + '%' : '', fee != null ? fee + ' EGP' : ''].filter(Boolean).join(' + ') || '—';
     const dateOf = iso => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     /* Simple log: user, action, timestamp, and what changed (old and new). */
-    const ACTION_CLASS = { Sent: 'info', Verified: 'approved', Added: 'info', Changed: 'info', Uploaded: 'info', Removed: 'waiting', Advanced: 'info', Submitted: 'pending', Resubmitted: 'pending',
-      Approved: 'approved', Live: 'approved', Rejected: 'rejected', Returned: 'rejected', Canceled: 'rejected' };
-    const stampOf = iso => { const d = new Date(iso); return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
-    const logRowsHTML = e => {
+    const evStamp = iso => {
+      const d = new Date(iso), p2 = n => String(n).padStart(2, '0'), h = d.getHours() % 12 || 12;
+      return `${p2(d.getMonth() + 1)}/${p2(d.getDate())}/${d.getFullYear()}. ${p2(h)}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${d.getHours() >= 12 ? 'PM' : 'AM'}`;
+    };
+    const IC = {
+      pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m16.9 4.2 2.9 2.9M4 20l.9-3.8L16.4 4.7a1.6 1.6 0 0 1 2.3 0l.6.6a1.6 1.6 0 0 1 0 2.3L7.8 19.1 4 20Z"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>',
+      trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6m4-6v6M6 7l1 12h10l1-12M9 7V4h6v3"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="m8 12.5 2.8 2.8L16 9.5"/></svg>',
+      cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="m9 9 6 6m0-6-6 6"/></svg>',
+      mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="12" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="m5 8 7 5 7-5"/></svg>',
+      send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12 20 4l-5 16-3-6-8-2Z"/></svg>',
+      upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V5m0 0-4 4m4-4 4 4M5 19h14"/></svg>',
+      list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M5 7h14M5 12h14M5 17h9"/></svg>',
+    };
+    const ICON_OF = { Added: ['add', IC.plus], Removed: ['del', IC.trash], Changed: ['', IC.pencil], Uploaded: ['', IC.upload], Approved: ['ok', IC.check], Verified: ['ok', IC.check],
+      Live: ['ok', IC.check], Advanced: ['', IC.send], Submitted: ['', IC.send], Resubmitted: ['', IC.send], Sent: ['', IC.mail], Rejected: ['no', IC.cross], Returned: ['no', IC.cross], Canceled: ['no', IC.cross] };
+    const lc = t => t ? t.charAt(0).toLowerCase() + t.slice(1) : '';
+    /* The sentence for an event: who did what. Events recorded as their own text ("Added service — Card") read straight on. */
+    const sentenceOf = e => {
+      const who = `<b>${esc(e.who || '')}</b>`, text = e.text || '';
+      const after = text.split(' \u2014 ').slice(1).join(' \u2014 ');
+      switch (e.action) {
+        case 'Submitted': return `${who} submitted the application`;
+        case 'Resubmitted': return `${who} resubmitted the application with revised rates`;
+        case 'Returned': return `${who} returned the application to the salesperson`;
+        case 'Advanced': return `${who} sent the application to Underwriting Review`;
+        case 'Canceled': return `${who} canceled the application`;
+        case 'Live': return `${who} made the account live`;
+        case 'Approved': case 'Rejected': {
+          const verb = e.action === 'Approved' ? 'approved' : 'rejected';
+          if (e.category === 'Rates') return `${who} ${verb} the rate <b>${esc(text)}</b>`;
+          if (e.category === 'Payout') return `${who} ${verb} the payout method${after ? ' \u2014 <b>' + esc(after) + '</b>' : ''}`;
+          return `${who} ${verb} the application${e.action === 'Approved' ? ' internally and sent it to the bank' : ''}`;
+        }
+        default: {
+          const [head, ...rest] = text.split(' \u2014 ');
+          return `${who} ${esc(lc(head))}${rest.length ? ' \u2014 <b>' + esc(rest.join(' \u2014 ')) + '</b>' : ''}`;
+        }
+      }
+    };
+    const evCardHTML = e => {
       const rows = e.details || [];
       const changes = (e.status ? [{ label: e.status.label || 'Status', from: e.status.from, to: e.status.to }] : []).concat(rows.filter(r => r.from != null));
-      const facts = rows.filter(r => r.from == null);
       const dash = v => v === '' || v == null ? '\u2014' : v;
-      let lines = changes.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v"><span class="from">${esc(dash(r.from))}</span><span class="arrow">\u2192</span>${esc(dash(r.to))}</span></div>`);
-      // An entry with no old value (something added or recorded) shows what it is; with nothing else, its own description.
-      if (!lines.length) lines = facts.map(r => `<div class="lg-line"><span class="k">${esc(r.label)}</span><span class="v">${esc(dash(r.value))}</span></div>`);
-      if (!lines.length) lines = [`<div class="lg-line"><span class="v">${esc(e.text)}</span></div>`];
-      return `<tr class="lg-row-main">
-        <td><div class="lg-who-name">${esc(e.who || '')}</div></td>
-        <td><span class="lg-badge ${ACTION_CLASS[e.action] || 'waiting'}"><span class="dot"></span>${esc(e.action || 'Note')}</span></td>
-        <td><div class="lg-abs">${esc(stampOf(e.ts))}</div></td>
-        <td><div class="lg-lines">${lines.join('')}</div></td>
-      </tr>`;
+      const who = `<b>${esc(e.who || '')}</b>`;
+      const lines = [sentenceOf(e)].concat(changes.map(r => `${who} changed <b>${esc(r.label)}</b> from <b>${esc(dash(r.from))}</b> to <b>${esc(dash(r.to))}</b>`));
+      const [cls, svg] = ICON_OF[e.action] || ['', IC.list];
+      return `<div class="ev-card"><div class="ev-ic ${cls}">${svg}</div>
+        <div class="ev-main"><div class="ev-when">${esc(evStamp(e.ts))}</div>${lines.map(l => `<div class="ev-line">${l}</div>`).join('')}</div></div>`;
     };
+    let logPage = 1, logPer = 5;
     const renderLog = () => {
       const all = K.applicationLog(sourceLeadId);
       $('logDrawerSub').textContent = `${$('mBiz').value || 'This application'} \u00b7 ${all.length} event${all.length === 1 ? '' : 's'}`;
-      $('logDrawerBody').innerHTML = all.length
-        ? `<div class="lg-scroll"><table class="lg-table"><thead><tr><th class="c-by">User</th><th class="c-action">Action</th><th class="c-when">Timestamp</th><th>Changes</th></tr></thead>
-            <tbody>${all.map(logRowsHTML).join('')}</tbody></table></div>`
-        : '<div class="log-empty" style="padding:22px">No log entries found.</div>';
+      const pages = Math.max(1, Math.ceil(all.length / logPer));
+      logPage = Math.min(Math.max(1, logPage), pages);
+      const from = (logPage - 1) * logPer, shown = all.slice(from, from + logPer);
+      $('logDrawerBody').innerHTML = `<h2 class="ev-title">${IC.list}Events</h2>` + (all.length
+        ? shown.map(evCardHTML).join('') + `<div class="ev-foot"><span>${from + 1} - ${from + shown.length} Of ${all.length}</span>
+            <span class="ev-pager">Rows per page: <select id="evPer">${[5, 10, 25].map(n => `<option${n === logPer ? ' selected' : ''}>${n}</option>`).join('')}</select>
+              <button class="ev-pbtn" type="button" data-ev-page="-1"${logPage <= 1 ? ' disabled' : ''} aria-label="Previous page">&lsaquo;</button>
+              <span><b>${logPage}</b> / ${pages}</span>
+              <button class="ev-pbtn" type="button" data-ev-page="1"${logPage >= pages ? ' disabled' : ''} aria-label="Next page">&rsaquo;</button></span></div>`
+        : '<div class="log-empty" style="padding:22px">No log entries found.</div>');
     };
+    $('logDrawerBody').addEventListener('click', e => { const b = e.target.closest('[data-ev-page]'); if (b) { logPage += Number(b.dataset.evPage); renderLog(); } });
+    $('logDrawerBody').addEventListener('change', e => { if (e.target.id === 'evPer') { logPer = Number(e.target.value); logPage = 1; renderLog(); } });
     const renderHosts = () => {
       $('trackingHost').innerHTML = trackingHTML();
       renderLog();

@@ -2841,11 +2841,13 @@
     };
     const evCardHTML = e => {
       const rows = e.details || [];
-      const changes = (e.status ? [{ label: e.status.label || 'Status', from: e.status.from, to: e.status.to }] : []).concat(rows.filter(r => r.from != null));
+      // Status moves are not logged as changes; only the fields that were changed, old and new.
+      const changes = rows.filter(r => r.from != null);
       const dash = v => v === '' || v == null ? '\u2014' : v;
       const who = `<b>${esc(e.who || '')}</b>`;
       const flaggedRows = rows.filter(r => r.item).map(r => `${who} rejected the ${esc(r.item.toLowerCase())} <b>${esc(r.label)}</b> \u2014 ${esc(r.value)}`);
-      const lines = [sentenceOf(e)].concat(flaggedRows).concat(changes.map(r => `${who} changed <b>${esc(r.label)}</b> from <b>${esc(dash(r.from))}</b> to <b>${esc(dash(r.to))}</b>`));
+      const shownFacts = rows.filter(r => r.from == null && !r.item && ['Requested', 'Published', 'Decision comment', 'Reason'].includes(r.label)).map(r => `<b>${esc(r.label)}</b>: ${esc(dash(r.value))}`);
+      const lines = [sentenceOf(e)].concat(shownFacts).concat(flaggedRows).concat(changes.map(r => `${who} changed <b>${esc(r.label)}</b> from <b>${esc(dash(r.from))}</b> to <b>${esc(dash(r.to))}</b>`));
       const [cls, svg] = ICON_OF[e.action] || ['', IC.list];
       return `<div class="ev-card"><div class="ev-ic ${cls}">${svg}</div>
         <div class="ev-main"><div class="ev-when">${esc(evStamp(e.ts))}</div>${lines.map(l => `<div class="ev-line">${l}</div>`).join('')}</div></div>`;

@@ -308,7 +308,8 @@ window.KashierRates = (function () {
     {
       id: 'APP-00000013', leadId: 'L-030', website: 'https://maadifitness.com', biz: 'Maadi Fitness Club', actor: 'Mostafa Khaled',
       ts: '2026-09-10T11:30:00.000Z',
-      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-12T10:45:00.000Z', reason: 'The commercial register expired in June 2026. Upload a valid register and resubmit.' },
+      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-12T10:45:00.000Z', reason: 'The commercial register expired in June 2026. Upload a valid register and resubmit.',
+        items: [{ type: 'Document', name: 'Commercial Register', reason: 'Expired in June 2026 \u2014 upload a valid copy.' }] },
       summary: {
         email: 'ramy@maadifitness.com', phone: '+20 106 222 3344',
         entity: 'Registered Business', industry: 'Health & Fitness',
@@ -328,14 +329,14 @@ window.KashierRates = (function () {
     {
       id: 'APP-00000014', leadId: 'L-031', website: 'https://fayoumorganic.com', biz: 'Fayoum Organic Farms', actor: 'Mostafa Khaled',
       ts: '2026-09-11T14:10:00.000Z',
-      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-13T15:20:00.000Z', reason: 'The activity on the tax card is wholesale trading, which does not match the Agriculture industry selected. Correct the industry or the documents.' },
+      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-13T15:20:00.000Z', reason: 'The activity on the tax card is wholesale trading, which does not match the Agriculture industry selected. Correct the industry or the documents.',
+        items: [{ type: 'Document', name: 'Tax Card', reason: 'Shows wholesale trading, not agriculture.' }, { type: 'Section', name: 'Industry', reason: 'Pick the industry that matches the tax card.' }] },
       summary: {
         email: 'mona@fayoumorganic.com', phone: '+20 111 556 6778',
         entity: 'Registered Business', industry: 'Agriculture',
-        services: ['Online Card', 'POS Card'],
+        services: ['Online Card'],
         serviceConfigs: [
           { service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
-          { service: 'POS Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },
         ],
         posTerminals: '', docsDone: '3', docsTotal: '3',
       },
@@ -838,7 +839,8 @@ window.KashierRates = (function () {
     const app = opts.app, prev = accountRecord(app);
     if (opts.role !== 'onboarding' || prev.status !== 'submitted' || !String(opts.reason || '').trim()) return null;
     const ts = new Date().toISOString();
-    setAccount(app, { status: 'rejected', by: ROLES.onboarding.name, ts: ts, reason: opts.reason.trim() },
+    const items = (opts.items || []).filter(i => i && i.name && String(i.reason || '').trim()).map(i => ({ type: i.type, name: i.name, reason: String(i.reason).trim() }));
+    setAccount(app, { status: 'rejected', by: ROLES.onboarding.name, ts: ts, reason: opts.reason.trim(), items: items },
       'rejected-by-onboarding', 'application');
     if (app.leadId) {
       const notes = readStore('kashierLeadReturnNote');
@@ -1198,7 +1200,7 @@ window.KashierRates = (function () {
         text: 'Approved internally and sent to the bank', details: [{ label: 'Application', value: app.id }],
         status: { from: 'Underwriting Review', to: 'Bank Submission' } });
       if (rec.status === 'rejected') events.push({ ts: rec.ts, who: rec.by, role: 'Onboarding Team', action: 'Rejected', category: 'Underwriting',
-        text: 'Application rejected by the Onboarding team', details: [{ label: 'Application', value: app.id }, { label: 'Reason', value: rec.reason || '\u2014' }],
+        text: 'Application rejected by the Onboarding team', details: [{ label: 'Application', value: app.id }, { label: 'Reason', value: rec.reason || '\u2014' }].concat((rec.items || []).map(i => ({ label: i.name, value: i.reason, item: i.type }))),
         status: { from: 'Underwriting Review', to: 'Rejected' } });
       if (rec.status === 'live') events.push({ ts: rec.ts, who: rec.by, role: 'Onboarding Team', action: 'Live', category: 'Underwriting',
         text: 'Bank/vendor approval received \u2014 account is live', details: [{ label: 'Application', value: app.id }],
@@ -1209,6 +1211,11 @@ window.KashierRates = (function () {
     return events.sort((x, y) => new Date(y.ts) - new Date(x.ts));
   }
 
+  /* The same document goes by a slightly different name on the seeded records and on the application form. */
+  const DOC_ALIASES = { 'tax card': 'tax', 'tax identification card': 'tax', 'tax id': 'tax', 'commercial register': 'cr', 'commercial registration (cr)': 'cr',
+    'owner national id': 'id', 'national id': 'id', 'bank account letter': 'bank', 'bank account letter / iban proof': 'bank' };
+  const docKey = n => { const k = String(n || '').trim().toLowerCase(); return DOC_ALIASES[k] || k; };
+
   /* Why an application is back with the salesperson. It is either rejected by the Onboarding team after
      underwriting review (one reason), or one or more of its rates were rejected by the approvers (a reason each). */
   function rejectionInfo(leadId) {
@@ -1216,7 +1223,7 @@ window.KashierRates = (function () {
     if (!app) return null;
     const rec = accountRecord(app);
     if (rec.status === 'rejected') {
-      return { kind: 'underwriting', title: 'Rejected by Underwriting', by: rec.by, role: 'Onboarding Team', ts: rec.ts, reason: rec.reason || '', items: [] };
+      return { kind: 'underwriting', title: 'Rejected by Underwriting', by: rec.by, role: 'Onboarding Team', ts: rec.ts, reason: rec.reason || '', items: [], flagged: rec.items || [] };
     }
     const d = decisionsFor(app.id);
     const items = app.requests.filter(r => d[r.id] && d[r.id].decision === 'rejected').map(r => ({
@@ -1240,7 +1247,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, payoutLabel: payoutLabel, payoutList: payoutList,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

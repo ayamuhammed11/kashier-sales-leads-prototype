@@ -423,6 +423,16 @@
   .pc-outcome.approved { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
   .pc-outcome.rejected { background: var(--destructive-bg); border-color: var(--destructive-border); color: var(--destructive); }
   .pc-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .rj-flag-head { margin: 14px 0 6px; font-size: 13px; font-weight: 700; } .rj-flag-head span { font-weight: 400; color: var(--cadet-05); }
+  .rj-items { max-height: 210px; overflow-y: auto; border: 1px solid #E4E7EC; border-radius: 6px; }
+  .rj-item { padding: 8px 10px; border-bottom: 1px solid #E4E7EC; } .rj-item:last-child { border-bottom: 0; }
+  .rj-item label { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+  .rj-item small { color: var(--cadet-05); margin-left: auto; }
+  .rj-item input[type=text] { display: none; width: 100%; margin-top: 6px; height: 32px; border: 1px solid #D0D5DD; border-radius: 5px; padding: 0 10px; font-size: 13px; }
+  .rj-item.on input[type=text] { display: block; } .rj-item input[type=text].invalid { border-color: var(--destructive); }
+  .doc-row.rejected { background: var(--destructive-bg); border-color: var(--destructive-border); }
+  .doc-row.rejected .doc-state { color: var(--destructive); background: #fff; font-weight: 700; }
+  .doc-why { font-size: 12.5px; color: var(--destructive); margin-top: 2px; }
   .pv { margin-top: 12px; border: 1px solid #E4E7EC; border-radius: 5px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; line-height: 1.4; }
   .pv .pv-text { flex: 1; min-width: 220px; color: var(--cadet-05); } .pv .pv-text b { color: var(--foreground); }
   .pv.rejected { background: var(--destructive-bg); border-color: var(--destructive-border); } .pv.rejected .pv-text, .pv.rejected .pv-text b { color: var(--destructive); }
@@ -602,6 +612,9 @@
         <p id="rejectText"></p>
         <textarea id="rejectReason" placeholder="What needs fixing? The salesperson sees this on the lead."></textarea>
         <div class="mx-err" id="rejectError" hidden>Add a reason — the salesperson needs to know what to change.</div>
+        <div class="rj-flag-head">Flag what was rejected <span>(optional — the salesperson sees these highlighted)</span></div>
+        <div id="rejectItems" class="rj-items"></div>
+        <div class="mx-err" id="rejectItemsError" hidden>Give each flagged item its own reason.</div>
       </div>
       <div class="mx-modal-foot">
         <button class="btn btn-outline btn-sm" data-close>Cancel</button>
@@ -795,12 +808,12 @@
     }
     return `<h2 class="section-title">Documents</h2>
       <p style="margin:-10px 0 14px;color:var(--cadet-05);font-size:13px">${app.documents.length} document${app.documents.length === 1 ? '' : 's'} uploaded by ${esc(app.actor)} with the application.</p>
-      ${app.documents.map(d => `<div class="doc-row">
+      ${app.documents.map(d => { const rj = ((acct.record && acct.record.status === 'rejected' && acct.record.items) || []).find(i => i.type === 'Document' && K.docKey(i.name) === K.docKey(d.name)); return `<div class="doc-row${rj ? ' rejected' : ''}">
         <div class="doc-icon">${ICON.doc}</div>
-        <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-file">${esc(d.file || '')}</div></div>
-        <span class="doc-state">Uploaded</span>
+        <div class="doc-info"><div class="doc-name">${esc(d.name)}</div><div class="doc-file">${esc(d.file || '')}</div>${rj ? `<div class="doc-why">Rejected: ${esc(rj.reason)}</div>` : ''}</div>
+        <span class="doc-state">${rj ? 'Rejected' : 'Uploaded'}</span>
         <button class="btn btn-outline btn-sm" type="button">Download</button>
-      </div>`).join('')}`;
+      </div>`; }).join('')}`;
   }
 
   let payoutTab = 'new', payoutTabChosen = false;
@@ -1087,6 +1100,11 @@
       $('rejectReason').value = '';
       $('rejectReason').classList.remove('invalid');
       $('rejectError').hidden = true;
+      $('rejectItemsError').hidden = true;
+      const SECTIONS = ['Business details', 'Industry', 'Services & pricing', 'Payout methods', 'Contracts'];
+      $('rejectItems').innerHTML = acct.app.documents.map(d => ({ type: 'Document', name: d.name })).concat(SECTIONS.map(n => ({ type: 'Section', name: n })))
+        .map(i => `<div class="rj-item" data-type="${esc(i.type)}" data-name="${esc(i.name)}"><label><input type="checkbox"> ${esc(i.name)}<small>${i.type}</small></label>
+          <input type="text" placeholder="Why was this rejected?"></div>`).join('');
       open('rejectModal');
       $('rejectReason').focus();
     } else if (e.target.closest('#goLiveBtn')) {
@@ -1105,13 +1123,18 @@
       toast(`${acct.app.biz} approved and sent to the bank.`);
     }
   });
+  $('rejectItems').addEventListener('change', e => { const row = e.target.closest('.rj-item'); if (row && e.target.type === 'checkbox') { row.classList.toggle('on', e.target.checked); $('rejectItemsError').hidden = true; if (e.target.checked) row.querySelector('input[type=text]').focus(); } });
+  $('rejectItems').addEventListener('input', e => { e.target.classList.remove('invalid'); $('rejectItemsError').hidden = true; });
   $('rejectReason').addEventListener('input', () => { $('rejectReason').classList.remove('invalid'); $('rejectError').hidden = true; });
   $('rejectConfirm').addEventListener('click', () => {
     const reason = $('rejectReason').value.trim();
     if (!reason) { $('rejectReason').classList.add('invalid'); $('rejectError').hidden = false; $('rejectReason').focus(); return; }
     const acct = current();
+    const items = [...$('rejectItems').querySelectorAll('.rj-item.on')].map(el => ({ type: el.dataset.type, name: el.dataset.name, reason: el.querySelector('input[type=text]').value.trim(), el }));
+    const missing = items.filter(i => !i.reason);
+    if (missing.length) { missing.forEach(i => i.el.querySelector('input[type=text]').classList.add('invalid')); $('rejectItemsError').hidden = false; missing[0].el.querySelector('input[type=text]').focus(); return; }
     closeAll();
-    if (acct && K.rejectAccount({ app: acct.app, role, reason })) {
+    if (acct && K.rejectAccount({ app: acct.app, role, reason, items: items.map(i => ({ type: i.type, name: i.name, reason: i.reason })) })) {
       render();
       toast(`Application rejected — returned to ${acct.app.actor}.`);
     }

@@ -248,6 +248,11 @@
   .ev-pager select { height: 28px; border: 0; background: transparent; font-size: 14px; color: var(--foreground); cursor: pointer; }
   .ev-pbtn { width: 30px; height: 28px; border: 1px solid #C9CDD3; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; color: var(--foreground); }
   .ev-pbtn:disabled { opacity: .4; cursor: default; }
+  .uw-flag { margin: 0 0 12px; padding: 9px 12px; border: 1px solid var(--destructive-border); background: var(--destructive-bg); color: var(--destructive); border-radius: 6px; font-size: 13px; line-height: 1.4; }
+  .doc-row.rejected { background: var(--destructive-bg); border-radius: 8px; box-shadow: inset 3px 0 0 var(--destructive); }
+  .doc-row-why { font-size: 12px; font-weight: 600; color: var(--destructive); margin-top: 3px; }
+  .setup-step.flagged { border-color: var(--destructive); }
+  .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
   .payout-progress { margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--cadet-05); }
   .lg-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .3px; padding: 4px 9px; white-space: nowrap; }
@@ -1004,6 +1009,11 @@
   const hasAnyService = () => criteria.services.length > 0;
   // 'edit' (not submitted), 'locked' (submitted — read-only) or 'returned' (feedback received).
   let appMode = 'edit';
+  /* Items the Onboarding team flagged when it rejected the application: documents and sections, each with its own reason. */
+  let uwFlagged = [];
+  const flaggedDoc = name => uwFlagged.find(i => i.type === 'Document' && K.docKey(i.name) === K.docKey(name)) || null;
+  const flaggedSection = name => uwFlagged.find(i => i.type === 'Section' && i.name === name) || null;
+  const uwNotice = (text, who) => `<div class="uw-flag"><b>Rejected by Underwriting</b>${text ? ' \u2014 ' + esc(text) : ''}</div>`;
   const rejectedLines = new Map();   // service::bank::rateKey -> the rejection on that rate
   /* Rates an approver already approved. While they stay exactly as approved they keep that approval:
      they need no new justification and are not sent for approval again. */
@@ -1609,15 +1619,24 @@
   const stepDone = n => stepIssues(n).length === 0;
   const canOpenStep = n => { if (appMode === 'locked') return true; for (let i = 1; i < n; i++) if (!stepDone(i)) return false; return true; };
 
+  /* What Underwriting flagged on a setup step: a section by name, or any of the documents. */
+  function stepFlag(n) {
+    if (n === 1) return flaggedSection('Services & pricing');
+    if (n === 2) return uwFlagged.find(i => i.type === 'Document') || null;
+    if (n === 3) return flaggedSection('Payout methods');
+    if (n === 4) return flaggedSection('Contracts');
+    return null;
+  }
   function renderSetupStepper() {
     const el = $('setupStepper');
     el.innerHTML = SETUP_STEPS.map((s, i) => {
       const n = i + 1;
       const done = stepDone(n) && canOpenStep(n);
-      const cls = n === setupStep ? 'current' : done ? 'done' : canOpenStep(n) ? '' : 'locked';
+      const flagged = !!stepFlag(n);
+      const cls = (n === setupStep ? 'current' : done ? 'done' : canOpenStep(n) ? '' : 'locked') + (flagged ? ' flagged' : '');
       return `<button type="button" class="setup-step ${cls}" data-step="${n}"${canOpenStep(n) ? '' : ' disabled'}>
         <span class="setup-step-dot">${done && n !== setupStep ? CHECK_SVG : n}</span>
-        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${esc(s.hint)}</span></span>
+        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : esc(s.hint)}</span></span>
       </button>`;
     }).join('<span class="setup-step-line"></span>');
   }
@@ -1818,7 +1837,11 @@
     while (setupStep > 1 && !canOpenStep(setupStep)) setupStep--;
     renderSetupStepper();
 
-    const body = [stepServicesTableHTML, stepDocumentsHTML, stepPayoutHTML, stepContractHTML][setupStep - 1]();
+    const flag = stepFlag(setupStep);
+    const flagNote = !flag ? '' : setupStep === 2
+      ? `<div class="uw-flag"><b>Rejected by Underwriting</b> \u2014 ${uwFlagged.filter(i => i.type === 'Document').length} document${uwFlagged.filter(i => i.type === 'Document').length === 1 ? '' : 's'} flagged below. Upload a new file for each.</div>`
+      : uwNotice(flag.reason);
+    const body = flagNote + [stepServicesTableHTML, stepDocumentsHTML, stepPayoutHTML, stepContractHTML][setupStep - 1]();
     const issues = appMode === 'locked' ? [] : stepIssues(setupStep);
     const last = setupStep === SETUP_STEPS.length;
     wrap.innerHTML = `
@@ -2096,14 +2119,16 @@
       return `<label class="doc-upload" data-label="${esc(s.label)}">${DZ_ICO_SVG}${s.label ? esc(s.label) : 'Upload'}<input type="file" accept="${acceptAttr(meta.formats)}" hidden></label>`;
     };
     const done = isDocDone(name);
-    return `<div class="doc-row" data-doc="${esc(name)}">
+    const rej = flaggedDoc(name);
+    return `<div class="doc-row${rej ? ' rejected' : ''}" data-doc="${esc(name)}">
       <div class="doc-row-icon">${WHN_DOC_ICON}</div>
       <div class="doc-row-info">
         <div class="doc-row-title">${esc(name)}${meta.ar ? `<span class="doc-row-ar">${esc(meta.ar)}</span>` : ''}</div>
         <div class="doc-row-via">${required ? 'Required for' : 'Applies to'}: ${via.map(esc).join(', ')}</div>
+        ${rej ? `<div class="doc-row-why">Rejected by Underwriting: ${esc(rej.reason)} \u2014 upload a new file.</div>` : ''}
       </div>
       <div class="doc-row-slots">${slots.map(slotHTML).join('')}</div>
-      <span class="status-pill${done ? ' success' : ''}"><span class="dot"></span>${done ? 'Uploaded' : required ? 'Required' : 'Optional'}</span>
+      <span class="status-pill${done && !rej ? ' success' : ''}"><span class="dot"></span>${rej ? 'Rejected' : done ? 'Uploaded' : required ? 'Required' : 'Optional'}</span>
     </div>`;
   }
   function wireDropzone(el) {
@@ -2618,6 +2643,14 @@
     if (returnedToSales) appMode = 'returned';
     else if (SUBMITTED_STATUSES.includes(status) || status === 'lost' || !!app) appMode = 'locked';
     if (!isSales) appMode = 'locked';
+    if (appMode === 'returned') {
+      const rj = K.rejectionInfo(sourceLeadId);
+      uwFlagged = rj && rj.kind === 'underwriting' ? (rj.flagged || []) : [];
+      [['Business details', '1. Merchant Details'], ['Industry', '2. Criteria & Services']].forEach(([sec, head]) => {
+        const f = flaggedSection(sec), h2 = [...document.querySelectorAll('.card-head h2')].find(h => h.textContent.trim().replace('&amp;', '&') === head);
+        if (f && h2) h2.parentElement.insertAdjacentHTML('beforeend', uwNotice(f.reason));
+      });
+    }
 
     // Opening a new lead's application starts it.
     if (appMode === 'edit' && status === 'new') {
@@ -2653,7 +2686,9 @@
       let title = 'This application was sent back to you', lines = [esc(note ? note.text : '')];
       if (w && w.kind === 'underwriting') {
         title = 'Rejected by the Underwriting team \u2014 update the application and resubmit it';
-        lines = [`<b>Reason:</b> ${esc(w.reason || 'No reason was given.')}`, `${esc(w.by)}${w.role ? ' \u00b7 ' + esc(w.role) : ''} \u00b7 ${esc(when(w.ts))}`];
+        lines = [`<b>Reason:</b> ${esc(w.reason || 'No reason was given.')}`]
+          .concat((w.flagged || []).map(i => `<b>${esc(i.type === 'Document' ? 'Document' : 'Section')} \u2014 ${esc(i.name)}:</b> ${esc(i.reason)}`))
+          .concat(`${esc(w.by)}${w.role ? ' \u00b7 ' + esc(w.role) : ''} \u00b7 ${esc(when(w.ts))}`);
       } else if (w && w.kind === 'rates') {
         title = `${w.items.length} rate${w.items.length === 1 ? '' : 's'} rejected \u2014 change them and resubmit`;
         lines = w.items.map(i => `<b>${esc(i.rate)}</b> (${esc(i.service)}${i.bank ? ' \u00b7 ' + esc(i.bank) : ''}): ${esc(i.reason || 'No reason was given.')} \u2014 ${esc(i.by)}${i.role ? ', ' + esc(i.role) : ''}, ${esc(when(i.ts))}`);
@@ -2809,7 +2844,8 @@
       const changes = (e.status ? [{ label: e.status.label || 'Status', from: e.status.from, to: e.status.to }] : []).concat(rows.filter(r => r.from != null));
       const dash = v => v === '' || v == null ? '\u2014' : v;
       const who = `<b>${esc(e.who || '')}</b>`;
-      const lines = [sentenceOf(e)].concat(changes.map(r => `${who} changed <b>${esc(r.label)}</b> from <b>${esc(dash(r.from))}</b> to <b>${esc(dash(r.to))}</b>`));
+      const flaggedRows = rows.filter(r => r.item).map(r => `${who} rejected the ${esc(r.item.toLowerCase())} <b>${esc(r.label)}</b> \u2014 ${esc(r.value)}`);
+      const lines = [sentenceOf(e)].concat(flaggedRows).concat(changes.map(r => `${who} changed <b>${esc(r.label)}</b> from <b>${esc(dash(r.from))}</b> to <b>${esc(dash(r.to))}</b>`));
       const [cls, svg] = ICON_OF[e.action] || ['', IC.list];
       return `<div class="ev-card"><div class="ev-ic ${cls}">${svg}</div>
         <div class="ev-main"><div class="ev-when">${esc(evStamp(e.ts))}</div>${lines.map(l => `<div class="ev-line">${l}</div>`).join('')}</div></div>`;

@@ -1147,7 +1147,7 @@
   const CURRENCIES = ['EGP', 'USD', 'EUR', 'GBP'];
   function currenciesFor(service) { return service.endsWith('Card') ? CURRENCIES : null; }
   function ensureBankConfig(cfg, key) {
-    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: '', pricing: new Map(), operations: [], notes: '', currencies: ['EGP'] };
+    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: 'PF', pricing: new Map(), operations: [], notes: '', currencies: ['EGP'] };
     if (!cfg.bankConfigs[key].operations) cfg.bankConfigs[key].operations = [];
     if (cfg.bankConfigs[key].notes == null) cfg.bankConfigs[key].notes = '';
     if (!cfg.bankConfigs[key].currencies || !cfg.bankConfigs[key].currencies.length) cfg.bankConfigs[key].currencies = ['EGP'];
@@ -1939,7 +1939,7 @@
         else {
           // Switching institution keeps the model and fees already entered on that row group.
           cfg.banks[i] = val;
-          cfg.bankConfigs[val] = cfg.bankConfigs[cur] || { module: '', pricing: new Map() };
+          cfg.bankConfigs[val] = cfg.bankConfigs[cur] || { module: 'PF', pricing: new Map() };
           delete cfg.bankConfigs[cur];
         }
       } else if (val) {

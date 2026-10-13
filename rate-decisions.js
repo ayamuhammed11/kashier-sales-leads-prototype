@@ -249,7 +249,7 @@ window.KashierRates = (function () {
       ts: '2026-09-14T09:20:00.000Z',
       summary: {
         email: 'hany@portsaidmarine.com', phone: '+20 100 321 4455',
-        entity: 'Registered Business', industry: 'Retail',
+        entity: 'Registered Business', industry: 'Retail & E-commerce',
         services: ['Online Card'],
         serviceConfigs: [
           { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
@@ -312,7 +312,7 @@ window.KashierRates = (function () {
         items: [{ type: 'Document', name: 'Commercial Register', reason: 'Expired in June 2026 \u2014 upload a valid copy.' }] },
       summary: {
         email: 'ramy@maadifitness.com', phone: '+20 106 222 3344',
-        entity: 'Registered Business', industry: 'Health & Fitness',
+        entity: 'Registered Business', industry: 'Entertainment & Media',
         services: ['Online Card'],
         serviceConfigs: [
           { service: 'Online Card', configs: [{ bank: 'National Bank of Egypt', module: 'PSP' }] },
@@ -329,11 +329,11 @@ window.KashierRates = (function () {
     {
       id: 'APP-00000014', leadId: 'L-031', website: 'https://fayoumorganic.com', biz: 'Fayoum Organic Farms', actor: 'Mostafa Khaled',
       ts: '2026-09-11T14:10:00.000Z',
-      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-13T15:20:00.000Z', reason: 'The activity on the tax card is wholesale trading, which does not match the Agriculture industry selected. Correct the industry or the documents.',
-        items: [{ type: 'Document', name: 'Tax Card', reason: 'Shows wholesale trading, not agriculture.' }, { type: 'Section', name: 'Industry', reason: 'Pick the industry that matches the tax card.' }] },
+      seedAccount: { status: 'rejected', by: 'Rana Adel', ts: '2026-09-13T15:20:00.000Z', reason: 'The activity on the tax card is wholesale trading, which does not match the Retail & E-commerce industry selected. Correct the industry or the documents.',
+        items: [{ type: 'Document', name: 'Tax Card', reason: 'Shows wholesale trading, not retail.' }, { type: 'Section', name: 'Industry', reason: 'Pick the industry that matches the tax card.' }] },
       summary: {
         email: 'mona@fayoumorganic.com', phone: '+20 111 556 6778',
-        entity: 'Registered Business', industry: 'Agriculture',
+        entity: 'Registered Business', industry: 'Retail & E-commerce',
         services: ['Online Card'],
         serviceConfigs: [
           { service: 'Online Card', configs: [{ bank: 'Bank Misr', module: 'PSP' }] },

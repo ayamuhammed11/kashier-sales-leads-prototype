@@ -1844,6 +1844,8 @@
     const body = flagNote + [stepServicesTableHTML, stepDocumentsHTML, stepPayoutHTML, stepContractHTML][setupStep - 1]();
     const issues = appMode === 'locked' ? [] : stepIssues(setupStep);
     const last = setupStep === SETUP_STEPS.length;
+    // The submit button sits on the last step: when it is dimmed, say what is still missing right beside it.
+    if (last && appMode !== 'locked' && !issues.length) { const left = readinessChecks().filter(c => !c.done); if (left.length) issues.push('Still to do: ' + left[0].label); }
     wrap.innerHTML = `
       <div class="setup-title">Step ${setupStep} of ${SETUP_STEPS.length} — ${esc(SETUP_STEPS[setupStep - 1].label)}</div>
       ${body}
@@ -2471,6 +2473,7 @@
     if (ENTITIES.includes(s.entity)) criteria.entity = s.entity;
     if (INDUSTRIES.includes(s.industry)) { criteria.industry = s.industry; $('critIndustry').value = s.industry; }
     criteria.altIndustries = (app.altIndustries || []).map(a => ({ industry: a.industry || '', activity: a.activity || a.industry || '' })).filter(a => a.activity);
+    ensureIndustryDefaultActivity(criteria.industry);   // an application without a stored activity gets its industry's own
     criteria.services = (s.services || []).filter(x => SERVICES.includes(x));
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';

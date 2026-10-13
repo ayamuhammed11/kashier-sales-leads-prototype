@@ -1885,7 +1885,7 @@
 
   $('serviceSetupBody').addEventListener('click', e => {
     if (e.target.closest('#setupNext')) {
-      if (!stepDone(setupStep)) { toast(stepIssues(setupStep)[0]); return; }
+      if (appMode !== 'locked' && !stepDone(setupStep)) { toast(stepIssues(setupStep)[0]); return; }
       goToSetupStep(setupStep + 1, true);
       return;
     }
@@ -2027,7 +2027,7 @@
     if (status) status.textContent = issues.length
       ? issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : '')
       : (setupStep === SETUP_STEPS.length ? 'Service setup complete.' : 'This step is complete.');
-    if (next) next.disabled = issues.length > 0;
+    if (next) next.disabled = appMode !== 'locked' && issues.length > 0;
     renderSubmitSummary();
   }
   $('serviceSetupBody').addEventListener('input', e => {
@@ -2936,7 +2936,7 @@
       $('submitCard').hidden = true;
       // Keep every control read-only, including the ones each re-render creates.
       if (approverView || statusView) document.body.classList.add('approver-view');
-      const lock = () => document.querySelectorAll('.content .card input, .content .card select, .content .card textarea, .content .card button:not(.setup-step):not(.rp-act)')
+      const lock = () => document.querySelectorAll('.content .card input, .content .card select, .content .card textarea, .content .card button:not(.setup-step):not(.rp-act):not(#setupNext):not(#setupBack)')
         .forEach(el => { el.disabled = true; el.tabIndex = -1; });
       new MutationObserver(lock).observe(document.querySelector('.content'), { childList: true, subtree: true });
       lock();

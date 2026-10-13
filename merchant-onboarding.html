@@ -1138,7 +1138,7 @@
   /* Advanced Operations — extra capabilities a service can be switched on for, beyond its
      rates. Only services that actually have optional operations get the checklist. */
   const SUPPORTED_OPERATIONS = {
-    'Online Card': ['Pay Non-3DS', 'MOTO', 'Auth & Cap', 'Recurring', 'Meeza Payments', 'Virtual Cards'],
+    'Online Card': ['Pay Non-3DS', 'MOTO', 'Auth & Cap', 'Recurring', 'Virtual Cards'],
     'POS Card': ['Auth & Cap'],
   };
   function operationsFor(service) { return SUPPORTED_OPERATIONS[service] || null; }

@@ -527,7 +527,7 @@ window.KashierRates = (function () {
   function payoutList(app) {
     const list = (app.payouts || []).filter(p => p && p.method);
     if (list.length) return list.slice().sort((a, b) => (b.primary ? 1 : 0) - (a.primary ? 1 : 0));
-    return app.payout && app.payout.method ? [Object.assign({ primary: true, trusted: false }, app.payout)] : [];
+    return app.payout && app.payout.method ? [Object.assign({ primary: true }, app.payout)] : [];
   }
   /* One line for a payout method, with the account or wallet number masked to its last four digits. */
   function payoutLabel(p) {
@@ -973,7 +973,7 @@ window.KashierRates = (function () {
     if (app.payout && app.payout.method) defs.push({ account: 'Primary Account', accId: ids.primary, primary: true, details: app.payout });
     // Other methods the salesperson added with the application; the POS demo accounts stand in only when there are none.
     const extras = payoutList(app).filter(p => !p.primary);
-    extras.forEach((p, i) => defs.push({ account: (p.name || '').trim() || 'Payout Account ' + (i + 2), accId: ids.at(i + 2), primary: false, trusted: !!p.trusted, details: p }));
+    extras.forEach((p, i) => defs.push({ account: (p.name || '').trim() || 'Payout Account ' + (i + 2), accId: ids.at(i + 2), primary: false, details: p }));
     if (accountStatusFor(app) === 'live' && !extras.length) {
       defs.push({ account: 'POS', accId: ids.pos, primary: false, details: POS_SEED });
       defs.push({ account: 'POS-Branch Korba', accId: ids.korba, primary: false, details: korbaSeed(app) });
@@ -1161,7 +1161,7 @@ window.KashierRates = (function () {
       const docs = (app.documents || []).length || Number(sm.docsDone || 0);
       if (docs) details.push({ label: 'Documents', value: docs + ' uploaded' });
       payoutList(app).forEach((p, i) => details.push({ label: payoutList(app).length > 1 ? 'Payout method ' + (i + 1) : 'Payout method',
-        value: (p.name ? p.name + ' — ' : '') + payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : p.trusted ? ' (trusted)' : '') }));
+        value: (p.name ? p.name + ' — ' : '') + payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : '') }));
       events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
         text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details,
         status: { from: replaces[app.id] ? 'Rejected' : 'New', to: need.length ? 'Waiting Rate Approval' : 'Underwriting Review' } });

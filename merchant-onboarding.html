@@ -508,10 +508,7 @@
   .payout-type { font-weight: 600; font-size: 12px; color: var(--cadet-05); }
   .payout-badge { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; }
   .payout-badge.primary { background: var(--ocean-10); color: var(--primary); }
-  .payout-badge.trusted { background: var(--success-bg); color: var(--success-text); }
   .payout-card-actions { display: flex; align-items: center; gap: 12px; }
-  .payout-trust { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .payout-trust input { width: 16px; height: 16px; accent-color: var(--primary); }
   .payout-add { display: flex; gap: 10px; flex-wrap: wrap; }
   .payout-grid { grid-template-columns: repeat(2, 1fr); }
   .payout-select { width: 100%; }
@@ -2192,7 +2189,7 @@
   /* Everything the application needs before it can be created, in the order the form asks
      for it. The Create button stays disabled until every item is done. */
   /* ══════════ Service setup — payout methods: optional, as many as the merchant has. One is the primary
-     (where settlements go); each of the others can be marked trusted. ══════════ */
+     (where settlements go); the first method added stays the primary one. ══════════ */
   const PAYOUT_BANKS = ['National Bank of Egypt', 'Banque Misr', 'Commercial International Bank (CIB)', 'QNB Alahli', 'Banque du Caire',
     'Arab African International Bank', 'Alex Bank', 'HSBC Egypt', 'Faisal Islamic Bank', 'Abu Dhabi Islamic Bank (ADIB)'];
   const PAYOUT_BRANCHES = ['Main Branch', 'Nasr City', 'Heliopolis', 'Maadi', 'Zamalek', 'Dokki', 'Mohandessin', 'Downtown Cairo', 'New Cairo',
@@ -2215,7 +2212,7 @@
     holder: 'Letters, numbers and spaces only — at least 3 characters.',
     name: 'Give this method a name so it can be told apart, e.g. POS. Letters, numbers, spaces and hyphens — at least 2 characters.',
   };
-  let payouts = [];   // [{ id, method, primary, trusted, bankName, branch, holder, account | provider, number }]
+  let payouts = [];   // [{ id, method, primary, bankName, branch, holder, account | provider, number }]
   let nextPayoutId = 1;
   // From the second method on, the salesperson names it (the primary is simply "Primary Account").
   const PAYOUT_NAME_CHARS = /[^\p{L}\p{M}\p{N} -]/gu;
@@ -2224,12 +2221,12 @@
   const payoutFieldsDone = p => Object.keys(PAYOUT_RULES[p.method]).every(k => PAYOUT_RULES[p.method][k](p[k] || ''));
   const payoutComplete = p => payoutFieldsDone(p) && (p.primary || payoutNameValid(p.name || ''));
   function newPayout(method) {
-    return Object.assign({ id: nextPayoutId++, method: method, primary: !payouts.length, trusted: false, name: '' },
+    return Object.assign({ id: nextPayoutId++, method: method, primary: !payouts.length, name: '' },
       method === 'bank' ? { bankName: '', branch: '', holder: '', account: '' } : { provider: '', number: '', holder: '' });
   }
   /* One method as it is sent with the application. */
   function payoutOut(p) {
-    const o = { method: p.method, primary: !!p.primary, trusted: !p.primary && !!p.trusted, name: p.primary ? '' : (p.name || '').trim() };
+    const o = { method: p.method, primary: !!p.primary, name: p.primary ? '' : (p.name || '').trim() };
     Object.keys(PAYOUT_RULES[p.method]).forEach(k => { o[k] = p[k] || ''; });
     return o;
   }
@@ -2244,7 +2241,7 @@
   }
   /* A one-line summary of every method, for the change log. */
   function payoutsSummary() {
-    return payoutsPayload().map(p => (p.name ? p.name + ': ' : '') + K.payoutLabel(p) + (p.primary ? ' (primary)' : p.trusted ? ' (trusted)' : '')).join('; ');
+    return payoutsPayload().map(p => (p.name ? p.name + ': ' : '') + K.payoutLabel(p) + (p.primary ? ' (primary)' : '')).join('; ');
   }
   function payoutField(p, key, label, placeholder, attrs) {
     const v = p[key];
@@ -2290,10 +2287,8 @@
     return `<div class="payout-card${p.primary ? ' is-primary' : ''}" data-payout-card="${p.id}">
       <div class="payout-card-head">
         <div class="payout-card-title">Payout method ${i + 1}<span data-payout-titlename="${p.id}">${!p.primary && (p.name || '').trim() ? ' — ' + esc(p.name.trim()) : ''}</span> <span class="payout-type">${PAYOUT_LABEL[p.method]}</span>
-          ${p.primary ? '<span class="payout-badge primary">Primary</span>' : p.trusted ? '<span class="payout-badge trusted">Trusted</span>' : ''}</div>
+          ${p.primary ? '<span class="payout-badge primary">Primary</span>' : ''}</div>
         <div class="payout-card-actions">
-          ${p.primary ? '' : `<label class="payout-trust"><input type="checkbox" data-payout-trust="${p.id}"${p.trusted ? ' checked' : ''}> Trusted</label>
-            <button type="button" class="btn btn-outline btn-sm" data-payout-primary="${p.id}">Make primary</button>`}
           <button type="button" class="btn-icon" data-payout-remove="${p.id}" aria-label="Remove payout method" title="Remove">${RM_ICON}</button>
         </div>
       </div>
@@ -2302,7 +2297,7 @@
     </div>`;
   }
   function stepPayoutHTML() {
-    return `<div class="setup-contract-intro">Optional — add the bank accounts or e-wallets the merchant is paid out to. Mark one as the <b>primary</b> method; each of the others can be marked <b>trusted</b>.</div>
+    return `<div class="setup-contract-intro">Optional — add the bank accounts or e-wallets the merchant is paid out to. The first one added is the <b>primary</b> method.</div>
       <div class="payout-list">${payouts.length ? payouts.map(payoutCardHTML).join('') : '<div class="whn-empty">No payout methods added yet.</div>'}</div>
       <div class="payout-add">
         <button type="button" class="btn btn-outline" data-payout-add="bank">+ Add bank account</button>
@@ -2318,22 +2313,11 @@
       const wasPrimary = gone.primary;
       logAction('Removed', 'Removed payout method \u2014 ' + (gone.method ? PAYOUT_LABEL[gone.method] : '') + (gone.name ? ' (' + gone.name + ')' : '') + (wasPrimary ? ' \u00b7 was primary' : ''));
       payouts = payouts.filter(p => p.id !== Number(rm.dataset.payoutRemove));
-      if (wasPrimary && payouts.length) { payouts[0].primary = true; payouts[0].trusted = false; }
+      if (wasPrimary && payouts.length) { payouts[0].primary = true; }
       onSetupChanged(); return;
-    }
-    const mk = e.target.closest('[data-payout-primary]');
-    if (mk) {
-      payouts.forEach(p => { p.primary = p.id === Number(mk.dataset.payoutPrimary); if (p.primary) { p.trusted = false; logAction('Changed', 'Set primary payout method \u2014 ' + PAYOUT_LABEL[p.method] + (p.name ? ' (' + p.name + ')' : '')); } });
-      onSetupChanged();
     }
   });
   function onPayoutInput(e) {
-    const tr = e.target.closest('[data-payout-trust]');
-    if (tr) {
-      const p = payouts.find(x => x.id === Number(tr.dataset.payoutTrust));
-      if (p) { p.trusted = tr.checked; logAction('Changed', (tr.checked ? 'Marked payout method as trusted' : 'Unmarked payout method as trusted') + ' \u2014 ' + PAYOUT_LABEL[p.method] + (p.name ? ' (' + p.name + ')' : '')); }
-      onSetupChanged(); return;
-    }
     const el = e.target.closest('[data-payout]');
     if (!el) return;
     const [id, key] = el.dataset.payout.split('.');

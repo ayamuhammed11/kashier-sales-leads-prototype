@@ -864,7 +864,7 @@
     const [pvTone, pvLabel] = PV_STATE[a.verification.state];
     return `<div class="pc-item">
       <div class="pc-head">
-        <div><div class="pc-title">${esc(a.account)}${a.primary ? '<span class="badge success">Primary</span>' : a.trusted ? '<span class="badge primary">Trusted</span>' : ''}<span class="pc-accid">${esc(a.accId)}</span></div>
+        <div><div class="pc-title">${esc(a.account)}${a.primary ? '<span class="badge success">Primary</span>' : ''}<span class="pc-accid">${esc(a.accId)}</span></div>
           <div class="pc-meta">${a.updatedTs ? `Updated ${esc(fmtDateTime(a.updatedTs))} · <b>${esc(a.ref)}</b>` : 'As submitted with the application'}</div></div>
         <span class="badge ${pvTone}"><span class="dot"></span>${pvLabel}</span>
       </div>

@@ -1315,11 +1315,50 @@
   }
   fillSelect('critIndustry', INDUSTRIES);
   $('critIndustry').addEventListener('change', e => {
-    criteria.industry = e.target.value;
-    ensureIndustryDefaultActivity(criteria.industry);
+    repricing(() => { criteria.industry = e.target.value; ensureIndustryDefaultActivity(criteria.industry); });
     renderAltIndustries();
-    refreshAll();
   });
+
+  /* Choosing or removing an activity (or changing the industry) changes what each bank publishes. Every card service
+     and bank already on the application follows it: a rate still at the published pricing moves to the new published
+     pricing; a rate the salesperson set by hand is left alone and re-checked against the new floors. */
+  function publishedSnapshot() {
+    const m = new Map();
+    criteria.services.filter(compareBanksFor).forEach(svc => {
+      const cfg = serviceConfig[svc]; if (!cfg) return;
+      bankKeysFor(cfg, svc).forEach(k => {
+        const bc = cfg.bankConfigs[k]; if (!bc) return;
+        ratesForService(svc, bc, k).forEach(t => m.set(svc + '::' + k + '::' + t.key, { standard: t.standard, fee: t.fixedFee }));
+      });
+    });
+    return m;
+  }
+  function repricing(change) {
+    const before = publishedSnapshot();
+    change();
+    const near = (a, b) => Math.abs(Number(a) - Number(b)) <= 0.011;
+    let moved = 0;
+    criteria.services.filter(compareBanksFor).forEach(svc => {
+      const cfg = serviceConfig[svc]; if (!cfg) return;
+      bankKeysFor(cfg, svc).forEach(k => {
+        const bc = cfg.bankConfigs[k]; if (!bc) return;
+        ratesForService(svc, bc, k).forEach(t => {
+          const old = before.get(svc + '::' + k + '::' + t.key), cur = bc.pricing.get(t.key);
+          if (!old || !cur || cur.rate === '' || cur.rate == null) return;
+          if (near(cur.rate, old.standard) && near(cur.fee, old.fee) && (!near(t.standard, old.standard) || !near(t.fixedFee, old.fee))) {
+            bc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' });
+            moved++;
+          }
+        });
+      });
+    });
+    if (moved) {
+      logAction('Changed', 'Updated ' + moved + ' rate' + (moved === 1 ? '' : 's') + ' to the pricing of the chosen activities');
+      toast(moved + ' rate' + (moved === 1 ? '' : 's') + ' updated to the new activities\u2019 pricing.');
+    }
+    onSetupChanged();
+    return moved;
+  }
 
   /* Activities: the same list as Industry, with no grouping. Choosing the primary industry
      pre-selects it here by default; the salesperson can add more or remove it. */
@@ -1351,19 +1390,21 @@
   }
   $('critAltChips').addEventListener('click', e => {
     const rm = e.target.closest('[data-alt-remove]');
-    if (rm) { criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1); renderAltIndustries(); renderSubmitSummary(); }
+    if (rm) { repricing(() => criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1)); renderAltIndustries(); renderSubmitSummary(); }
   });
   $('critAlt').addEventListener('click', e => {
     if (e.target.closest('[data-alt-open]')) { altOpen = !altOpen; if (!altOpen) altSearch = ''; renderAltIndustries(); return; }
     const rm = e.target.closest('[data-alt-remove]');
-    if (rm) { criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1); renderAltIndustries(); renderSubmitSummary(); }
+    if (rm) { repricing(() => criteria.altIndustries.splice(Number(rm.dataset.altRemove), 1)); renderAltIndustries(); renderSubmitSummary(); }
   });
   $('critAlt').addEventListener('change', e => {
     const c = e.target.closest('[data-alt-check]');
     if (!c) return;
     const name = c.dataset.altCheck;
-    if (c.checked) { if (!altHas(name)) criteria.altIndustries.push({ industry: name, activity: name }); }
-    else criteria.altIndustries = criteria.altIndustries.filter(a => a.industry !== name);
+    repricing(() => {
+      if (c.checked) { if (!altHas(name)) criteria.altIndustries.push({ industry: name, activity: name }); }
+      else criteria.altIndustries = criteria.altIndustries.filter(a => a.industry !== name);
+    });
     const scrollTop = $('altList') ? $('altList').scrollTop : 0;
     renderAltIndustries();
     if ($('altList')) $('altList').scrollTop = scrollTop;
@@ -1595,13 +1636,15 @@
     const add = e.target.closest('[data-ref-add]'), rm = e.target.closest('[data-ref-remove]');
     if (!add && !rm) return;
     const name = (add || rm).dataset.refAdd || (add || rm).dataset.refRemove;
-    if (add) { if (!altHas(name)) criteria.altIndustries.push({ industry: name, activity: name }); logAction('Added', 'Added activity \u2014 ' + name); }
-    else { criteria.altIndustries = criteria.altIndustries.filter(a => a.industry !== name); logAction('Removed', 'Removed activity \u2014 ' + name); }
+    if (add) logAction('Added', 'Added activity \u2014 ' + name); else logAction('Removed', 'Removed activity \u2014 ' + name);
+    repricing(() => {
+      if (add) { if (!altHas(name)) criteria.altIndustries.push({ industry: name, activity: name }); }
+      else criteria.altIndustries = criteria.altIndustries.filter(a => a.industry !== name);
+    });
     const top = $('pricingRulesBody').scrollTop;
     renderPricingRules();
     $('pricingRulesBody').scrollTop = top;
     renderAltIndustries();
-    onSetupChanged();
   });
   function openPricingRulesModal(s, key) {
     const cfg = serviceConfig[s];

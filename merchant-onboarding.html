@@ -564,7 +564,10 @@
   .compare-table th.pick-bank span { cursor: pointer; }
   .compare-table th.picked, .compare-table td.picked { box-shadow: inset 2px 0 0 var(--primary), inset -2px 0 0 var(--primary); }
   .compare-table td.better { background: var(--success-bg); }
-  .ref-section { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
+  .ref-section { margin-top: 4px; }
+  .pr-tabs { display: flex; gap: 4px; margin: 0 0 14px; border-bottom: 1px solid var(--border-subtle); }
+  .pr-tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; margin-bottom: -1px; font-size: 13px; font-weight: 600; color: var(--cadet-05); cursor: pointer; font-family: inherit; }
+  .pr-tab:hover { color: var(--foreground); } .pr-tab.on { color: var(--primary); border-bottom-color: var(--primary); }
   .ref-title { font-size: 14px; font-weight: 700; color: var(--foreground); }
   .ref-sub { font-size: 12.5px; color: var(--cadet-05); margin: 3px 0 10px; line-height: 1.45; }
   .ref-table thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
@@ -1544,11 +1547,17 @@
         <span class="bank-card-name">${esc(b)}</span>
         ${b === bestBank ? '<span class="compare-badge">Better</span>' : ''}${b === key ? '<span class="bank-card-cur">current</span>' : ''}
       </button>`).join('')}</div>`;
-    $('pricingRulesBody').innerHTML = cards + `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bc.module ? ' · ' + esc(bc.module) : ' · no model chosen yet'}${bankRequiredFor(s) ? ` — ${selected ? esc(selected) + ' selected' : 'choose an institution'} — Add rates applies its pricing.` : ''}</div>
+    const tab = compareBanksFor(s) && pricingRulesTarget.tab === 'industry' ? 'industry' : 'pricing';
+    const tabs = compareBanksFor(s) ? `<div class="pr-tabs" role="tablist">
+        <button type="button" class="pr-tab${tab === 'pricing' ? ' on' : ''}" role="tab" data-pr-tab="pricing">Service pricing</button>
+        <button type="button" class="pr-tab${tab === 'industry' ? ' on' : ''}" role="tab" data-pr-tab="industry">Pricing by industry and activity</button></div>` : '';
+    $('pricingRulesAdd').style.display = tab === 'industry' ? 'none' : '';
+    if (tab === 'industry') { $('pricingRulesBody').innerHTML = tabs + industryReferenceHTML(s, tiers); return; }
+    $('pricingRulesBody').innerHTML = tabs + cards + `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bc.module ? ' · ' + esc(bc.module) : ' · no model chosen yet'}${bankRequiredFor(s) ? ` — ${selected ? esc(selected) + ' selected' : 'choose an institution'} — Add rates applies its pricing.` : ''}</div>
       <table class="compare-table">
         <thead><tr><th>Rate type</th>${banks.map(b => b === '' ? '<th>Published pricing</th>' : `<th class="pick-bank${b === selected ? ' picked' : ''}" data-pick-bank="${esc(b)}"><span>${esc(b)}</span>${b === key ? ' <span class="cell-hint">(current)</span>' : ''}</th>`).join('')}</tr></thead>
         <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}</tbody>
-      </table>` + industryReferenceHTML(s, tiers);
+      </table>`;
   }
   /* Reference: what each bank would charge for every industry, so the salesperson can see where a better rate is and add
      that activity. The average published rate across this service's rate types, per bank; the lowest in each row is marked. */
@@ -1563,7 +1572,6 @@
     rows.sort((x, y) => x.best - y.best || INDUSTRIES.indexOf(x.ind) - INDUSTRIES.indexOf(y.ind));
     const applied = CMP.map(b => bankFactor(b));   // the factor each bank now uses
     return `<div class="ref-section">
-      <div class="ref-title">Pricing by industry and activity</div>
       <div class="ref-sub">Average published rate for each bank. A bank prices the merchant at the best rate among its industry and the activities added, so adding an activity with a lower rate gives better pricing.</div>
       <table class="compare-table ref-table">
         <thead><tr><th>Industry / activity</th>${CMP.map(b => `<th>${esc(b)}</th>`).join('')}<th></th></tr></thead>
@@ -1598,6 +1606,8 @@
   $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
+    const prTab = e.target.closest('[data-pr-tab]');
+    if (prTab && pricingRulesTarget) { pricingRulesTarget.tab = prTab.dataset.prTab; renderPricingRules(); $('pricingRulesBody').scrollTop = 0; return; }
     const pick = e.target.closest('[data-pick-bank]');
     if (pick && pricingRulesTarget) { pricingRulesTarget.selected = pick.dataset.pickBank; renderPricingRules(); const c = $('pricingRulesBody').querySelector('.bank-card.on'); if (c) c.focus(); }
   });

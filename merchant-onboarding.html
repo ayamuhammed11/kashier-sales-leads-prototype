@@ -1565,19 +1565,21 @@
     if (!compareBanksFor(s)) return '';
     const locked = appMode === 'locked';
     const CMP = BANKS.filter(b => BANK_COMPARE.indexOf(b) !== -1);   // same bank order as the table above
-    const avg = (b, ind) => round2(tiers.reduce((sum, t) => sum + t.standard * bankIndustryFactor(b, ind), 0) / tiers.length);
+    const egp = tiers.filter(t => !t.feeCurrency || t.feeCurrency === 'EGP');   // flat fees in another currency are not averaged in
+    const avg = (b, ind) => round2(egp.reduce((sum, t) => sum + t.standard * bankIndustryFactor(b, ind), 0) / egp.length);
+    const avgFee = (b, ind) => round2(egp.reduce((sum, t) => sum + t.fixedFee * bankIndustryFactor(b, ind), 0) / egp.length);
     const have = ind => ind === criteria.industry ? 'main' : altHas(ind) ? 'activity' : '';
-    const rows = INDUSTRIES.map(ind => ({ ind, rates: CMP.map(b => avg(b, ind)) }));
+    const rows = INDUSTRIES.map(ind => ({ ind, rates: CMP.map(b => avg(b, ind)), fees: CMP.map(b => avgFee(b, ind)) }));
     rows.forEach(r => { r.best = Math.min.apply(null, r.rates); });
     rows.sort((x, y) => x.best - y.best || INDUSTRIES.indexOf(x.ind) - INDUSTRIES.indexOf(y.ind));
     const applied = CMP.map(b => bankFactor(b));   // the factor each bank now uses
     return `<div class="ref-section">
-      <div class="ref-sub">Average published rate for each bank. A bank prices the merchant at the best rate among its industry and the activities added, so adding an activity with a lower rate gives better pricing.</div>
+      <div class="ref-sub">Average published rate and flat fee for each bank. A bank prices the merchant at the best rate among its industry and the activities added, so adding an activity with a lower rate gives better pricing.</div>
       <table class="compare-table ref-table">
         <thead><tr><th>Industry / activity</th>${CMP.map(b => `<th>${esc(b)}</th>`).join('')}<th></th></tr></thead>
         <tbody>${rows.map(r => { const st = have(r.ind);
           return `<tr class="${st ? 'ref-have' : ''}"><td>${esc(r.ind)}${st === 'main' ? ' <span class="ref-tag main">Main industry</span>' : st === 'activity' ? ' <span class="ref-tag">Activity</span>' : ''}</td>
-            ${r.rates.map((v, i) => `<td class="${v === r.best && r.rates.some(x => x !== v) ? 'better' : ''}${st && bankIndustryFactor(CMP[i], r.ind) === applied[i] ? ' picked' : ''}"><b>${esc(v)}%</b></td>`).join('')}
+            ${r.rates.map((v, i) => `<td class="${v === r.best && r.rates.some(x => x !== v) ? 'better' : ''}${st && bankIndustryFactor(CMP[i], r.ind) === applied[i] ? ' picked' : ''}"><b>${esc(v)}%</b> + ${esc(r.fees[i])} EGP</td>`).join('')}
             <td class="ref-act">${locked || st === 'main' ? '' : st ? `<button type="button" class="btn btn-ghost btn-sm" data-ref-remove="${esc(r.ind)}">Remove</button>` : `<button type="button" class="btn btn-outline btn-sm" data-ref-add="${esc(r.ind)}">+ Add activity</button>`}</td></tr>`; }).join('')}</tbody>
       </table>
     </div>`;

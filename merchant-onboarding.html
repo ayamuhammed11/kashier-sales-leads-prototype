@@ -570,7 +570,14 @@
   .pr-tab:hover { color: var(--foreground); } .pr-tab.on { color: var(--primary); border-bottom-color: var(--primary); }
   .ref-title { font-size: 14px; font-weight: 700; color: var(--foreground); }
   .ref-sub { font-size: 12.5px; color: var(--cadet-05); margin: 3px 0 10px; line-height: 1.45; }
-  .ref-table thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+  .ref-table thead th { position: sticky; top: 0; z-index: 1; }
+  /* Table headers in the pricing pop-up: Kashier navy, white text. */
+  .compare-table thead th { background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; padding: 12px 10px; border-bottom: 0; }
+  .compare-table thead th span, .compare-table thead th .cell-hint { color: #fff; }
+  .compare-table thead th .cell-hint { opacity: .75; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  .compare-table thead th:first-child { border-top-left-radius: 6px; } .compare-table thead th:last-child { border-top-right-radius: 6px; }
+  .compare-table th.pick-bank:hover { background: var(--primary-hover); }
+  .compare-table th.picked { background: var(--primary-hover); box-shadow: none; }
   .ref-table td.ref-act { text-align: right; white-space: nowrap; width: 120px; }
   .ref-table tr.ref-have td:first-child { font-weight: 700; }
   .ref-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--ocean-10); color: var(--primary); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }

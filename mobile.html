@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kashier | Mobile and iPad view</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: #F1F6FF; color: #001F5F; text-align: center; padding: 24px; }
+  a { display: inline-block; margin-top: 14px; padding: 14px 22px; border-radius: 8px; background: #001F5F; color: #fff; font-weight: 700; text-decoration: none; }
+</style>
+</head>
+<body>
+<div>
+  <h1 style="font-size:22px;margin:0 0 6px">Kashier — mobile and iPad view</h1>
+  <p style="margin:0;color:#556767">Opening the prototype in the touch-friendly view…</p>
+  <a href="index.html?view=mobile">Open the prototype</a>
+</div>
+<script>
+  try { localStorage.setItem('kashierView', 'touch'); } catch (e) {}
+  location.replace('index.html?view=mobile');
+</script>
+</body>
+</html>

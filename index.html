@@ -236,6 +236,22 @@
     .hamburger { display: flex; }
     .page-head h1 { font-size: 26px; }
   }
+  @media (max-width: 700px) {
+    .topbar { padding: 10px 14px; gap: 10px; } .topbar-right { gap: 10px; min-width: 0; }
+    .role-switch label { display: none; } .role-switch select { max-width: 150px; }
+    .content { padding: 16px 14px 60px; }
+    .table-scroll { overflow: visible; }
+    table, tbody { display: block; min-width: 0; width: 100%; } thead { display: none; }
+    tbody tr { display: block; position: relative; border: 1px solid var(--border-subtle); border-radius: 10px; margin: 10px 0; padding: 12px 14px; background: #fff !important; }
+    tbody td { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; height: auto; padding: 7px 0; border: 0; text-align: right; }
+    tbody td::before { content: attr(data-label); flex: 0 0 34%; text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--cadet-05); }
+    tbody td:first-child { display: block; text-align: left; padding: 0 44px 8px 0; } tbody td:first-child::before { content: none; }
+    tbody td.cell-go { position: absolute; top: 10px; right: 10px; padding: 0; } tbody td.cell-go::before { content: none; }
+    .view-btn { min-width: 44px; min-height: 44px; }
+    tbody td .contact-name, tbody td .contact-sub { text-align: right; }
+    .reject-why { max-width: none; }
+    .pagination-bar, #paginationBar { flex-wrap: wrap; gap: 10px; justify-content: center; }
+  }
   @media (max-width: 620px) { .user .name { display: none; } }
 </style>
 </head>
@@ -595,19 +611,19 @@
             </div>
           </div>
         </td>
-        <td>${l.mid ? `<span class="mid-text">${esc(l.mid)}</span>` : `<span class="mid-empty">—</span>`}</td>
-        <td>
+        <td data-label="MID">${l.mid ? `<span class="mid-text">${esc(l.mid)}</span>` : `<span class="mid-empty">—</span>`}</td>
+        <td data-label="Contact"><div>
           <div class="contact-name">${esc(l.contact)}</div>
           <div class="contact-sub">${esc(l.email)}</div>
-        </td>
-        <td>
+        </div></td>
+        <td data-label="Status"><div>
           <span class="badge ${meta.cls}"><span class="badge-dot"></span>${esc(meta.label)}</span>
           ${statusOf(l) === 'returned' ? rejectionCellHTML(l) : ''}
-        </td>
-        ${isApprover() ? `<td>${esc(l.owner)}</td>` : ''}
-        <td>${fmtDate(l.assigned)}</td>
-        <td>${fmtDate(l.lastActivity)}</td>
-        <td>
+        </div></td>
+        ${isApprover() ? `<td data-label="Salesperson">${esc(l.owner)}</td>` : ''}
+        <td data-label="Assigned">${fmtDate(l.assigned)}</td>
+        <td data-label="Last activity">${fmtDate(l.lastActivity)}</td>
+        <td class="cell-go">
           <button class="view-btn" title="${mine ? 'Review requested rates' : 'Open application'}" onclick="event.stopPropagation(); location.href='${href}'">
             <svg class="hi-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
           </button>

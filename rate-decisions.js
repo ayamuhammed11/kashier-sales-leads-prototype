@@ -1,3 +1,46 @@
+/* ── iPad / mobile view ────────────────────────────────────────────────────────────────────────
+   Opening mobile.html (or any page with ?view=mobile) turns on the touch view and remembers it: the phone layouts
+   (stacked tables, hamburger menu, full-width drawers) apply up to iPad width, and buttons and fields get touch-size
+   targets. ?view=desktop turns it off again. */
+(function touchView() {
+  try {
+    var q = new URLSearchParams(location.search).get('view');
+    if (q === 'mobile' || q === 'tablet' || q === 'touch') localStorage.setItem('kashierView', 'touch');
+    else if (q === 'desktop') localStorage.removeItem('kashierView');
+    if (localStorage.getItem('kashierView') !== 'touch') return;
+  } catch (e) { return; }
+  document.documentElement.classList.add('touch-view');
+  var st = document.createElement('style');
+  st.textContent =
+    'html.touch-view body{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}' +
+    '.touch-view .btn,.touch-view .cell-link,.touch-view .nav-link,.touch-view .subtab,.touch-view .setup-step{min-height:44px}' +
+    '.touch-view select,.touch-view textarea,.touch-view input:not([type=checkbox]):not([type=radio]):not([type=file]){min-height:44px;font-size:16px}' +
+    '.touch-view input[type=checkbox],.touch-view input[type=radio]{width:22px;height:22px;flex-shrink:0}' +
+    '.touch-view .btn-icon,.touch-view .hamburger{min-width:44px;min-height:44px}' +
+    '.touch-view .drawer{max-width:100vw}.touch-view .modal{max-width:94vw}' +
+    '.touch-view .view-switch{display:block;margin:18px 14px;padding:12px;text-align:center;font-size:13px;font-weight:600;color:inherit;border:1px solid rgba(128,128,128,.4);border-radius:8px;text-decoration:none}';
+  (document.head || document.documentElement).appendChild(st);
+  /* Phone-size rules also cover tablets: widen their breakpoints to iPad width. */
+  function widen() {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      var rules; try { rules = document.styleSheets[i].cssRules; } catch (e) { continue; }
+      for (var j = 0; j < rules.length; j++) {
+        var r = rules[j];
+        if (r.type === 4 && /^\(max-width:\s*(620|640|720|800|820|900)px\)$/.test(r.media.mediaText)) r.media.mediaText = '(max-width: 1100px)';
+      }
+    }
+  }
+  widen();
+  document.addEventListener('DOMContentLoaded', function () {
+    widen();
+    var side = document.querySelector('.sidebar');
+    if (side && !side.querySelector('.view-switch')) {
+      var a = document.createElement('a'); a.className = 'view-switch'; a.href = '?view=desktop'; a.textContent = 'Switch to desktop view';
+      side.appendChild(a);
+    }
+  });
+})();
+
 /* Shared rate-approval rules, used by the Rate Approvals queue, the rate request page and the
    application page so all three agree on who may sign off and what a decision does.
 

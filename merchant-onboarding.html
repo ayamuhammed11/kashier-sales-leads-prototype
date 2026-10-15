@@ -1185,16 +1185,9 @@
     const table = BANK_INDUSTRY_FACTOR[bank];
     return (table && table[industry]) || 1;
   }
-  /* Predefined pricing rules: each bank publishes one rule per group of activities. A rule applies to a merchant that has at
-     least one of the group's activities; its pricing is the bank's average for the group. */
-  const PRICING_GROUPS = [
-    { id: 'retail',   label: 'Retail & Commerce',          industries: ['Retail & E-commerce', 'Fashion & Beauty', 'Marketplace'] },
-    { id: 'leisure',  label: 'Food, Travel & Leisure',     industries: ['Food & Beverage', 'Travel & Tourism', 'Entertainment & Media'] },
-    { id: 'health',   label: 'Health, Education & Social', industries: ['Healthcare / Pharmacy', 'Education', 'Non-profit / NGO'] },
-    { id: 'services', label: 'Professional & Technology',  industries: ['Professional Services', 'Technology / SaaS', 'Logistics & Delivery'] },
-    { id: 'finance',  label: 'Finance & Property',         industries: ['Financial Services', 'Insurance', 'Real Estate'] },
-    { id: 'public',   label: 'Automotive & Government',    industries: ['Automotive', 'Government'] },
-  ];
+  /* Predefined pricing rules: each bank publishes one rule per activity, so the rules shown for an application are exactly
+     the ones for the activities chosen on it. */
+  const PRICING_GROUPS = INDUSTRIES.map(i => ({ id: i, label: i, industries: [i] }));
   const PRICING_RULES = [];
   BANK_COMPARE.forEach(bank => PRICING_GROUPS.forEach(g => PRICING_RULES.push({
     id: bank + '::' + g.id, bank: bank, group: g,
@@ -1659,7 +1652,7 @@
     $('pricingRulesBody').innerHTML = `<div class="pr-note">
         <div class="pr-note-text">${noActivities
           ? `<b>Showing every ${esc(stripChannel(s))} pricing rule.</b> No activity is chosen on the application yet, so nothing narrows the list. Choose the merchant's activities and only the rules that include them will be shown.`
-          : `<b>Why these ${rules.length} pricing rules?</b> Each one is defined for ${crit} and includes at least one of the application's activities (${mine.map(esc).join(', ')}). Both banks are compared. Rules for other activities are not shown.`}</div>
+          : `<b>Why these ${rules.length} pricing rules?</b> Each one is defined for ${crit} and is for one of the application's activities (${mine.map(esc).join(', ')}), in both banks. Rules for other activities are not shown.`}</div>
         <button type="button" class="btn btn-outline btn-sm" data-open-pricing-rules>Open Pricing Rules &#8599;</button>
       </div>
       <div class="pr-scroll"><table class="compare-table rule-table">
@@ -1668,7 +1661,6 @@
           const match = noActivities || pricingRuleMatches(r), on = r.id === selected;
           return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}"` : ''}>
             <td class="c-rule"><div class="rule-name">${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</div>
-              <div class="rule-cov">Activities: ${r.group.industries.map(x => mine.indexOf(x) !== -1 ? `<b>${esc(x)}</b>` : esc(x)).join(', ')}</div>
             </td>
             <td class="c-bank" data-label="Bank">${esc(r.bank)}</td>
             ${tiers.map((t, ti) => { const v = ruleRates(r, t);

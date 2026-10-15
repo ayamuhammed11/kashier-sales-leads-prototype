@@ -564,6 +564,11 @@
   .compare-table th.pick-bank span { cursor: pointer; }
   .compare-table th.picked, .compare-table td.picked { box-shadow: inset 2px 0 0 var(--primary), inset -2px 0 0 var(--primary); }
   .compare-table td.better { background: var(--success-bg); }
+  .pr-drawer { width: min(1000px, 100vw); transition: width .2s ease; }
+  .pr-drawer.full { width: 100vw; }
+  .drawer-tools { display: flex; align-items: center; gap: 4px; }
+  .drawer-tools .btn-icon svg { width: 18px; height: 18px; }
+  .drawer-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--border-subtle); background: #fff; }
   .pr-showall { display: inline-flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-size: 13px; cursor: pointer; }
   .pr-scroll { overflow-x: auto; }
   .rule-table { min-width: 900px; }
@@ -926,21 +931,24 @@
   </div>
 
   <!-- The pricing rules already configured in the Pricing Rules module for this service. -->
-  <div class="modal-overlay" id="pricingRulesModal">
-    <div class="modal compare-modal">
-      <div class="modal-header">
+  <div class="drawer-overlay" id="pricingRulesModal">
+    <aside class="drawer pr-drawer" id="pricingRulesDrawer" role="dialog" aria-label="Service pricing">
+      <div class="drawer-head">
         <div>
           <h3 id="pricingRulesTitle">Service pricing</h3>
-          <p class="appr-modal-sub">Predefined pricing rules for this merchant's type, activities, channel, model and service.</p>
+          <p class="drawer-sub">Predefined pricing rules for this merchant's type, activities, channel, model and service.</p>
         </div>
-        <button class="btn-icon" id="pricingRulesClose" aria-label="Close">&#10005;</button>
+        <div class="drawer-tools">
+          <button class="btn-icon" id="pricingRulesFull" type="button" aria-label="Full screen" title="Full screen"></button>
+          <button class="btn-icon" id="pricingRulesClose" type="button" aria-label="Close">&#10005;</button>
+        </div>
       </div>
-      <div class="modal-body" id="pricingRulesBody"></div>
-      <div class="modal-footer">
+      <div class="drawer-body" id="pricingRulesBody"></div>
+      <div class="drawer-foot">
         <button class="btn btn-outline btn-sm" id="pricingRulesCancel">Close</button>
         <button class="btn btn-primary btn-sm" id="pricingRulesAdd">Add rates</button>
       </div>
-    </div>
+    </aside>
   </div>
 
 <script src="rate-decisions.js"></script>
@@ -1651,6 +1659,17 @@
     renderPricingRules();
     $('pricingRulesModal').classList.add('open');
   }
+  const FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  const EXIT_FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  let pricingFull = false;
+  function syncPricingFull() {
+    $('pricingRulesDrawer').classList.toggle('full', pricingFull);
+    const b = $('pricingRulesFull');
+    b.innerHTML = pricingFull ? EXIT_FULL_ICON : FULL_ICON;
+    b.title = b.ariaLabel = pricingFull ? 'Exit full screen' : 'Full screen';
+  }
+  $('pricingRulesFull').addEventListener('click', () => { pricingFull = !pricingFull; syncPricingFull(); });
+  syncPricingFull();
   function closePricingRulesModal() { $('pricingRulesModal').classList.remove('open'); pricingRulesTarget = null; }
   $('pricingRulesClose').addEventListener('click', closePricingRulesModal);
   $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);

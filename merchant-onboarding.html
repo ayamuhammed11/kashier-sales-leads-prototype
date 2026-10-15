@@ -564,13 +564,17 @@
   .compare-table th.pick-bank span { cursor: pointer; }
   .compare-table th.picked, .compare-table td.picked { box-shadow: inset 2px 0 0 var(--primary), inset -2px 0 0 var(--primary); }
   .compare-table td.better { background: var(--success-bg); }
-  .ref-section { margin-top: 4px; }
-  .pr-tabs { display: flex; gap: 4px; margin: 0 0 14px; border-bottom: 1px solid var(--border-subtle); }
-  .pr-tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; margin-bottom: -1px; font-size: 13px; font-weight: 600; color: var(--cadet-05); cursor: pointer; font-family: inherit; }
-  .pr-tab:hover { color: var(--foreground); } .pr-tab.on { color: var(--primary); border-bottom-color: var(--primary); }
-  .ref-title { font-size: 14px; font-weight: 700; color: var(--foreground); }
-  .ref-sub { font-size: 12.5px; color: var(--cadet-05); margin: 3px 0 10px; line-height: 1.45; }
-  .ref-table thead th { position: sticky; top: 0; z-index: 1; }
+  .pr-showall { display: inline-flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-size: 13px; cursor: pointer; }
+  .pr-scroll { overflow-x: auto; }
+  .rule-table { min-width: 900px; }
+  .rule-table .c-rule { min-width: 250px; } .rule-table .c-bank { white-space: nowrap; font-weight: 600; }
+  .rule-row[data-pick-rule] { cursor: pointer; } .rule-row[data-pick-rule]:hover td:not(.better) { background: var(--ocean-10); }
+  .rule-row.picked td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+  .rule-row.picked td { background-image: linear-gradient(var(--ocean-10), var(--ocean-10)); }
+  .rule-row.picked td.better { background-image: none; }
+  .rule-row.off { opacity: .7; }
+  .rule-name { font-weight: 700; color: var(--foreground); line-height: 1.35; }
+  .rule-cov { font-size: 11.5px; color: var(--cadet-05); margin-top: 3px; line-height: 1.4; } .rule-cov b { color: var(--foreground); }
   /* Table headers in the pricing pop-up: Kashier navy, white text. */
   .compare-table thead th { background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; padding: 12px 10px; border-bottom: 0; }
   .compare-table thead th span, .compare-table thead th .cell-hint { color: #fff; }
@@ -578,10 +582,6 @@
   .compare-table thead th:first-child { border-top-left-radius: 6px; } .compare-table thead th:last-child { border-top-right-radius: 6px; }
   .compare-table th.pick-bank:hover { background: var(--primary-hover); }
   .compare-table th.picked { background: var(--primary-hover); box-shadow: none; }
-  .ref-table td.ref-act { text-align: right; white-space: nowrap; width: 120px; }
-  .ref-table tr.ref-have td:first-child { font-weight: 700; }
-  .ref-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--ocean-10); color: var(--primary); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
-  .ref-tag.main { background: var(--pill-bg); color: var(--pill-text); }
   .compare-table td.better b { color: var(--success-text); }
   .compare-badge { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
     color: var(--success-text); background: var(--success-bg); border-radius: 20px; padding: 2px 8px; vertical-align: middle; }
@@ -663,7 +663,7 @@
   .modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 420px;
     box-shadow: 0 20px 60px rgba(0,20,60,.25); }
   .modal.appr-modal { max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
-  .modal.compare-modal { max-width: 820px; max-height: 85vh; display: flex; flex-direction: column; }
+  .modal.compare-modal { max-width: 1060px; max-height: 85vh; display: flex; flex-direction: column; }
   .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px;
     border-bottom: 1px solid var(--border-subtle); }
   .modal-header h3 { margin: 0 0 4px; font-size: 16px; color: var(--foreground); }
@@ -931,7 +931,7 @@
       <div class="modal-header">
         <div>
           <h3 id="pricingRulesTitle">Service pricing</h3>
-          <p class="appr-modal-sub">Pricing rules configured in the Pricing Rules module for this merchant's industry and type.</p>
+          <p class="appr-modal-sub">Predefined pricing rules for this merchant's type, activities, channel, model and service.</p>
         </div>
         <button class="btn-icon" id="pricingRulesClose" aria-label="Close">&#10005;</button>
       </div>
@@ -1132,10 +1132,27 @@
     const table = BANK_INDUSTRY_FACTOR[bank];
     return (table && table[industry]) || 1;
   }
-  /* A bank prices a merchant at the most favourable rate among its industry and the activities added to it. */
+  /* Predefined pricing rules: each bank publishes one rule per group of activities. A rule applies to a merchant that has at
+     least one of the group's activities; its pricing is the bank's average for the group. */
+  const PRICING_GROUPS = [
+    { id: 'retail',   label: 'Retail & Commerce',          industries: ['Retail & E-commerce', 'Fashion & Beauty', 'Marketplace'] },
+    { id: 'leisure',  label: 'Food, Travel & Leisure',     industries: ['Food & Beverage', 'Travel & Tourism', 'Entertainment & Media'] },
+    { id: 'health',   label: 'Health, Education & Social', industries: ['Healthcare / Pharmacy', 'Education', 'Non-profit / NGO'] },
+    { id: 'services', label: 'Professional & Technology',  industries: ['Professional Services', 'Technology / SaaS', 'Logistics & Delivery'] },
+    { id: 'finance',  label: 'Finance & Property',         industries: ['Financial Services', 'Insurance', 'Real Estate'] },
+    { id: 'public',   label: 'Automotive & Government',    industries: ['Automotive', 'Government'] },
+  ];
+  const PRICING_RULES = [];
+  BANK_COMPARE.forEach(bank => PRICING_GROUPS.forEach(g => PRICING_RULES.push({
+    id: bank + '::' + g.id, bank: bank, group: g,
+    factor: g.industries.reduce((sum, i) => sum + bankIndustryFactor(bank, i), 0) / g.industries.length })));
+  const appActivities = () => [criteria.industry].concat(criteria.altIndustries.map(a => a.industry)).filter((x, i, all) => x && all.indexOf(x) === i);
+  const pricingRuleMatches = r => r.group.industries.some(i => appActivities().indexOf(i) !== -1);
+  /* A bank prices the merchant on the best of its rules that match the application's activities. */
   function bankFactor(bank) {
-    const inds = [criteria.industry].concat(criteria.altIndustries.map(a => a.industry)).filter(Boolean);
-    return inds.length ? Math.min.apply(null, inds.map(i => bankIndustryFactor(bank, i))) : 1;
+    if (!appActivities().length) return 1;
+    const f = PRICING_RULES.filter(r => r.bank === bank && pricingRuleMatches(r)).map(r => r.factor);
+    return f.length ? Math.min.apply(null, f) : 1;
   }
   /* Card services only — the per-bank card pricing rules. */
   function compareBanksFor(service) { return service.endsWith('Card'); }
@@ -1559,97 +1576,78 @@
   $('approvalModal').addEventListener('click', e => { if (e.target === $('approvalModal')) closeApprovalModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeApprovalModal(); closePricingRulesModal(); } });
 
-  /* View service pricing: the configured pricing rule for each rate type of this service (published
-     rate, Sales Manager floor, Head of Sales floor, flat fee). Bank Misr / National Bank of Egypt card
-     rules follow their own per-industry pricing; every other rule is the universal one. "Add rates"
-     fills the rows in at the published rate, when a service's pricing is added. */
+  /* View service pricing: the predefined pricing rules for this service. For a card service, every rule that has at least one of
+     the application's activities is compared, across both banks: its name is built from the merchant type, activities, channel,
+     model and service, and each rate type shows the published rate, flat fee and approval floors. Picking a rule and "Add rates"
+     sets that rule's bank and fills its rates in at the published pricing. Other services have a single universal rule. */
   let pricingRulesTarget = null;
   function pricingRuleFor(s, bank, t) {
-    const f = compareBanksFor(s) && BANK_COMPARE.indexOf(bank) !== -1 ? bankFactor(bank) : 1;
-    return { standard: round2(t.standard * f), manager: round2(t.manager * f), head: round2(t.head * f), fee: round2(t.fixedFee * f) };
+    return { standard: round2(t.standard), manager: round2(t.manager), head: round2(t.head), fee: round2(t.fixedFee) };
   }
-  /* For a service settled through a bank the pricing rules are shown per institution and the
-     salesperson picks the institution from here: Add rates sets it and fills its rates in. */
+  const ruleRates = (rule, t) => ({ standard: round2(t.standard * rule.factor), manager: round2(t.manager * rule.factor), head: round2(t.head * rule.factor), fee: round2(t.fixedFee * rule.factor) });
+  const ruleName = (rule, s, bc) => [criteria.entity || 'Any merchant type', rule.group.label, channelOf(s), (bc && bc.module) || 'PF', stripChannel(s)].join(' \u00b7 ');
+  const ruleAvg = (rule, tiers) => tiers.reduce((sum, t) => sum + t.standard * rule.factor, 0) / tiers.length;
+
+  function renderRuleComparison() {
+    const { s, key } = pricingRulesTarget;
+    const cfg = serviceConfig[s], bc = ensureBankConfig(cfg, key);
+    const tiers = ratesForService(s, bc);
+    const noActivities = !appActivities().length;
+    const showAll = !!pricingRulesTarget.showAll || noActivities;
+    const rules = PRICING_RULES.filter(r => showAll || pricingRuleMatches(r)).sort((x, y) => ruleAvg(x, tiers) - ruleAvg(y, tiers));
+    const pickable = rules.filter(r => noActivities || pricingRuleMatches(r));
+    if (pricingRulesTarget.selected == null || !pickable.some(r => r.id === pricingRulesTarget.selected)) pricingRulesTarget.selected = pickable.length ? pickable[0].id : '';
+    const selected = pricingRulesTarget.selected;
+    const bestCol = tiers.map(t => Math.min.apply(null, rules.map(r => ruleRates(r, t).standard)));
+    const locked = appMode === 'locked';
+    const mine = appActivities();
+    $('pricingRulesTitle').textContent = `Service pricing \u2014 ${stripChannel(s)} (${channelOf(s)})`;
+    $('pricingRulesAdd').style.display = pickable.length ? '' : 'none';
+    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note"><b>${esc(criteria.entity || 'Merchant type not set')}</b> \u00b7 ${esc(channelOf(s))} \u00b7 ${esc((bc.module) || 'PF')} \u00b7 ${esc(stripChannel(s))}
+        <br>Activities: ${mine.length ? mine.map(esc).join(', ') : 'none chosen yet \u2014 showing every rule'}</div>
+      <label class="pr-showall"><input type="checkbox" data-pr-showall${pricingRulesTarget.showAll ? ' checked' : ''}${noActivities ? ' disabled' : ''}> Show rules for other activities too</label>
+      <div class="pr-scroll"><table class="compare-table rule-table">
+        <thead><tr><th class="c-rule">Pricing rule</th><th>Bank</th>${tiers.map(t => `<th>${esc(t.label)}</th>`).join('')}</tr></thead>
+        <tbody>${rules.map((r, i) => {
+          const match = noActivities || pricingRuleMatches(r), on = r.id === selected;
+          return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}"` : ''}>
+            <td class="c-rule"><div class="rule-name">${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</div>
+              <div class="rule-cov">Activities: ${r.group.industries.map(x => mine.indexOf(x) !== -1 ? `<b>${esc(x)}</b>` : esc(x)).join(', ')}</div>
+              ${match ? '' : `<div class="rule-cov">None of this application's activities.${locked ? '' : ` <button type="button" class="btn btn-ghost btn-sm" data-rule-activities="${esc(r.id)}">Add its activities</button>`}</div>`}</td>
+            <td class="c-bank">${esc(r.bank)}</td>
+            ${tiers.map((t, ti) => { const v = ruleRates(r, t);
+              return `<td class="${v.standard === bestCol[ti] && rules.some(o => ruleRates(o, t).standard !== v.standard) ? 'better' : ''}"><b>${esc(v.standard)}%</b> + ${esc(v.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(v.manager)}% \u00b7 Head ${esc(v.head)}%</div></td>`; }).join('')}
+          </tr>`; }).join('')}</tbody>
+      </table></div>`;
+  }
+  /* For a service settled through a bank (other than the card rules above) the salesperson picks the institution here. */
   function renderPricingRules() {
+    if (compareBanksFor(pricingRulesTarget.s)) { renderRuleComparison(); return; }
     const { s, key } = pricingRulesTarget;
     const cfg = serviceConfig[s];
     const bc = ensureBankConfig(cfg, key);
     const tiers = ratesForService(s, bc);
     const banks = bankRequiredFor(s) ? BANKS.filter(b => b === key || !cfg.banks.includes(b)) : [''];
-    // The better bank charges the lowest published rate: highlighted per rate type, and overall.
-    const total = b => tiers.reduce((sum, t) => sum + pricingRuleFor(s, b, t).standard, 0);
-    const totals = banks.map(total);
-    const bestTotal = Math.min.apply(null, totals);
-    const bestBank = banks.length > 1 && totals.filter(x => x === bestTotal).length === 1 ? banks[totals.indexOf(bestTotal)] : null;
-    // Nothing is dimmed: with no institution set yet, the better bank (else the first) starts selected.
-    if (pricingRulesTarget.selected == null) pricingRulesTarget.selected = bestBank != null ? bestBank : banks[0];
+    if (pricingRulesTarget.selected == null) pricingRulesTarget.selected = banks[0];
     const selected = pricingRulesTarget.selected;
     const cell = (t, bank) => { const r = pricingRuleFor(s, bank, t);
-      const rs = banks.map(b => pricingRuleFor(s, b, t).standard);
-      const best = banks.length > 1 && r.standard === Math.min.apply(null, rs) && rs.some(x => x !== r.standard);
-      return `<td class="${best ? 'better' : ''}${bank === selected ? ' picked' : ''}${bank ? ' pick-bank' : ''}"${bank ? ` data-pick-bank="${esc(bank)}"` : ''}><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% · Head ${esc(r.head)}%</div></td>`; };
-    $('pricingRulesTitle').textContent = `Service pricing — ${stripChannel(s)} (${channelOf(s)})`;
-    const avg = b => round2(total(b) / tiers.length);
-    const cards = banks[0] === '' ? '' : `<div class="bank-cards" role="radiogroup" aria-label="Institution">${banks.map(b => `<button type="button" class="bank-card${b === selected ? ' on' : ''}" role="radio" aria-checked="${b === selected}" data-pick-bank="${esc(b)}" title="Average rate ${esc(avg(b))}%">
+      return `<td class="${bank === selected ? 'picked' : ''}${bank ? ' pick-bank' : ''}"${bank ? ` data-pick-bank="${esc(bank)}"` : ''}><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% \u00b7 Head ${esc(r.head)}%</div></td>`; };
+    $('pricingRulesTitle').textContent = `Service pricing \u2014 ${stripChannel(s)} (${channelOf(s)})`;
+    $('pricingRulesAdd').style.display = '';
+    const cards = banks[0] === '' ? '' : `<div class="bank-cards" role="radiogroup" aria-label="Institution">${banks.map(b => `<button type="button" class="bank-card${b === selected ? ' on' : ''}" role="radio" aria-checked="${b === selected}" data-pick-bank="${esc(b)}">
         <span class="bank-card-check">${b === selected ? '&#10003;' : ''}</span>
-        <span class="bank-card-name">${esc(b)}</span>
-        ${b === bestBank ? '<span class="compare-badge">Better</span>' : ''}${b === key ? '<span class="bank-card-cur">current</span>' : ''}
+        <span class="bank-card-name">${esc(b)}</span>${b === key ? '<span class="bank-card-cur">current</span>' : ''}
       </button>`).join('')}</div>`;
-    const tab = compareBanksFor(s) && pricingRulesTarget.tab === 'industry' ? 'industry' : 'pricing';
-    const tabs = compareBanksFor(s) ? `<div class="pr-tabs" role="tablist">
-        <button type="button" class="pr-tab${tab === 'pricing' ? ' on' : ''}" role="tab" data-pr-tab="pricing">Service pricing</button>
-        <button type="button" class="pr-tab${tab === 'industry' ? ' on' : ''}" role="tab" data-pr-tab="industry">Pricing by industry and activity</button></div>` : '';
-    $('pricingRulesAdd').style.display = tab === 'industry' ? 'none' : '';
-    if (tab === 'industry') { $('pricingRulesBody').innerHTML = tabs + industryReferenceHTML(s, tiers); return; }
-    $('pricingRulesBody').innerHTML = tabs + cards + `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} · ${esc(criteria.industry || 'Industry not set')}${bc.module ? ' · ' + esc(bc.module) : ' · no model chosen yet'}${bankRequiredFor(s) ? ` — ${selected ? esc(selected) + ' selected' : 'choose an institution'} — Add rates applies its pricing.` : ''}</div>
+    $('pricingRulesBody').innerHTML = cards + `<div class="pricing-rules-note">${esc(criteria.entity || 'Merchant type not set')} \u00b7 ${esc(channelOf(s))} \u00b7 ${esc(bc.module || 'PF')} \u00b7 ${esc(stripChannel(s))}${bankRequiredFor(s) ? ` \u2014 ${selected ? esc(selected) + ' selected' : 'choose an institution'} \u2014 Add rates applies its pricing.` : ''}</div>
       <table class="compare-table">
         <thead><tr><th>Rate type</th>${banks.map(b => b === '' ? '<th>Published pricing</th>' : `<th class="pick-bank${b === selected ? ' picked' : ''}" data-pick-bank="${esc(b)}"><span>${esc(b)}</span>${b === key ? ' <span class="cell-hint">(current)</span>' : ''}</th>`).join('')}</tr></thead>
         <tbody>${tiers.map(t => `<tr><td>${esc(t.label)}</td>${banks.map(b => cell(t, b)).join('')}</tr>`).join('')}</tbody>
       </table>`;
   }
-  /* Reference: what each bank would charge for every industry, so the salesperson can see where a better rate is and add
-     that activity. The average published rate across this service's rate types, per bank; the lowest in each row is marked. */
-  function industryReferenceHTML(s, tiers) {
-    if (!compareBanksFor(s)) return '';
-    const locked = appMode === 'locked';
-    const CMP = BANKS.filter(b => BANK_COMPARE.indexOf(b) !== -1);   // same bank order as the table above
-    const egp = tiers.filter(t => !t.feeCurrency || t.feeCurrency === 'EGP');   // flat fees in another currency are not averaged in
-    const avg = (b, ind) => round2(egp.reduce((sum, t) => sum + t.standard * bankIndustryFactor(b, ind), 0) / egp.length);
-    const avgFee = (b, ind) => round2(egp.reduce((sum, t) => sum + t.fixedFee * bankIndustryFactor(b, ind), 0) / egp.length);
-    const have = ind => ind === criteria.industry ? 'main' : altHas(ind) ? 'activity' : '';
-    const rows = INDUSTRIES.map(ind => ({ ind, rates: CMP.map(b => avg(b, ind)), fees: CMP.map(b => avgFee(b, ind)) }));
-    rows.forEach(r => { r.best = Math.min.apply(null, r.rates); });
-    rows.sort((x, y) => x.best - y.best || INDUSTRIES.indexOf(x.ind) - INDUSTRIES.indexOf(y.ind));
-    const applied = CMP.map(b => bankFactor(b));   // the factor each bank now uses
-    return `<div class="ref-section">
-      <div class="ref-sub">Average published rate and flat fee for each bank. A bank prices the merchant at the best rate among its industry and the activities added, so adding an activity with a lower rate gives better pricing.</div>
-      <table class="compare-table ref-table">
-        <thead><tr><th>Industry / activity</th>${CMP.map(b => `<th>${esc(b)}</th>`).join('')}<th></th></tr></thead>
-        <tbody>${rows.map(r => { const st = have(r.ind);
-          return `<tr class="${st ? 'ref-have' : ''}"><td>${esc(r.ind)}${st === 'main' ? ' <span class="ref-tag main">Main industry</span>' : st === 'activity' ? ' <span class="ref-tag">Activity</span>' : ''}</td>
-            ${r.rates.map((v, i) => `<td class="${v === r.best && r.rates.some(x => x !== v) ? 'better' : ''}${st && bankIndustryFactor(CMP[i], r.ind) === applied[i] ? ' picked' : ''}"><b>${esc(v)}%</b> + ${esc(r.fees[i])} EGP</td>`).join('')}
-            <td class="ref-act">${locked || st === 'main' ? '' : st ? `<button type="button" class="btn btn-ghost btn-sm" data-ref-remove="${esc(r.ind)}">Remove</button>` : `<button type="button" class="btn btn-outline btn-sm" data-ref-add="${esc(r.ind)}">+ Add activity</button>`}</td></tr>`; }).join('')}</tbody>
-      </table>
-    </div>`;
-  }
-  $('pricingRulesBody').addEventListener('click', e => {
-    const add = e.target.closest('[data-ref-add]'), rm = e.target.closest('[data-ref-remove]');
-    if (!add && !rm) return;
-    const name = (add || rm).dataset.refAdd || (add || rm).dataset.refRemove;
-    if (add) logAction('Added', 'Added activity \u2014 ' + name); else logAction('Removed', 'Removed activity \u2014 ' + name);
-    repricing(() => {
-      if (add) { if (!altHas(name)) criteria.altIndustries.push({ industry: name, activity: name }); }
-      else criteria.altIndustries = criteria.altIndustries.filter(a => a.industry !== name);
-    });
-    const top = $('pricingRulesBody').scrollTop;
-    renderPricingRules();
-    $('pricingRulesBody').scrollTop = top;
-    renderAltIndustries();
-  });
   function openPricingRulesModal(s, key) {
     const cfg = serviceConfig[s];
     ensureBankConfig(cfg, key);
-    pricingRulesTarget = { s, key, selected: bankRequiredFor(s) ? (key || null) : '' };
+    pricingRulesTarget = { s, key, selected: compareBanksFor(s) ? null : (bankRequiredFor(s) ? (key || null) : ''), showAll: false };
     renderPricingRules();
     $('pricingRulesModal').classList.add('open');
   }
@@ -1658,23 +1656,32 @@
   $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
-    const prTab = e.target.closest('[data-pr-tab]');
-    if (prTab && pricingRulesTarget) { pricingRulesTarget.tab = prTab.dataset.prTab; renderPricingRules(); $('pricingRulesBody').scrollTop = 0; return; }
+    if (!pricingRulesTarget) return;
+    const adopt = e.target.closest('[data-rule-activities]');
+    if (adopt) {
+      const rule = PRICING_RULES.find(r => r.id === adopt.dataset.ruleActivities);
+      const added = rule.group.industries.filter(i => !altHas(i));
+      repricing(() => added.forEach(i => criteria.altIndustries.push({ industry: i, activity: i })));
+      logAction('Added', 'Added activities of a pricing rule \u2014 ' + rule.group.label, [{ label: 'Activities', value: added.join(', ') }]);
+      pricingRulesTarget.selected = rule.id;
+      const top = $('pricingRulesBody').scrollTop;
+      renderPricingRules(); $('pricingRulesBody').scrollTop = top;
+      renderAltIndustries();
+      return;
+    }
+    const rule = e.target.closest('[data-pick-rule]');
+    if (rule) { pricingRulesTarget.selected = rule.dataset.pickRule; const top = $('pricingRulesBody').scrollTop; renderPricingRules(); $('pricingRulesBody').scrollTop = top; return; }
     const pick = e.target.closest('[data-pick-bank]');
-    if (pick && pricingRulesTarget) { pricingRulesTarget.selected = pick.dataset.pickBank; renderPricingRules(); const c = $('pricingRulesBody').querySelector('.bank-card.on'); if (c) c.focus(); }
+    if (pick) { pricingRulesTarget.selected = pick.dataset.pickBank; renderPricingRules(); const c = $('pricingRulesBody').querySelector('.bank-card.on'); if (c) c.focus(); }
   });
-  $('pricingRulesModal').addEventListener('keydown', e => {
-    const cur = e.target.closest('.bank-card');
-    if (!cur || !pricingRulesTarget || ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].indexOf(e.key) === -1) return;
-    e.preventDefault();
-    const all = [...$('pricingRulesBody').querySelectorAll('.bank-card')];
-    const next = all[(all.indexOf(cur) + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : all.length - 1)) % all.length];
-    pricingRulesTarget.selected = next.dataset.pickBank; renderPricingRules();
-    $('pricingRulesBody').querySelector('.bank-card.on').focus();
+  $('pricingRulesModal').addEventListener('change', e => {
+    if (pricingRulesTarget && e.target.matches('[data-pr-showall]')) { pricingRulesTarget.showAll = e.target.checked; renderPricingRules(); }
   });
   $('pricingRulesAdd').addEventListener('click', () => {
     if (!pricingRulesTarget) return;
-    const { s, key, selected: to } = pricingRulesTarget, cfg = serviceConfig[s];
+    const { s, key, selected } = pricingRulesTarget, cfg = serviceConfig[s];
+    const rule = compareBanksFor(s) ? PRICING_RULES.find(r => r.id === selected) : null;
+    const to = rule ? rule.bank : selected;
     if (bankRequiredFor(s) && to !== key) {
       const i = cfg.banks.indexOf(key);
       if (i !== -1) cfg.banks[i] = to; else cfg.banks.push(to);
@@ -1682,10 +1689,12 @@
     }
     const bc = ensureBankConfig(cfg, bankRequiredFor(s) ? to : key);
     ratesForService(s, bc).forEach(t => {
-      const r = pricingRuleFor(s, to, t);
+      const r = rule ? ruleRates(rule, t) : pricingRuleFor(s, to, t);
       bc.pricing.set(t.key, { rate: String(r.standard), fee: String(r.fee), note: '', tier: 'auto' });
     });
-    logAction('Added', 'Added rates from service pricing \u2014 ' + whereOf(s, bankRequiredFor(s) ? to : ''), bankRequiredFor(s) ? [{ label: 'Institution', value: to }] : []);
+    const details = bankRequiredFor(s) ? [{ label: 'Institution', value: to }] : [];
+    if (rule) details.push({ label: 'Pricing rule', value: ruleName(rule, s, bc) });
+    logAction('Added', 'Added rates from service pricing \u2014 ' + whereOf(s, bankRequiredFor(s) ? to : ''), details);
     closePricingRulesModal();
     onSetupChanged();
   });

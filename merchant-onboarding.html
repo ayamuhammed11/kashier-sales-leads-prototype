@@ -569,7 +569,8 @@
   .drawer-tools { display: flex; align-items: center; gap: 4px; }
   .drawer-tools .btn-icon svg { width: 18px; height: 18px; }
   .drawer-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--border-subtle); background: #fff; }
-  .pr-showall { display: inline-flex; align-items: center; gap: 8px; margin: 2px 0 10px; font-size: 13px; cursor: pointer; }
+  .pr-note { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 14px; padding: 11px 14px; border: 1px solid var(--ocean-07); background: var(--ocean-10); border-radius: 6px; font-size: 12.5px; line-height: 1.5; color: var(--cadet-base); }
+  .pr-note-text b { color: var(--foreground); } .pr-note .btn { flex-shrink: 0; white-space: nowrap; }
   .pr-scroll { overflow-x: auto; }
   .rule-table { min-width: 900px; }
   .rule-table .c-rule { min-width: 250px; } .rule-table .c-bank { white-space: nowrap; font-weight: 600; }
@@ -1601,19 +1602,22 @@
     const cfg = serviceConfig[s], bc = ensureBankConfig(cfg, key);
     const tiers = ratesForService(s, bc);
     const noActivities = !appActivities().length;
-    const showAll = !!pricingRulesTarget.showAll || noActivities;
+    const showAll = noActivities;   // with no activities chosen yet, every rule is listed
     const rules = PRICING_RULES.filter(r => showAll || pricingRuleMatches(r)).sort((x, y) => ruleAvg(x, tiers) - ruleAvg(y, tiers));
     const pickable = rules.filter(r => noActivities || pricingRuleMatches(r));
     if (pricingRulesTarget.selected == null || !pickable.some(r => r.id === pricingRulesTarget.selected)) pricingRulesTarget.selected = pickable.length ? pickable[0].id : '';
     const selected = pricingRulesTarget.selected;
     const bestCol = tiers.map(t => Math.min.apply(null, rules.map(r => ruleRates(r, t).standard)));
-    const locked = appMode === 'locked';
     const mine = appActivities();
     $('pricingRulesTitle').textContent = `Service pricing \u2014 ${stripChannel(s)} (${channelOf(s)})`;
     $('pricingRulesAdd').style.display = pickable.length ? '' : 'none';
-    $('pricingRulesBody').innerHTML = `<div class="pricing-rules-note"><b>${esc(criteria.entity || 'Merchant type not set')}</b> \u00b7 ${esc(channelOf(s))} \u00b7 ${esc((bc.module) || 'PF')} \u00b7 ${esc(stripChannel(s))}
-        <br>Activities: ${mine.length ? mine.map(esc).join(', ') : 'none chosen yet \u2014 showing every rule'}</div>
-      <label class="pr-showall"><input type="checkbox" data-pr-showall${pricingRulesTarget.showAll ? ' checked' : ''}${noActivities ? ' disabled' : ''}> Show rules for other activities too</label>
+    const crit = `<b>${esc(criteria.entity || 'any merchant type')}</b> · ${esc(channelOf(s))} · ${esc((bc.module) || 'PF')} · ${esc(stripChannel(s))}`;
+    $('pricingRulesBody').innerHTML = `<div class="pr-note">
+        <div class="pr-note-text">${noActivities
+          ? `<b>Showing every ${esc(stripChannel(s))} pricing rule.</b> No activity is chosen on the application yet, so nothing narrows the list. Choose the merchant's activities and only the rules that include them will be shown.`
+          : `<b>Why these ${rules.length} pricing rules?</b> Each one is defined for ${crit} and includes at least one of the application's activities (${mine.map(esc).join(', ')}). Both banks are compared. Rules for other activities are not shown.`}</div>
+        <button type="button" class="btn btn-outline btn-sm" data-open-pricing-rules>Open Pricing Rules &#8599;</button>
+      </div>
       <div class="pr-scroll"><table class="compare-table rule-table">
         <thead><tr><th class="c-rule">Pricing rule</th><th>Bank</th>${tiers.map(t => `<th>${esc(t.label)}</th>`).join('')}</tr></thead>
         <tbody>${rules.map((r, i) => {
@@ -1621,7 +1625,7 @@
           return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}"` : ''}>
             <td class="c-rule"><div class="rule-name">${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</div>
               <div class="rule-cov">Activities: ${r.group.industries.map(x => mine.indexOf(x) !== -1 ? `<b>${esc(x)}</b>` : esc(x)).join(', ')}</div>
-              ${match ? '' : `<div class="rule-cov">None of this application's activities.${locked ? '' : ` <button type="button" class="btn btn-ghost btn-sm" data-rule-activities="${esc(r.id)}">Add its activities</button>`}</div>`}</td>
+            </td>
             <td class="c-bank">${esc(r.bank)}</td>
             ${tiers.map((t, ti) => { const v = ruleRates(r, t);
               return `<td class="${v.standard === bestCol[ti] && rules.some(o => ruleRates(o, t).standard !== v.standard) ? 'better' : ''}"><b>${esc(v.standard)}%</b> + ${esc(v.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(v.manager)}% \u00b7 Head ${esc(v.head)}%</div></td>`; }).join('')}
@@ -1655,7 +1659,7 @@
   function openPricingRulesModal(s, key) {
     const cfg = serviceConfig[s];
     ensureBankConfig(cfg, key);
-    pricingRulesTarget = { s, key, selected: compareBanksFor(s) ? null : (bankRequiredFor(s) ? (key || null) : ''), showAll: false };
+    pricingRulesTarget = { s, key, selected: compareBanksFor(s) ? null : (bankRequiredFor(s) ? (key || null) : '') };
     renderPricingRules();
     $('pricingRulesModal').classList.add('open');
   }
@@ -1676,25 +1680,11 @@
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
     if (!pricingRulesTarget) return;
-    const adopt = e.target.closest('[data-rule-activities]');
-    if (adopt) {
-      const rule = PRICING_RULES.find(r => r.id === adopt.dataset.ruleActivities);
-      const added = rule.group.industries.filter(i => !altHas(i));
-      repricing(() => added.forEach(i => criteria.altIndustries.push({ industry: i, activity: i })));
-      logAction('Added', 'Added activities of a pricing rule \u2014 ' + rule.group.label, [{ label: 'Activities', value: added.join(', ') }]);
-      pricingRulesTarget.selected = rule.id;
-      const top = $('pricingRulesBody').scrollTop;
-      renderPricingRules(); $('pricingRulesBody').scrollTop = top;
-      renderAltIndustries();
-      return;
-    }
+    if (e.target.closest('[data-open-pricing-rules]')) { toast('Opens the Pricing Rules module on the portal.'); return; }
     const rule = e.target.closest('[data-pick-rule]');
     if (rule) { pricingRulesTarget.selected = rule.dataset.pickRule; const top = $('pricingRulesBody').scrollTop; renderPricingRules(); $('pricingRulesBody').scrollTop = top; return; }
     const pick = e.target.closest('[data-pick-bank]');
     if (pick) { pricingRulesTarget.selected = pick.dataset.pickBank; renderPricingRules(); const c = $('pricingRulesBody').querySelector('.bank-card.on'); if (c) c.focus(); }
-  });
-  $('pricingRulesModal').addEventListener('change', e => {
-    if (pricingRulesTarget && e.target.matches('[data-pr-showall]')) { pricingRulesTarget.showAll = e.target.checked; renderPricingRules(); }
   });
   $('pricingRulesAdd').addEventListener('click', () => {
     if (!pricingRulesTarget) return;

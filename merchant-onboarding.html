@@ -714,6 +714,50 @@
     .crit-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 620px) { .user .name { display: none; } }
+  /* ── Phones: the services table, the setup steps and the pricing rules stack instead of scrolling sideways ── */
+  @media (max-width: 720px) {
+    .content { padding: 16px 14px 60px; }
+    .card-body { padding: 14px; }
+    #setupStepper { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #setupStepper .setup-step-line { display: none; }
+    .setup-step { padding: 8px; min-width: 0; } .setup-step-text { min-width: 0; } .setup-step-hint { display: none; }
+    .svc-table-wrap { overflow: visible; border: 0; background: none; }
+    .svc-table, .svc-table tbody { display: block; min-width: 0; width: 100%; }
+    .svc-table thead { display: none; }
+    .svc-table tr { display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 10px; border: 1px solid var(--border); border-top: 0; background: #fff; padding: 6px 12px; }
+    .svc-table tr.group-start { border-top: 1px solid var(--border); border-radius: 8px 8px 0 0; margin-top: 12px; padding-top: 12px; }
+    .svc-table tr:has(+ tr.group-start), .svc-table tr:last-child { border-radius: 0 0 8px 8px; padding-bottom: 12px; }
+    .svc-table tr.group-start:has(+ tr.group-start), .svc-table tr.group-start:last-child, .svc-table tr.svc-row-inactive { border-radius: 8px; }
+    .svc-table tr.svc-tier-row { border: 0; background: none; padding: 0; margin: 14px 0 0; }
+    .svc-table tr.svc-terminals-row { border-radius: 8px; margin-top: 12px; border-top: 1px solid var(--border); }
+    .svc-table td { display: block; width: 100%; border: 0 !important; padding: 4px 0 !important; min-width: 0 !important; background: none !important; }
+    .svc-table td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--cadet-05); margin-bottom: 4px; }
+    .svc-table tr.row-rejected td:not([rowspan]) { background: none !important; } .svc-table tr.row-rejected { background: var(--destructive-bg); }
+    .svc-table .cell-service { order: 1; } .svc-table .cell-bank { order: 2; } .svc-table .cell-model { order: 3; } .svc-table .cell-pricing { order: 4; }
+    .svc-table .cell-type { order: 5; font-weight: 700; padding-top: 10px !important; }
+    .svc-table td[data-label="Fees (%)"], .svc-table td[data-label="Flat fee"] { order: 6; width: calc(50% - 5px); }
+    .svc-table .cell-pricing .btn { width: 100%; }
+    .svc-table .cell-select { width: 100%; }
+    .setup-nav { flex-wrap: wrap; gap: 8px; } .setup-nav .btn { flex: 1 1 auto; } .setup-nav-status { flex: 1 1 100%; order: -1; }
+    .app-mode-banner, .uw-flag { font-size: 12.5px; }
+    /* service pricing drawer */
+    .pr-drawer, .pr-drawer.full { width: 100%; }
+    #pricingRulesFull { display: none; }
+    .drawer-head { padding: 14px 16px; } #pricingRulesBody.drawer-body { padding: 12px 14px 18px; }
+    .drawer-foot { padding: 12px 14px; } .drawer-foot .btn { flex: 1; }
+    .pr-note { flex-direction: column; align-items: stretch; } .pr-note .btn { width: 100%; }
+    .pr-scroll { overflow: visible; }
+    .rule-table { min-width: 0; display: block; } .rule-table thead { display: none; } .rule-table tbody { display: block; }
+    .rule-table tr.rule-row { display: block; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; padding: 10px 12px; background: #fff; }
+    .rule-table td { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border: 0; padding: 6px 0; text-align: right; background: none !important; }
+    .rule-table td::before { content: attr(data-label); flex: 0 0 42%; text-align: left; font-size: 11.5px; font-weight: 700; color: var(--cadet-05); }
+    .rule-table td.c-rule { display: block; text-align: left; padding-top: 0; } .rule-table td.c-rule::before { content: none; }
+    .rule-table td.better { background: var(--success-bg) !important; border-radius: 4px; padding-left: 6px; padding-right: 6px; }
+    .rule-row.picked { border-color: var(--primary) !important; box-shadow: inset 3px 0 0 var(--primary); } .rule-row.picked td:first-child { box-shadow: none; }
+    .rule-table td.c-rule { padding-left: 8px; }
+    .rule-table .rv { text-align: right; } .rule-table .cell-hint { text-align: right; }
+  }
+
 </style>
 </head>
 <body>
@@ -1626,9 +1670,9 @@
             <td class="c-rule"><div class="rule-name">${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</div>
               <div class="rule-cov">Activities: ${r.group.industries.map(x => mine.indexOf(x) !== -1 ? `<b>${esc(x)}</b>` : esc(x)).join(', ')}</div>
             </td>
-            <td class="c-bank">${esc(r.bank)}</td>
+            <td class="c-bank" data-label="Bank">${esc(r.bank)}</td>
             ${tiers.map((t, ti) => { const v = ruleRates(r, t);
-              return `<td class="${v.standard === bestCol[ti] && rules.some(o => ruleRates(o, t).standard !== v.standard) ? 'better' : ''}"><b>${esc(v.standard)}%</b> + ${esc(v.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(v.manager)}% \u00b7 Head ${esc(v.head)}%</div></td>`; }).join('')}
+              return `<td data-label="${esc(t.label)}" class="${v.standard === bestCol[ti] && rules.some(o => ruleRates(o, t).standard !== v.standard) ? 'better' : ''}"><span class="rv"><b>${esc(v.standard)}%</b> + ${esc(v.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(v.manager)}% \u00b7 Head ${esc(v.head)}%</div></span></td>`; }).join('')}
           </tr>`; }).join('')}</tbody>
       </table></div>`;
   }
@@ -1883,12 +1927,12 @@
         const stillUnchanged = rejection && rejUnchanged.has(`${s}::${k}::${t.key}`);
         return `<tr class="${i === 0 ? 'group-start' : ''}${rejection ? ' row-rejected' : ''}"${rejection ? ` title="Rejected by ${esc(rejection.by)}: ${esc(rejection.reason)}"` : ''}>
           ${i === 0 ? `<td rowspan="${rates.length}" class="cell-service">${serviceToggleHTML(s, true)}</td>
-            <td rowspan="${rates.length}" class="cell-model">${modelCell}</td>
+            <td rowspan="${rates.length}" class="cell-model" data-label="Model">${modelCell}</td>
             <td rowspan="${rates.length}" class="cell-pricing">${pricingCell}</td>` : ''}
           <td class="cell-type">${esc(t.label)}${approverView && approvalLineMap.get(`${s}::${k}::${t.key}`) ? approvalNoteHTML(approvalLineMap.get(`${s}::${k}::${t.key}`)) : ''}${rejection ? `${(lb => `<span class="cell-rejected${lb.cls}">${esc(lb.text)}</span>`)(rejectedLabel(sel, rejection, t))}${rejection.reason ? `<div class="rej-reason"><b>${esc(rejection.by)}${rejection.roleLabel ? ` (${esc(rejection.roleLabel)})` : ''}</b>${esc(rejection.reason)}</div>` : ''}` : ''}</td>
-          <td><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
-          <td><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="${esc(t.feeCurrency || 'EGP')}"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
-          ${i === 0 ? `<td rowspan="${rates.length}" class="cell-bank">${bankCell}</td>` : ''}
+          <td data-label="Fees (%)"><span class="unit-wrap${sel.rate !== '' && sel.rate != null ? ' filled' : ''}" data-unit="%"><input class="cell-input rate-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.rate)}" ${attrs}${off}></span></td>
+          <td data-label="Flat fee"><span class="unit-wrap${sel.fee !== '' && sel.fee != null ? ' filled' : ''}" data-unit="${esc(t.feeCurrency || 'EGP')}"><input class="cell-input fee-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(sel.fee)}" ${attrs}${off}></span></td>
+          ${i === 0 ? `<td rowspan="${rates.length}" class="cell-bank" data-label="Financial institution">${bankCell}</td>` : ''}
           ${approverView ? `<td class="cell-approval-actions">${approvalActionsHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>`
             : statusView ? `<td class="cell-approval-actions">${approvalStatusHTML(approvalLineMap.get(`${s}::${k}::${t.key}`))}</td>` : ''}
         </tr>`;

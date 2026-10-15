@@ -478,7 +478,7 @@
   function statusOf(l) {
     if (l.status !== 'application') return l.status;
     // An application still being filled in is simply a New lead — there is no separate in-progress status.
-    return returnedLeads[l.id] && !isApprover() ? 'returned' : 'new';
+    return returnedLeads[l.id] ? 'returned' : 'new';
   }
 
   let activeStatus = 'all';
@@ -503,10 +503,6 @@
     const counts = { all: LEADS.length };
     Object.keys(STATUS_META).forEach(k => counts[k] = LEADS.filter(l => statusOf(l) === k).length);
     let tabs = [['all', 'All']].concat(Object.entries(STATUS_META).map(([k, m]) => [k, m.label]));
-    if (isApprover()) {
-      tabs = tabs.filter(([k]) => k !== 'returned');
-      if (activeStatus === 'returned') activeStatus = 'all';
-    }
     // A Sales Manager or Head of Sales counts only the applications waiting on their own level.
     if (isApprover()) counts['rate-approval'] = LEADS.filter(l => l.status === 'rate-approval' && waitingOnMe(l)).length;
     $('statusTabs').innerHTML = tabs.map(([key, label]) => `

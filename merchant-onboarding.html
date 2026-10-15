@@ -1354,7 +1354,7 @@
   let recordActions = false;
   function logAction(action, text, details) {
     if (!recordActions || !sourceLeadId) return;
-    K.logEvent(sourceLeadId, K.ROLES.sales.name, text, null, { action: action, category: 'Application', role: 'Salesperson', details: details || [] });
+    K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, text, null, { action: action, category: 'Application', role: K.ROLES[K.getRole()].label, details: details || [] });
   }
   const whereOf = (s, bank) => s + (bank ? ' \u00b7 ' + bank : '');
   function setServiceActive(service, active) {
@@ -2801,7 +2801,8 @@
       live: 'activated', rejected: 'application', returned: 'application' }[acct && acct.status] || 'onboarding-review');
     const status = overrides[sourceLeadId] || p.get('leadStatus') || fromApp;
     const note = K.readStore('kashierLeadReturnNote')[sourceLeadId] || null;
-    const isSales = K.getRole() === 'sales';
+    // The salesperson, the Sales Manager and the Head of Sales all work applications: fill them in, change them and submit them.
+    const isSales = ['sales', 'manager', 'head'].indexOf(K.getRole()) !== -1;
 
     /* A submitted application cannot be edited. The one way back in is feedback: a rejected rate (or the
        Onboarding team sending it back) returns it to the salesperson. That is read from the data, not from
@@ -3140,7 +3141,7 @@
       serviceConfigs: JSON.stringify(serviceConfigsPayload),
       pricingRequests: JSON.stringify(pricingRequests()),
       total, done, needsApproval, status,
-      actor: 'Aya Muhammed', ts: new Date().toISOString(),
+      actor: K.ROLES[K.getRole()].name, ts: new Date().toISOString(),
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
     if (hasOnlineService()) qs.set('website', criteria.website.trim());
@@ -3209,8 +3210,8 @@
       const T = new Date(qs.get('ts')).getTime();
       const firstTime = !Object.keys(editBaseline.services).length && !editBaseline.docs.length;
       diffSnapshots(editBaseline, snapshot()).filter(ev => ['Business details', 'Industry'].includes(ev.category) && !/^(Payout methods|Website)/.test(ev.text)).forEach((ev, i) =>
-        K.logEvent(sourceLeadId, K.ROLES.sales.name, ev.text, new Date(T - 1000 - i).toISOString(),
-          { action: firstTime ? 'Added' : 'Changed', category: ev.category, role: 'Salesperson', details: ev.details }));
+        K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, ev.text, new Date(T - 1000 - i).toISOString(),
+          { action: firstTime ? 'Added' : 'Changed', category: ev.category, role: K.ROLES[K.getRole()].label, details: ev.details }));
     }
 
     toast('Application created for ' + biz + (needsApproval

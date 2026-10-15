@@ -1664,7 +1664,7 @@
             </td>
             <td class="c-bank" data-label="Bank">${esc(r.bank)}</td>
             ${tiers.map((t, ti) => { const v = ruleRates(r, t);
-              return `<td data-label="${esc(t.label)}" class="${v.standard === bestCol[ti] && rules.some(o => ruleRates(o, t).standard !== v.standard) ? 'better' : ''}"><span class="rv"><b>${esc(v.standard)}%</b> + ${esc(v.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(v.manager)}% \u00b7 Head ${esc(v.head)}%</div></span></td>`; }).join('')}
+              return `<td data-label="${esc(t.label)}" class="${v.standard === bestCol[ti] && rules.some(o => ruleRates(o, t).standard !== v.standard) ? 'better' : ''}"><span class="rv"><b>${esc(v.standard)}%</b> + ${esc(v.fee)} ${esc(t.feeCurrency || 'EGP')}</span></td>`; }).join('')}
           </tr>`; }).join('')}</tbody>
       </table></div>`;
   }
@@ -1679,7 +1679,7 @@
     if (pricingRulesTarget.selected == null) pricingRulesTarget.selected = banks[0];
     const selected = pricingRulesTarget.selected;
     const cell = (t, bank) => { const r = pricingRuleFor(s, bank, t);
-      return `<td class="${bank === selected ? 'picked' : ''}${bank ? ' pick-bank' : ''}"${bank ? ` data-pick-bank="${esc(bank)}"` : ''}><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}<div class="cell-hint">Manager ${esc(r.manager)}% \u00b7 Head ${esc(r.head)}%</div></td>`; };
+      return `<td class="${bank === selected ? 'picked' : ''}${bank ? ' pick-bank' : ''}"${bank ? ` data-pick-bank="${esc(bank)}"` : ''}><b>${esc(r.standard)}%</b> + ${esc(r.fee)} ${esc(t.feeCurrency || 'EGP')}</td>`; };
     $('pricingRulesTitle').textContent = `Service pricing \u2014 ${stripChannel(s)} (${channelOf(s)})`;
     $('pricingRulesAdd').style.display = '';
     const cards = banks[0] === '' ? '' : `<div class="bank-cards" role="radiogroup" aria-label="Institution">${banks.map(b => `<button type="button" class="bank-card${b === selected ? ' on' : ''}" role="radio" aria-checked="${b === selected}" data-pick-bank="${esc(b)}">

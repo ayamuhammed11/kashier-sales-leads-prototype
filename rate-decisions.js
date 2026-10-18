@@ -604,6 +604,7 @@ window.KashierRates = (function () {
       payouts: payouts,
       mid: qs.get('mid') || '',
       website: qs.get('website') || '',
+      comment: qs.get('comment') || '',
       altIndustries: (() => { try { return JSON.parse(qs.get('altIndustries') || '[]'); } catch (e) { return []; } })(),
       transfers: (() => { try { return JSON.parse(qs.get('transfers') || 'null'); } catch (e) { return null; } })(),
       biz: qs.get('biz') || 'Untitled Application',
@@ -1141,7 +1142,7 @@ window.KashierRates = (function () {
 
   /* What happened to the account, oldest first — the Logs tab. */
   function accountLog(app) {
-    const events = [{ ts: app.ts, who: app.actor, text: 'Application submitted by Sales' }];
+    const events = [{ ts: app.ts, who: app.actor, text: 'Application submitted by Sales' + (app.comment ? ' \u2014 "' + app.comment + '"' : '') }];
     const decisions = decisionsFor(app.id);
     const seen = {};
     app.requests.forEach(r => {
@@ -1198,6 +1199,7 @@ window.KashierRates = (function () {
       const alt = (app.altIndustries || []).map(x => x.activity || x.industry).join(', ');
       const details = [{ label: 'Application', value: app.id }];
       if (replaces[app.id]) details.push({ label: 'Replaces', value: replaces[app.id] });
+      if (app.comment) details.push({ label: 'Comment', value: app.comment });
       details.push({ label: 'Services', value: (sm.services || []).join(', ') || '\u2014' });
       if (sm.industry) details.push({ label: 'Industry', value: sm.industry + (alt ? ' \u2014 activities: ' + alt : '') });
       details.push({ label: 'Rates needing approval', value: need.length

@@ -609,6 +609,7 @@
   .svc-table tbody tr:first-child td { border-top: none; }
   /* The rate-approval column stays in view, so an approver never has to scroll sideways to find Approve and Reject. */
   .ap-panel { margin-bottom: 14px; }
+  .ap-comment { margin: 2px 0 6px; padding: 9px 12px; border-radius: 6px; background: var(--ocean-10); font-size: 13px; line-height: 1.45; color: var(--foreground); }
   .ap-count { display: inline-block; margin-left: 6px; padding: 1px 9px; border-radius: 999px; background: var(--warning-bg); color: #92620A; font-size: 12px; font-weight: 700; vertical-align: middle; }
   .ap-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; }
   .ap-row:first-of-type { border-top: 0; }
@@ -940,6 +941,20 @@
       </div>
       <div class="drawer-body lg-body" id="logDrawerBody"></div>
     </aside>
+  </div>
+
+  <div class="modal-overlay" id="submitCommentModal">
+    <div class="modal">
+      <div class="modal-header"><div><h3 id="scTitle">Submit application</h3></div><button class="btn-icon" id="scClose" aria-label="Close">&#10005;</button></div>
+      <div class="modal-body">
+        <label for="scText" style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Comment <span style="font-weight:400;color:var(--cadet-05)">(optional)</span></label>
+        <textarea id="scText" class="appr-line-note" maxlength="500" placeholder="Anything the reviewers should know? It is shown with the application to the approvers and the Onboarding team."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="scCancel">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="scConfirm">Submit</button>
+      </div>
+    </div>
   </div>
 
   <div class="modal-overlay" id="lostModal">
@@ -2969,6 +2984,7 @@
       const mineLines = approverView ? app.requests.filter(r => K.canRoleAct(K.getRole(), r.tier) && !decisions[r.id]) : [];
       const pm = (pct, fee, cur) => [pct != null ? pct + '%' : '', fee != null ? fee + ' ' + (cur || 'EGP') : ''].filter(Boolean).join(' + ') || '\u2014';
       const approvalPanel = mineLines.length ? `<div class="status-panel ap-panel"><h2>Rates waiting for your approval <span class="ap-count">${mineLines.length}</span></h2>
+        ${app.comment ? `<div class="ap-comment"><b>Comment from ${esc(app.actor)}:</b> ${esc(app.comment)}</div>` : ''}
         ${mineLines.map(r => `<div class="ap-row">
           <div class="ap-info">
             <div class="ap-rate">${esc(r.rate)}</div>
@@ -3046,7 +3062,7 @@
       const dash = v => v === '' || v == null ? '\u2014' : v;
       const who = `<b>${esc(e.who || '')}</b>`;
       const flaggedRows = rows.filter(r => r.item).map(r => `${who} rejected the ${esc(r.item.toLowerCase())} <b>${esc(r.label)}</b> \u2014 ${esc(r.value)}`);
-      const shownFacts = rows.filter(r => r.from == null && !r.item && ['Requested', 'Published', 'Decision comment', 'Reason'].includes(r.label)).map(r => `<b>${esc(r.label)}</b>: ${esc(dash(r.value))}`);
+      const shownFacts = rows.filter(r => r.from == null && !r.item && ['Requested', 'Published', 'Decision comment', 'Reason', 'Comment'].includes(r.label)).map(r => `<b>${esc(r.label)}</b>: ${esc(dash(r.value))}`);
       const lines = [sentenceOf(e)].concat(shownFacts).concat(flaggedRows).concat(changes.map(r => `${who} changed <b>${esc(r.label)}</b> from <b>${esc(dash(r.from))}</b> to <b>${esc(dash(r.to))}</b>`));
       const [cls, svg] = ICON_OF[e.action] || ['', IC.list];
       return `<div class="ev-card"><div class="ev-ic ${cls}">${svg}</div>
@@ -3145,6 +3161,12 @@
     renderSubmitSummary();
   })();
 
+  let submitComment = null;   // null until the comment step has been answered
+  const closeSubmitComment = () => $('submitCommentModal').classList.remove('open');
+  $('scClose').addEventListener('click', closeSubmitComment);
+  $('scCancel').addEventListener('click', closeSubmitComment);
+  $('submitCommentModal').addEventListener('click', e => { if (e.target === $('submitCommentModal')) closeSubmitComment(); });
+  $('scConfirm').addEventListener('click', () => { submitComment = $('scText').value.trim(); closeSubmitComment(); attemptSubmit(); });
   function attemptSubmit() {
     if (appMode === 'locked') return;   // a submitted application cannot be re-sent
     if (needsJustificationLines().length) { openApprovalModal(attemptSubmit); return; }
@@ -3152,6 +3174,16 @@
     const remaining = readinessChecks().filter(c => !c.done);
     if (remaining.length) {
       toast(`Complete this first: ${remaining[0].label}`);
+      return;
+    }
+    // Last step before it goes: an optional comment for the reviewers.
+    if (submitComment === null) {
+      const re = appMode === 'returned';
+      $('scTitle').textContent = re ? 'Resubmit application' : 'Submit application';
+      $('scConfirm').textContent = re ? 'Resubmit' : 'Submit';
+      $('scText').value = '';
+      $('submitCommentModal').classList.add('open');
+      $('scText').focus();
       return;
     }
     const { needsApproval } = approvalStatus();
@@ -3176,6 +3208,7 @@
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
     if (hasOnlineService()) qs.set('website', criteria.website.trim());
+    if (submitComment) qs.set('comment', submitComment);
     if (filledAltIndustries().length) qs.set('altIndustries', JSON.stringify(filledAltIndustries()));
     const poList = payoutsPayload(), poPrimary = poList.find(p => p.primary);
     qs.set('payout', JSON.stringify(poPrimary || null));
@@ -3250,7 +3283,7 @@
       : ' — sent to the Onboarding team for review'));
     location.href = sourceLeadId ? K.applicationURL(sourceLeadId) : 'index.html';
   }
-  $('serviceSetupBody').addEventListener('click', e => { if (e.target.closest('#submitAppBtn')) attemptSubmit(); });
+  $('serviceSetupBody').addEventListener('click', e => { if (e.target.closest('#submitAppBtn')) { submitComment = null; attemptSubmit(); } });
 
   /* ══════════ Chrome ══════════ */
   $('hamburger').addEventListener('click', () => { $('sidebar').classList.add('open'); $('overlay').classList.add('open'); });

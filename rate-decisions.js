@@ -151,13 +151,18 @@ window.KashierRates = (function () {
       }
       writeStore('kashierLeadReturnNote', notes);
     }
+    addContributor(app.leadId, opts.role);
+    notifyContributors(app.leadId, opts.role, ROLES[opts.role].name + ' ' + (opts.decision === 'approved' ? 'approved' : 'rejected') + ' ' + lines.length + ' rate' + (lines.length === 1 ? '' : 's') + ' \u2014 ' + app.biz,
+      lines.map(r => r.rate + ' (' + [r.service, r.bank].filter(Boolean).join(' \u00b7 ') + '): ' + (opts.decision === 'approved' ? 'approved' : 'rejected') + (opts.reason ? ' \u2014 ' + opts.reason : ''))
+        .concat(status === 'returned-to-sales' ? ['Every rate is reviewed. The application is back with ' + app.actor + ' to change the rejected rates.']
+          : status === 'pending-onboarding-review' ? ['Every rate is approved. The application is now in Underwriting Review.'] : []), { biz: app.biz, by: ROLES[opts.role].name });
     return status;
   }
 
   /* Decide a whole approval request — every still-undecided line at that level. */
   function recordRequestDecision(opts) {
     const app = opts.app;
-    if (!canRoleAct(opts.role, opts.tier)) return null;
+    if (!canRoleAct(opts.role, opts.tier) || roleOfName(app.actor) === opts.role) return null;
     const decisions = decisionsFor(app.id);
     if (readStore('kashierSupersededApplications')[app.id]) return null;
     const lines = app.requests.filter(r => r.tier === opts.tier && !decisions[r.id]);
@@ -170,7 +175,7 @@ window.KashierRates = (function () {
   function recordDecision(opts) {
     const app = opts.app;
     const req = app.requests.filter(r => r.id === opts.reqId)[0];
-    if (!req || !canRoleAct(opts.role, req.tier)) return null;
+    if (!req || !canRoleAct(opts.role, req.tier) || roleOfName(app.actor) === opts.role) return null;
     const decisions = decisionsFor(app.id);
     if (decisions[req.id]) return null;
     if (readStore('kashierSupersededApplications')[app.id]) return null;
@@ -586,6 +591,7 @@ window.KashierRates = (function () {
     const qs = new URLSearchParams(String(url).split('?')[1] || '');
     let requests = [];
     try { requests = JSON.parse(qs.get('pricingRequests') || '[]'); } catch (e) { requests = []; }
+    requests = requests.map(r => { const t = escalatedTier(qs.get('actor') || '', r.tier); return t === r.tier ? r : Object.assign({}, r, { tier: t, escalated: true, origTier: r.tier }); });
     let serviceConfigs = [];
     try { serviceConfigs = JSON.parse(qs.get('serviceConfigs') || '[]'); } catch (e) { serviceConfigs = []; }
     let documents = [];
@@ -876,6 +882,11 @@ window.KashierRates = (function () {
     const ts = new Date().toISOString();
     setAccount(app, { status: 'pending-configurations', by: ROLES.onboarding.name, ts: ts, approvedTs: ts },
       'pending-bank-submission', 'bank-submission');
+    // The salesperson and their manager are told it went to the bank.
+    const owner = roleOfName(app.actor) || 'sales';
+    sendMail({ to: chainFor(owner).concat(readStore('kashierContributors')[app.leadId] || []), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
+      subject: app.biz + ' is now in Bank Submission',
+      lines: [ROLES.onboarding.name + ' approved ' + app.biz + ' internally and sent it to the bank.', 'Application: ' + app.id, 'Next: the bank or vendor approval, then the account goes live.'] });
     return 'pending-configurations';
   }
   /* Stage 1 ✗ — the application goes back to the salesperson with the reason. */
@@ -892,6 +903,9 @@ window.KashierRates = (function () {
         text: 'Application rejected by the Onboarding team (' + ROLES.onboarding.name + '): ' + opts.reason.trim() };
       writeStore('kashierLeadReturnNote', notes);
     }
+    sendMail({ to: chainFor(roleOfName(app.actor) || 'sales').concat(readStore('kashierContributors')[app.leadId] || []), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
+      subject: app.biz + ' was rejected by Underwriting',
+      lines: [ROLES.onboarding.name + ' rejected the application.', 'Reason: ' + opts.reason.trim()].concat((items || []).map(i => i.type + ' \u2014 ' + i.name + ': ' + i.reason)).concat(['It is back with ' + app.actor + ' to update and resubmit.']) });
     return 'rejected';
   }
   /* Stage 2 — bank/vendor approval and credentials are in; the account goes live. */
@@ -900,6 +914,8 @@ window.KashierRates = (function () {
     if (opts.role !== 'onboarding' || prev.status !== 'pending-configurations') return null;
     setAccount(app, { status: 'live', by: ROLES.onboarding.name, ts: new Date().toISOString(), approvedTs: prev.approvedTs || prev.ts },
       'live', 'activated');
+    sendMail({ to: chainFor(roleOfName(app.actor) || 'sales').concat(readStore('kashierContributors')[app.leadId] || []), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
+      subject: app.biz + ' is live', lines: ['The bank or vendor approved ' + app.biz + ' and the account is live. It is worked from the Merchant module from here.'] });
     return 'live';
   }
 
@@ -1183,6 +1199,14 @@ window.KashierRates = (function () {
     const all = readStore('kashierApplicationLog');
     (all[leadId] = all[leadId] || []).push(Object.assign({ ts: ts || new Date().toISOString(), who: who, text: text }, extra || {}));
     writeStore('kashierApplicationLog', all);
+    const actorRole = roleOfName(who);
+    if (actorRole && WORKERS.indexOf(actorRole) !== -1) {
+      addContributor(leadId, actorRole);
+      if (extra && ['Added', 'Changed', 'Removed', 'Uploaded', 'Canceled'].indexOf(extra.action) !== -1) {
+        const biz = bizOf(leadId, extra.biz);
+        notifyContributors(leadId, actorRole, who + ' made changes to ' + biz, [text].concat(detailLines(extra.details)), { merge: extra.action !== 'Canceled', biz: biz, by: who });
+      }
+    }
   }
   const money = (pct, fee, cur) => [pct != null ? pct + '%' : '', fee != null ? fee + ' ' + (cur || 'EGP') : ''].filter(Boolean).join(' + ') || '\u2014';
   /* Structured events, newest first: { ts, who, role, system, action, category, text, details:[{label, value | from, to}] }. */
@@ -1277,6 +1301,165 @@ window.KashierRates = (function () {
     return { kind: 'rates', title: 'Rates rejected', by: items[0].by, role: items[0].role, ts: items.map(i => i.ts).sort().pop(), reason: '', items: items };
   }
 
+
+  /* ── Email notifications (simulated) ─────────────────────────────────────────────
+     Each email lands in the recipient's inbox, the bell in the top bar. Who gets what:
+       · a rate that needs approval → an "action required" email to that approver (Sales Manager or Head of Sales);
+       · anyone who has worked on an application (salesperson, Sales Manager, Head of Sales) → an email with the changes
+         others make to it, and with each decision on it;
+       · Bank Submission → the salesperson and their manager.
+     A Sales Manager is never maker and checker on the same application: rates on an application the Sales Manager
+     submitted go to the Head of Sales instead. */
+  const emailOf = role => ROLES[role].name.toLowerCase().replace(/\s+/g, '.') + '@kashier.io';
+  function roleOfName(name) { return Object.keys(ROLES).filter(k => ROLES[k].name === name)[0] || null; }   // a function: it is used while the shared data loads
+  const WORKERS = ['sales', 'manager', 'head'];
+  /* The salesperson and the manager above them; a Sales Manager's own manager is the Head of Sales. */
+  const chainFor = role => role === 'manager' ? ['manager', 'head'] : role === 'head' ? ['head'] : ['sales', 'manager'];
+  const uniq = list => list.filter((x, i) => x && list.indexOf(x) === i);
+  const bizOf = (leadId, hint) => hint || ((loadApplications().filter(a => a.leadId === leadId)[0] || {}).biz) || leadId;
+
+  function sendMail(o) {
+    const store = readStore('kashierNotifications');
+    const list = store.list = store.list || [];
+    uniq(o.to).forEach(role => {
+      if (!ROLES[role]) return;
+      list.unshift({ id: 'N' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ts: o.ts || new Date().toISOString(), to: role, toName: ROLES[role].name, toEmail: emailOf(role),
+        subject: o.subject, lines: o.lines || [], leadId: o.leadId || '', appId: o.appId || '', biz: o.biz || '', kind: o.kind || 'info', by: o.by || '', byRole: o.byRole || '', read: false });
+    });
+    store.list = list.slice(0, 200);
+    writeStore('kashierNotifications', store);
+    refreshInbox();
+  }
+  function addContributor(leadId, role) {
+    if (!leadId || WORKERS.indexOf(role) === -1) return;
+    const store = readStore('kashierContributors'), arr = store[leadId] || [];
+    if (arr.indexOf(role) === -1) { arr.push(role); store[leadId] = arr; writeStore('kashierContributors', store); }
+  }
+  /* Tell everyone else who has worked on the application what was just done. Edits from the same person within a
+     quarter of an hour are gathered into one email, so a long editing session is not a flood. */
+  function notifyContributors(leadId, actorRole, subject, lines, opts) {
+    opts = opts || {};
+    const others = (readStore('kashierContributors')[leadId] || []).filter(r => r !== actorRole);
+    if (!others.length) return;
+    const store = readStore('kashierNotifications'), list = store.list = store.list || [];
+    const fresh = [];
+    others.forEach(role => {
+      const hit = opts.merge && list.filter(n => n.to === role && n.leadId === leadId && n.kind === 'changes' && n.byRole === actorRole && !n.read
+        && Date.now() - new Date(n.ts).getTime() < 15 * 60000)[0];
+      if (hit) { hit.lines = hit.lines.concat(lines).slice(-25); hit.ts = new Date().toISOString(); }
+      else fresh.push(role);
+    });
+    writeStore('kashierNotifications', store);
+    if (fresh.length) sendMail({ to: fresh, subject: subject, lines: lines.slice(0, 25), leadId: leadId, biz: opts.biz, kind: opts.merge ? 'changes' : 'update', by: opts.by, byRole: actorRole });
+    else refreshInbox();
+  }
+  const detailLines = details => (details || []).map(d => d.from != null ? d.label + ': ' + (d.from || '\u2014') + ' \u2192 ' + (d.to || '\u2014') : d.label + ': ' + d.value);
+
+  /* Rates sent for approval: one "action required" email per approver, and a note to the others who worked on it. */
+  function notifySubmission(o) {
+    const actorRole = roleOfName(o.actorName) || 'sales';
+    addContributor(o.leadId, actorRole);
+    const byTier = { manager: [], head: [] };
+    (o.requests || []).forEach(r => { const t = escalatedTier(o.actorName, r.tier); if (byTier[t]) byTier[t].push(r); });
+    ['manager', 'head'].forEach(tier => {
+      const lines = byTier[tier];
+      if (!lines.length || tier === actorRole) return;
+      const escalated = actorRole === 'manager' && tier === 'head' && lines.some(r => r.tier === 'manager');
+      sendMail({ to: [tier], kind: 'action', leadId: o.leadId, biz: o.biz, by: o.actorName, byRole: actorRole,
+        subject: 'Action required: ' + lines.length + ' rate' + (lines.length === 1 ? ' needs' : 's need') + ' your approval \u2014 ' + o.biz,
+        lines: [o.actorName + (o.resubmission ? ' resubmitted ' : ' submitted ') + o.biz + '.']
+          .concat(escalated ? ['It came from a Sales Manager, so it needs the Head of Sales rather than the Sales Manager.'] : [])
+          .concat(o.comment ? ['Comment: ' + o.comment] : [])
+          .concat(lines.map(r => r.rate + ' (' + [r.service, r.bank].filter(Boolean).join(' \u00b7 ') + '): requested ' + r.requested + '% against ' + r.standard + '% published'
+            + (r.note ? ' \u2014 "' + r.note + '"' : ''))) });
+    });
+    notifyContributors(o.leadId, actorRole, o.actorName + (o.resubmission ? ' resubmitted ' : ' submitted ') + o.biz,
+      [o.actorName + (o.resubmission ? ' resubmitted the application.' : ' submitted the application.')].concat(o.comment ? ['Comment: ' + o.comment] : []), { biz: o.biz, by: o.actorName });
+  }
+  /* A Sales Manager's own rates are approved by the Head of Sales. */
+  function escalatedTier(actorName, tier) { return tier === 'manager' && roleOfName(actorName) === 'manager' ? 'head' : tier; }
+
+  /* ── The inbox: a bell in the top bar and a drawer with the emails sent to whoever is being viewed ── */
+  let inboxEls = null, inboxOpen = false;
+  const BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>';
+  const MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>';
+  const escH = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const mine = () => (readStore('kashierNotifications').list || []).filter(n => n.to === getRole());
+  function stampOfMail(iso) {
+    const d = new Date(iso), p2 = n => String(n).padStart(2, '0'), h = d.getHours() % 12 || 12;
+    return p2(d.getMonth() + 1) + '/' + p2(d.getDate()) + '/' + d.getFullYear() + '. ' + p2(h) + ':' + p2(d.getMinutes()) + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
+  }
+  function renderInbox() {
+    if (!inboxEls) return;
+    const list = mine(), unread = list.filter(n => !n.read).length, me = ROLES[getRole()];
+    inboxEls.badge.textContent = unread > 9 ? '9+' : String(unread);
+    inboxEls.badge.hidden = !unread;
+    inboxEls.btn.setAttribute('aria-label', 'Notifications' + (unread ? ' (' + unread + ' unread)' : ''));
+    if (!inboxOpen) return;
+    inboxEls.sub.textContent = me.name + ' \u00b7 ' + emailOf(getRole());
+    inboxEls.body.innerHTML = list.length ? list.map(n => `<div class="ib-card${n.read ? '' : ' unread'}">
+        <div class="ib-ic ${n.kind === 'action' ? 'action' : ''}">${MAIL}</div>
+        <div class="ib-main">
+          <div class="ib-when">${escH(stampOfMail(n.ts))}${n.kind === 'action' ? ' <span class="ib-tag">Action required</span>' : ''}</div>
+          <div class="ib-meta">From Kashier &lt;no-reply@kashier.io&gt; \u00b7 To ${escH(n.toName)}</div>
+          <div class="ib-subject">${escH(n.subject)}</div>
+          ${n.lines.map(l => `<div class="ib-line">${escH(l)}</div>`).join('')}
+          ${n.leadId ? `<a class="ib-open" href="${applicationURL(n.leadId)}">Open application</a>` : ''}
+        </div></div>`).join('') : '<div class="ib-empty">No emails yet. Notifications about applications you work on will appear here.</div>';
+  }
+  function refreshInbox() { try { renderInbox(); } catch (e) { /* page not ready */ } }
+  function openInbox() {
+    inboxOpen = true; inboxEls.overlay.classList.add('open'); renderInbox();
+    const store = readStore('kashierNotifications'), role = getRole();
+    (store.list || []).forEach(n => { if (n.to === role) n.read = true; });
+    writeStore('kashierNotifications', store);
+    inboxEls.badge.hidden = true;
+  }
+  function closeInbox() { inboxOpen = false; inboxEls.overlay.classList.remove('open'); renderInbox(); }
+  function seedInbox() {
+    // The applications already waiting for an approver have had their action-required email.
+    if (readStore('kashierNotifSeeded').done) return;
+    approvalRequests().filter(r => r.state === 'pending' && r.pendingLines.length && !r.app.superseded).forEach(r => {
+      sendMail({ to: [r.tier], kind: 'action', leadId: r.app.leadId, biz: r.app.biz, by: r.app.actor, ts: r.app.ts,
+        subject: 'Action required: ' + r.pendingLines.length + ' rate' + (r.pendingLines.length === 1 ? ' needs' : 's need') + ' your approval \u2014 ' + r.app.biz,
+        lines: [r.app.actor + ' submitted ' + r.app.biz + '.'].concat(r.pendingLines.map(l => l.rate + ' (' + [l.service, l.bank].filter(Boolean).join(' \u00b7 ') + '): requested ' + l.requested + '% against ' + l.standard + '% published')) });
+    });
+    writeStore('kashierNotifSeeded', { done: true });
+  }
+  function mountInbox() {
+    const bar = document.querySelector('.topbar-right');
+    if (!bar || inboxEls) return;
+    const css = document.createElement('style');
+    css.textContent = '.ib-btn{position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:inherit}.ib-btn:hover{background:rgba(0,31,95,.06)}.ib-btn svg{width:24px;height:24px}' +
+      '.ib-badge{position:absolute;top:3px;right:2px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#A50017;color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center}.ib-badge[hidden]{display:none}' +
+      '.ib-overlay{position:fixed;inset:0;background:rgba(2,10,34,.35);display:none;z-index:95}.ib-overlay.open{display:block}' +
+      '.ib-drawer{position:absolute;top:0;right:0;bottom:0;width:480px;max-width:100%;background:#fff;display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(0,20,60,.2);animation:ib-in .18s ease-out}@keyframes ib-in{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}' +
+      '.ib-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid #F5F6F6}.ib-head h3{margin:0 0 3px;font-size:17px;color:#202020}.ib-sub{margin:0;font-size:12.5px;color:#919C9C}' +
+      '.ib-x{border:0;background:transparent;font-size:16px;cursor:pointer;min-width:36px;min-height:36px;color:inherit}.ib-body{padding:16px 20px;overflow-y:auto;flex:1}' +
+      '.ib-card{display:flex;gap:12px;border:1px solid #E6E8E8;border-radius:6px;padding:12px;margin-bottom:10px}.ib-card.unread{border-color:#C0D5FF;background:#F1F6FF}' +
+      '.ib-ic{width:36px;height:36px;border-radius:50%;background:#E1E3E6;color:#4B5563;display:flex;align-items:center;justify-content:center;flex-shrink:0}.ib-ic.action{background:#FFF1D6;color:#92620A}.ib-ic svg{width:18px;height:18px}' +
+      '.ib-main{min-width:0;flex:1;font-size:13px;line-height:1.5}.ib-when{font-size:12px;color:#637373}.ib-meta{font-size:11.5px;color:#919C9C;margin-bottom:4px}.ib-subject{font-weight:700;color:#202020;margin-bottom:4px}' +
+      '.ib-line{color:#556767;word-break:break-word;margin-bottom:2px}.ib-tag{margin-left:6px;padding:1px 7px;border-radius:999px;background:#FFF1D6;color:#92620A;font-size:10.5px;font-weight:700;text-transform:uppercase}' +
+      '.ib-open{display:inline-block;margin-top:6px;font-weight:600;color:#2955B1;text-decoration:none}.ib-empty{padding:30px 10px;text-align:center;color:#919C9C;font-size:13px}';
+    document.head.appendChild(css);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'ib-btn'; btn.innerHTML = BELL + '<span class="ib-badge" hidden>0</span>';
+    bar.insertBefore(btn, bar.firstChild);
+    const overlay = document.createElement('div');
+    overlay.className = 'ib-overlay';
+    overlay.innerHTML = '<aside class="ib-drawer" role="dialog" aria-label="Email notifications"><div class="ib-head"><div><h3>Email notifications</h3><p class="ib-sub"></p></div><button type="button" class="ib-x" aria-label="Close">&#10005;</button></div><div class="ib-body"></div></aside>';
+    document.body.appendChild(overlay);
+    inboxEls = { btn: btn, badge: btn.querySelector('.ib-badge'), overlay: overlay, sub: overlay.querySelector('.ib-sub'), body: overlay.querySelector('.ib-body') };
+    btn.addEventListener('click', openInbox);
+    overlay.querySelector('.ib-x').addEventListener('click', closeInbox);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeInbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && inboxOpen) closeInbox(); });
+    document.addEventListener('change', e => { if (e.target && e.target.id === 'roleSelect') setTimeout(refreshInbox, 0); });
+    window.addEventListener('storage', refreshInbox);
+    seedInbox();
+    renderInbox();
+  }
+
   /* Rate requests are reviewed on the application's own view too. */
   function requestURL(appId, tier) {
     const a = loadApplications().filter(x => x.id === appId)[0];
@@ -1292,10 +1475,12 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, payoutLabel: payoutLabel, payoutList: payoutList,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, refreshInbox: refreshInbox, mountInbox: mountInbox, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,
     payoutChanges: payoutChanges, payoutAccounts: payoutAccounts, payoutMethodStates: payoutMethodStates, payoutVerification: payoutVerification, reviewPayoutMethod: reviewPayoutMethod, verifyPayoutOtp: verifyPayoutOtp, resendPayoutOtp: resendPayoutOtp, OTP_MINUTES: OTP_MINUTES, currentPayout: currentPayout, payoutDiff: payoutDiff, payoutCompare: payoutCompare, decidePayoutChange: decidePayoutChange,
   };
 })();
+
+(function () { var go = function () { try { window.KashierRates.mountInbox(); } catch (e) {} }; if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go(); })();

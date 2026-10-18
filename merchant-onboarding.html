@@ -1384,7 +1384,7 @@
   let recordActions = false;
   function logAction(action, text, details) {
     if (!recordActions || !sourceLeadId) return;
-    K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, text, null, { action: action, category: 'Application', role: K.ROLES[K.getRole()].label, details: details || [] });
+    K.logEvent(sourceLeadId, K.ROLES[K.getRole()].name, text, null, { action: action, category: 'Application', role: K.ROLES[K.getRole()].label, biz: $('mBiz').value.trim(), details: details || [] });
   }
   const whereOf = (s, bank) => s + (bank ? ' \u00b7 ' + bank : '');
   function setServiceActive(service, active) {
@@ -3278,6 +3278,7 @@
           { action: firstTime ? 'Added' : 'Changed', category: ev.category, role: K.ROLES[K.getRole()].label, details: ev.details }));
     }
 
+    K.notifySubmission({ leadId: sourceLeadId, biz: biz, actorName: K.ROLES[K.getRole()].name, requests: pricingRequests(), comment: submitComment || '', resubmission: appMode === 'returned' });
     toast('Application created for ' + biz + (needsApproval
       ? ` — sent for ${needsApproval} rate approval${needsApproval === 1 ? '' : 's'} before the Onboarding team reviews it`
       : ' — sent to the Onboarding team for review'));

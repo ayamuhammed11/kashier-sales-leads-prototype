@@ -1565,14 +1565,25 @@
 
   /* Contracts: optional, any number of them — a free-text label the salesperson chooses, and the file. */
   let contracts = [];
-  /* Card, Wallet, Bank Installments and Basata on the PF model are all covered by one Kashier PF contract, which has to be
-     uploaded before the application can go. */
+  /* A service on the PF model needs a signed contract before the application can go. Card, Wallet, Bank Installments and
+     Basata are all covered by one Kashier PF contract; every other PF service (Valu, OCTO, Souhoola, …) has its own. */
   const PF_CONTRACT_LABEL = 'Kashier PF Contract';
   const PF_COVERED = ['Card', 'Wallet', 'Bank Installments', 'Basata'];
-  let pfContract = null;   // { name, size } once uploaded
+  const reqContracts = {};   // contract label -> { name, size } once uploaded
+  const isPfCovered = sv => PF_COVERED.some(c => sv.endsWith(c));
   function pfServices() {
-    return criteria.services.filter(sv => PF_COVERED.some(c => sv.endsWith(c)) && serviceConfig[sv]
+    return criteria.services.filter(sv => serviceConfig[sv]
       && bankKeysFor(serviceConfig[sv], sv).some(k => serviceConfig[sv].bankConfigs[k] && serviceConfig[sv].bankConfigs[k].module === 'PF'));
+  }
+  /* The contracts the current services require: [{ label, text, services }]. */
+  function requiredContracts() {
+    const pf = pfServices(), out = [];
+    const covered = [...new Set(pf.filter(isPfCovered).map(stripChannel))];
+    if (covered.length) out.push({ label: PF_CONTRACT_LABEL, services: covered,
+      text: 'One signed contract covers every PF service on this application: Card, Wallet, Bank Installments and Basata. Selected now: ' + covered.join(', ') + '.' });
+    [...new Set(pf.filter(sv => !isPfCovered(sv)).map(stripChannel))].forEach(name =>
+      out.push({ label: name + ' Contract', services: [name], text: name + ' on PF is not part of the Kashier PF contract, so it needs its own signed contract.' }));
+    return out;
   }
   let nextContractId = 1;
 
@@ -1821,7 +1832,7 @@
       return issues;
     }
     if (n === 3) return payoutIssues();
-    if (n === 4 && pfServices().length && !pfContract) return ['Upload the Kashier PF contract'];
+    if (n === 4) return requiredContracts().filter(c => !reqContracts[c.label]).map(c => 'Upload the ' + c.label);
     return [];
   }
 
@@ -1846,7 +1857,7 @@
       const cls = (n === setupStep ? 'current' : done ? 'done' : canOpenStep(n) ? '' : 'locked') + (flagged ? ' flagged' : '');
       return `<button type="button" class="setup-step ${cls}" data-step="${n}"${canOpenStep(n) ? '' : ' disabled'}>
         <span class="setup-step-dot">${done && n !== setupStep ? CHECK_SVG : n}</span>
-        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : n === 4 && pfServices().length ? 'Required — Kashier PF contract' : esc(s.hint)}</span></span>
+        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : n === 4 && requiredContracts().length ? 'Required — ' + (requiredContracts().length === 1 ? requiredContracts()[0].label : requiredContracts().length + ' contracts') : esc(s.hint)}</span></span>
       </button>`;
     }).join('<span class="setup-step-line"></span>');
   }
@@ -2035,22 +2046,21 @@
     </div>`;
   }
   function pfContractHTML() {
-    const pf = pfServices();
-    if (!pf.length) return '';
-    const covered = [...new Set(pf.map(sv => stripChannel(sv)))].join(', ');
-    const upload = pfContract
-      ? `<span class="doc-chip">${DOC_ICON}<span class="fname" title="${esc(pfContract.name)}">${esc(pfContract.name)}</span><button class="rm" type="button" data-pf-remove aria-label="Remove file" title="Remove">${RM_ICON}</button></span>`
-      : `<label class="doc-upload" data-pf-upload>${DZ_ICO_SVG}Upload contract<input type="file" accept="${acceptAttr('PDF,JPG,PNG')}" hidden></label>`;
-    return `<div class="pf-contract${pfContract ? ' done' : ''}">
-        <div class="pf-head"><span class="pf-title">${esc(PF_CONTRACT_LABEL)} <span class="req">*</span></span>
-          <span class="status-pill${pfContract ? ' success' : ''}"><span class="dot"></span>${pfContract ? 'Uploaded' : 'Required'}</span></div>
-        <div class="pf-sub">One signed contract covers every PF service on this application: Card, Wallet, Bank Installments and Basata. Selected now: <b>${esc(covered)}</b>.</div>
+    return requiredContracts().map(c => {
+      const f = reqContracts[c.label];
+      const upload = f
+        ? `<span class="doc-chip">${DOC_ICON}<span class="fname" title="${esc(f.name)}">${esc(f.name)}</span><button class="rm" type="button" data-pf-remove="${esc(c.label)}" aria-label="Remove file" title="Remove">${RM_ICON}</button></span>`
+        : `<label class="doc-upload" data-pf-upload="${esc(c.label)}">${DZ_ICO_SVG}Upload contract<input type="file" accept="${acceptAttr('PDF,JPG,PNG')}" hidden></label>`;
+      return `<div class="pf-contract${f ? ' done' : ''}">
+        <div class="pf-head"><span class="pf-title">${esc(c.label)} <span class="req">*</span></span>
+          <span class="status-pill${f ? ' success' : ''}"><span class="dot"></span>${f ? 'Uploaded' : 'Required'}</span></div>
+        <div class="pf-sub">${esc(c.text)}</div>
         <div class="pf-file">${upload}</div>
-      </div>`;
+      </div>`; }).join('');
   }
   function stepContractHTML() {
     const rows = contracts.map(contractRowHTML).join('');
-    const pf = pfServices().length;
+    const pf = requiredContracts().length;
     return pfContractHTML() + `<div class="setup-contract-intro">${pf ? 'Optional — attach any other contracts already signed with this merchant.' : 'Optional — attach any contracts already signed with this merchant.'} Give each one a label, then upload its file.${pf ? '' : " This isn't required to create the application."}</div>
       <div class="contract-list">${rows || '<div class="whn-empty">No contracts added yet.</div>'}</div>
       <button type="button" class="btn btn-outline contract-add" data-add-contract>+ Add contract</button>`;
@@ -2378,10 +2388,11 @@
   }
   function wirePfUpload(el) {
     const input = el.querySelector('input[type=file]');
+    const label = el.dataset.pfUpload;
     function handle(list) {
       const f = [...list][0]; if (!f) return;
-      pfContract = { name: f.name, size: f.size };
-      logAction('Uploaded', 'Uploaded contract \u2014 ' + PF_CONTRACT_LABEL, [{ label: 'File', value: f.name }]);
+      reqContracts[label] = { name: f.name, size: f.size };
+      logAction('Uploaded', 'Uploaded contract \u2014 ' + label, [{ label: 'File', value: f.name }]);
       onSetupChanged();
     }
     input.addEventListener('change', e => { handle(e.target.files); e.target.value = ''; });
@@ -2405,8 +2416,10 @@
     el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); handle(e.dataTransfer.files); });
   }
   document.addEventListener('click', e => {
-    if (e.target.closest('[data-pf-remove]')) {
-      if (pfContract) { logAction('Removed', 'Removed contract file \u2014 ' + PF_CONTRACT_LABEL, [{ label: 'File', value: pfContract.name }]); pfContract = null; }
+    const pfRm = e.target.closest('[data-pf-remove]');
+    if (pfRm) {
+      const lb = pfRm.dataset.pfRemove;
+      if (reqContracts[lb]) { logAction('Removed', 'Removed contract file \u2014 ' + lb, [{ label: 'File', value: reqContracts[lb].name }]); delete reqContracts[lb]; }
       onSetupChanged();
       return;
     }
@@ -2779,9 +2792,9 @@
     });
 
     // Whatever contracts were already attached when the application was submitted.
-    const pfSaved = (app.contracts || []).filter(c => c.label === PF_CONTRACT_LABEL)[0];
-    pfContract = pfSaved && pfSaved.file ? { name: pfSaved.file, size: 240000 } : null;
-    contracts = (app.contracts || []).filter(c => c.label !== PF_CONTRACT_LABEL).map(c => ({ id: nextContractId++, label: c.label || '', file: c.file ? { name: c.file, size: 240000 } : null }));
+    Object.keys(reqContracts).forEach(k => delete reqContracts[k]);
+    (app.contracts || []).filter(c => c.required && c.file).forEach(c => { reqContracts[c.label] = { name: c.file, size: 240000 }; });
+    contracts = (app.contracts || []).filter(c => !c.required).map(c => ({ id: nextContractId++, label: c.label || '', file: c.file ? { name: c.file, size: 240000 } : null }));
   }
 
   /* ══════════ Change log — what the salesperson changed before submitting ══════════
@@ -3275,7 +3288,7 @@
     // Contracts are optional — only ones that got both a label and a file are sent along.
     const submittedContracts = contracts.filter(c => c.label.trim() && c.file).map(c => ({ label: c.label.trim(), file: c.file.name }));
     // The Kashier PF contract goes along first when a PF service is on the application.
-    if (pfServices().length && pfContract) submittedContracts.unshift({ label: PF_CONTRACT_LABEL, file: pfContract.name, required: true });
+    requiredContracts().slice().reverse().forEach(c => { if (reqContracts[c.label]) submittedContracts.unshift({ label: c.label, file: reqContracts[c.label].name, required: true }); });
     if (submittedContracts.length) qs.set('contracts', JSON.stringify(submittedContracts));
     const trackURL = 'merchant-onboarding.html?' + qs.toString();
 

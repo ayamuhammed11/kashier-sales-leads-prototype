@@ -253,6 +253,11 @@
   .doc-row-why { font-size: 12px; font-weight: 600; color: var(--destructive); margin-top: 3px; }
   .setup-step.flagged { border-color: var(--destructive); }
   .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
+  .pf-contract { margin-bottom: 16px; padding: 14px 16px; border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; background: #fff; }
+  .pf-contract.done { border-left-color: var(--success); }
+  .pf-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .pf-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--foreground); } .pf-title .req { color: var(--destructive); }
+  .pf-sub { margin: 6px 0 10px; font-size: 12.5px; color: var(--cadet-base); line-height: 1.5; } .pf-sub b { color: var(--foreground); }
   .payout-progress { margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--cadet-05); }
   .lg-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .3px; padding: 4px 9px; white-space: nowrap; }
@@ -1560,6 +1565,15 @@
 
   /* Contracts: optional, any number of them — a free-text label the salesperson chooses, and the file. */
   let contracts = [];
+  /* Card, Wallet, Bank Installments and Basata on the PF model are all covered by one Kashier PF contract, which has to be
+     uploaded before the application can go. */
+  const PF_CONTRACT_LABEL = 'Kashier PF Contract';
+  const PF_COVERED = ['Card', 'Wallet', 'Bank Installments', 'Basata'];
+  let pfContract = null;   // { name, size } once uploaded
+  function pfServices() {
+    return criteria.services.filter(sv => PF_COVERED.some(c => sv.endsWith(c)) && serviceConfig[sv]
+      && bankKeysFor(serviceConfig[sv], sv).some(k => serviceConfig[sv].bankConfigs[k] && serviceConfig[sv].bankConfigs[k].module === 'PF'));
+  }
   let nextContractId = 1;
 
   const orderedServices = () => ['Online', 'POS']
@@ -1807,6 +1821,7 @@
       return issues;
     }
     if (n === 3) return payoutIssues();
+    if (n === 4 && pfServices().length && !pfContract) return ['Upload the Kashier PF contract'];
     return [];
   }
 
@@ -1831,7 +1846,7 @@
       const cls = (n === setupStep ? 'current' : done ? 'done' : canOpenStep(n) ? '' : 'locked') + (flagged ? ' flagged' : '');
       return `<button type="button" class="setup-step ${cls}" data-step="${n}"${canOpenStep(n) ? '' : ' disabled'}>
         <span class="setup-step-dot">${done && n !== setupStep ? CHECK_SVG : n}</span>
-        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : esc(s.hint)}</span></span>
+        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : n === 4 && pfServices().length ? 'Required — Kashier PF contract' : esc(s.hint)}</span></span>
       </button>`;
     }).join('<span class="setup-step-line"></span>');
   }
@@ -2019,9 +2034,24 @@
       <button type="button" class="btn-icon" data-contract-remove-row="${c.id}" aria-label="Remove contract" title="Remove contract">${RM_ICON}</button>
     </div>`;
   }
+  function pfContractHTML() {
+    const pf = pfServices();
+    if (!pf.length) return '';
+    const covered = [...new Set(pf.map(sv => stripChannel(sv)))].join(', ');
+    const upload = pfContract
+      ? `<span class="doc-chip">${DOC_ICON}<span class="fname" title="${esc(pfContract.name)}">${esc(pfContract.name)}</span><button class="rm" type="button" data-pf-remove aria-label="Remove file" title="Remove">${RM_ICON}</button></span>`
+      : `<label class="doc-upload" data-pf-upload>${DZ_ICO_SVG}Upload contract<input type="file" accept="${acceptAttr('PDF,JPG,PNG')}" hidden></label>`;
+    return `<div class="pf-contract${pfContract ? ' done' : ''}">
+        <div class="pf-head"><span class="pf-title">${esc(PF_CONTRACT_LABEL)} <span class="req">*</span></span>
+          <span class="status-pill${pfContract ? ' success' : ''}"><span class="dot"></span>${pfContract ? 'Uploaded' : 'Required'}</span></div>
+        <div class="pf-sub">One signed contract covers every PF service on this application: Card, Wallet, Bank Installments and Basata. Selected now: <b>${esc(covered)}</b>.</div>
+        <div class="pf-file">${upload}</div>
+      </div>`;
+  }
   function stepContractHTML() {
     const rows = contracts.map(contractRowHTML).join('');
-    return `<div class="setup-contract-intro">Optional — attach any contracts already signed with this merchant. Give each one a label, then upload its file. This isn't required to create the application.</div>
+    const pf = pfServices().length;
+    return pfContractHTML() + `<div class="setup-contract-intro">${pf ? 'Optional — attach any other contracts already signed with this merchant.' : 'Optional — attach any contracts already signed with this merchant.'} Give each one a label, then upload its file.${pf ? '' : " This isn't required to create the application."}</div>
       <div class="contract-list">${rows || '<div class="whn-empty">No contracts added yet.</div>'}</div>
       <button type="button" class="btn btn-outline contract-add" data-add-contract>+ Add contract</button>`;
   }
@@ -2052,6 +2082,7 @@
     syncSubmitButton();
     wrap.querySelectorAll('.doc-row .doc-upload').forEach(wireDropzone);
     wrap.querySelectorAll('[data-contract-upload]').forEach(wireContractUpload);
+    wrap.querySelectorAll('[data-pf-upload]').forEach(wirePfUpload);
   }
 
   /* Re-render after a choice that changes what the steps require. */
@@ -2345,6 +2376,19 @@
     ['dragleave', 'dragend'].forEach(ev => el.addEventListener(ev, () => el.classList.remove('drag')));
     el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); handle(e.dataTransfer.files); });
   }
+  function wirePfUpload(el) {
+    const input = el.querySelector('input[type=file]');
+    function handle(list) {
+      const f = [...list][0]; if (!f) return;
+      pfContract = { name: f.name, size: f.size };
+      logAction('Uploaded', 'Uploaded contract \u2014 ' + PF_CONTRACT_LABEL, [{ label: 'File', value: f.name }]);
+      onSetupChanged();
+    }
+    input.addEventListener('change', e => { handle(e.target.files); e.target.value = ''; });
+    ['dragover', 'dragenter'].forEach(ev => el.addEventListener(ev, e => { e.preventDefault(); el.classList.add('drag'); }));
+    ['dragleave', 'dragend'].forEach(ev => el.addEventListener(ev, () => el.classList.remove('drag')));
+    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); handle(e.dataTransfer.files); });
+  }
   function wireContractUpload(el) {
     const input = el.querySelector('input[type=file]');
     const id = Number(el.dataset.contractUpload);
@@ -2361,6 +2405,11 @@
     el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag'); handle(e.dataTransfer.files); });
   }
   document.addEventListener('click', e => {
+    if (e.target.closest('[data-pf-remove]')) {
+      if (pfContract) { logAction('Removed', 'Removed contract file \u2014 ' + PF_CONTRACT_LABEL, [{ label: 'File', value: pfContract.name }]); pfContract = null; }
+      onSetupChanged();
+      return;
+    }
     const contractRmBtn = e.target.closest('[data-contract-remove-file]');
     if (contractRmBtn) {
       const c = contracts.find(x => x.id === Number(contractRmBtn.dataset.contractRemoveFile));
@@ -2730,7 +2779,9 @@
     });
 
     // Whatever contracts were already attached when the application was submitted.
-    contracts = (app.contracts || []).map(c => ({ id: nextContractId++, label: c.label || '', file: c.file ? { name: c.file, size: 240000 } : null }));
+    const pfSaved = (app.contracts || []).filter(c => c.label === PF_CONTRACT_LABEL)[0];
+    pfContract = pfSaved && pfSaved.file ? { name: pfSaved.file, size: 240000 } : null;
+    contracts = (app.contracts || []).filter(c => c.label !== PF_CONTRACT_LABEL).map(c => ({ id: nextContractId++, label: c.label || '', file: c.file ? { name: c.file, size: 240000 } : null }));
   }
 
   /* ══════════ Change log — what the salesperson changed before submitting ══════════
@@ -3222,8 +3273,10 @@
       name, file: [...(docFiles.get(name) || new Map()).values()].map(f => f.name).join(', '),
     }))));
     // Contracts are optional — only ones that got both a label and a file are sent along.
-    const submittedContracts = contracts.filter(c => c.label.trim() && c.file);
-    if (submittedContracts.length) qs.set('contracts', JSON.stringify(submittedContracts.map(c => ({ label: c.label.trim(), file: c.file.name }))));
+    const submittedContracts = contracts.filter(c => c.label.trim() && c.file).map(c => ({ label: c.label.trim(), file: c.file.name }));
+    // The Kashier PF contract goes along first when a PF service is on the application.
+    if (pfServices().length && pfContract) submittedContracts.unshift({ label: PF_CONTRACT_LABEL, file: pfContract.name, required: true });
+    if (submittedContracts.length) qs.set('contracts', JSON.stringify(submittedContracts));
     const trackURL = 'merchant-onboarding.html?' + qs.toString();
 
     // Advance the originating lead straight to whichever stage follows submission —

@@ -608,6 +608,17 @@
   .svc-table tr.group-start td { border-top: 1px solid var(--border); }
   .svc-table tbody tr:first-child td { border-top: none; }
   /* The rate-approval column stays in view, so an approver never has to scroll sideways to find Approve and Reject. */
+  .ap-panel { margin-bottom: 14px; }
+  .ap-count { display: inline-block; margin-left: 6px; padding: 1px 9px; border-radius: 999px; background: var(--warning-bg); color: #92620A; font-size: 12px; font-weight: 700; vertical-align: middle; }
+  .ap-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; }
+  .ap-row:first-of-type { border-top: 0; }
+  .ap-info { flex: 1 1 320px; min-width: 0; }
+  .ap-rate { font-weight: 700; font-size: 14px; color: var(--foreground); }
+  .ap-svc { font-size: 12px; color: var(--cadet-05); margin: 2px 0 6px; }
+  .ap-nums { font-size: 13px; color: var(--cadet-base); } .ap-nums b { color: var(--foreground); }
+  .ap-note { margin-top: 6px; padding: 7px 10px; border-radius: 6px; background: var(--muted); font-size: 12.5px; line-height: 1.45; color: var(--foreground); } .ap-note.empty { color: var(--cadet-05); font-style: italic; }
+  .ap-row .rp-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  @media (max-width: 720px) { .ap-row .rp-actions { width: 100%; } .ap-row .rp-actions .btn { flex: 1; min-height: 44px; } }
   .svc-table.has-approval th:last-child, .svc-table.has-approval td.cell-approval-actions { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -10px 0 10px -10px rgba(0,20,60,.25); }
   .svc-table.has-approval th:last-child { background: #FAFBFB; }
   .svc-table .cell-service { vertical-align: top; padding-top: 9px; min-width: 104px; }
@@ -2844,7 +2855,7 @@
         : !isSales ? 'View only — only the salesperson can edit this application.'
         : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
       const lostNote = K.readStore('kashierLeadLostReason')[sourceLeadId];
-      const sub = decides ? 'Approve or reject each rate assigned to you in the Rate approval column. The application moves on once every rate is reviewed.'
+      const sub = decides ? 'Approve or reject each rate assigned to you below, or in the Rate approval column of the service table. The application moves on once every rate is reviewed.'
         : status === 'lost' ? (lostNote ? `${lostNote.by}: ${lostNote.text}` : 'No application will be submitted for this merchant.')
         : !isSales ? 'The salesperson fills in and submits the application.'
         : reviewing ? `${decidedN} of ${app.requests.length} requested rate${app.requests.length === 1 ? '' : 's'} reviewed. It moves to Underwriting Review once every rate is approved, and comes back to you to edit if any is rejected.`
@@ -2954,7 +2965,20 @@
         sub: at === 2 && acct ? acct.meta.label : at > 2 ? 'Bank approval received' : '' });
       const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
       const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
-      return `<div class="status-panel"><h2>Application Tracking</h2><div class="pipe">${steps.map((st, i) => `
+      /* The rates waiting on this approver, with Approve and Reject right at the top of the application. */
+      const mineLines = approverView ? app.requests.filter(r => K.canRoleAct(K.getRole(), r.tier) && !decisions[r.id]) : [];
+      const pm = (pct, fee, cur) => [pct != null ? pct + '%' : '', fee != null ? fee + ' ' + (cur || 'EGP') : ''].filter(Boolean).join(' + ') || '\u2014';
+      const approvalPanel = mineLines.length ? `<div class="status-panel ap-panel"><h2>Rates waiting for your approval <span class="ap-count">${mineLines.length}</span></h2>
+        ${mineLines.map(r => `<div class="ap-row">
+          <div class="ap-info">
+            <div class="ap-rate">${esc(r.rate)}</div>
+            <div class="ap-svc">${esc([r.service, r.bank].filter(Boolean).join(' \u00b7 '))}</div>
+            <div class="ap-nums">Requested <b>${esc(pm(r.requested, r.requestedFee, r.feeCurrency))}</b> \u00b7 Published ${esc(pm(r.standard, r.standardFee, r.feeCurrency))}</div>
+            <div class="ap-note${r.note ? '' : ' empty'}">${r.note ? esc(r.note) : 'No justification recorded'}</div>
+          </div>
+          <div class="rp-actions"><button type="button" class="btn btn-sm btn-reject rp-act" data-rp-reject="${esc(r.id)}">Reject</button><button type="button" class="btn btn-sm btn-approve rp-act" data-rp-approve="${esc(r.id)}">Approve</button></div>
+        </div>`).join('')}</div>` : '';
+      return approvalPanel + `<div class="status-panel"><h2>Application Tracking</h2><div class="pipe">${steps.map((st, i) => `
         <div class="pipe-step ${st.state}">
           <div class="pipe-dot">${st.state === 'done' ? CHECK : st.state === 'bad' ? CROSS : i + 1}</div>
           <div class="pipe-label">${esc(st.label)}</div>

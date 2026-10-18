@@ -611,6 +611,7 @@ window.KashierRates = (function () {
       mid: qs.get('mid') || '',
       website: qs.get('website') || '',
       comment: qs.get('comment') || '',
+      websiteType: qs.get('websiteType') === 'social' ? 'social' : 'website',
       altIndustries: (() => { try { return JSON.parse(qs.get('altIndustries') || '[]'); } catch (e) { return []; } })(),
       transfers: (() => { try { return JSON.parse(qs.get('transfers') || 'null'); } catch (e) { return null; } })(),
       biz: qs.get('biz') || 'Untitled Application',

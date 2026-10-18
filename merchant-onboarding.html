@@ -1112,7 +1112,7 @@
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', altIndustries: [], services: [], posEnabled: false, posTerminals: '', website: '' };
+  const criteria = { entity: '', owner: '', industry: '', altIndustries: [], services: [], posEnabled: false, posTerminals: '', website: '', websiteType: 'website' };
   const hasAnyService = () => criteria.services.length > 0;
   // 'edit' (not submitted), 'locked' (submitted — read-only) or 'returned' (feedback received).
   let appMode = 'edit';
@@ -1145,7 +1145,16 @@
   }
   const hasOnlineService = () => criteria.services.some(s => s.startsWith('Online '));
   const STORE_IMAGE_DOC = 'Store Image';
-  const websiteValid = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
+  const urlShaped = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
+  /* Online services need the merchant's online presence, by choice: a website, or a social media page. */
+  const SOCIAL_HOSTS = ['facebook.com', 'fb.com', 'fb.me', 'instagram.com', 'tiktok.com', 'twitter.com', 'x.com', 'linkedin.com', 'youtube.com', 'youtu.be',
+    'snapchat.com', 'whatsapp.com', 'wa.me', 't.me', 'telegram.me', 'pinterest.com', 'threads.net'];
+  const socialValid = v => {
+    const m = String(v || '').trim().match(/^(?:https?:\/\/)?(?:www\.|m\.)?([\w-]+(?:\.[\w-]+)+)(?:\/\S*)?$/i);
+    return !!m && SOCIAL_HOSTS.some(h => m[1].toLowerCase() === h || m[1].toLowerCase().endsWith('.' + h));
+  };
+  const websiteValid = v => (criteria.websiteType === 'social' ? socialValid(v) : urlShaped(v));
+  const WEB_HINT = { website: 'Enter a valid website, e.g. www.merchant.com', social: 'Enter a link to a social media page, e.g. instagram.com/merchant or facebook.com/merchant' };
 
   function ruleMatches(r, cfg) {
     if (r.entities.length && !r.entities.includes(cfg.entity)) return false;
@@ -1825,7 +1834,7 @@
     if (n === 2) {
       // Choosing an Online service asks for the website here; activating POS asks for the store image.
       const issues = [];
-      if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website or a social media link');
+      if (hasOnlineService() && !websiteValid(criteria.website)) issues.push(criteria.websiteType === 'social' ? 'Enter the merchant social media link' : 'Enter the merchant website');
       if (criteria.posEnabled && !isDocDone(STORE_IMAGE_DOC)) issues.push('Upload the store image');
       // Each listed document is optional, but at least one of them has to be uploaded.
       const listed = [...computeAggregatedDocs().keys()];
@@ -2017,10 +2026,16 @@
     let channel = '';
     if (hasOnlineService()) {
       const invalid = criteria.website && !websiteValid(criteria.website);
+      const social = criteria.websiteType === 'social';
       channel += `<div class="channel-extra">
-        <label class="crit-label" for="mWebsite">Merchant Website or Social Media Link<span class="req">*</span><span class="opt">(required for Online services — a website, or any social media page)</span></label>
-        <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com or https://instagram.com/merchant" value="${esc(criteria.website)}">
-        <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>Enter a website or a social media link, e.g. www.merchant.com or instagram.com/merchant</div>
+        <div class="crit-label">Merchant Online Presence<span class="req">*</span><span class="opt">(required for Online services \u2014 choose what the merchant has)</span></div>
+        <div class="crit-chips web-choice" role="radiogroup" aria-label="Online presence">
+          <button type="button" class="crit-chip${social ? '' : ' on'}" role="radio" aria-checked="${!social}" data-web-type="website">Website</button>
+          <button type="button" class="crit-chip${social ? ' on' : ''}" role="radio" aria-checked="${social}" data-web-type="social">Social media link</button>
+        </div>
+        <label class="crit-label web-label" for="mWebsite">${social ? 'Social Media Link' : 'Website'}<span class="req">*</span></label>
+        <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="${social ? 'https://instagram.com/merchant' : 'https://www.merchant.com'}" value="${esc(criteria.website)}">
+        <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>${esc(WEB_HINT[criteria.websiteType] || WEB_HINT.website)}</div>
       </div>`;
     }
     if (criteria.posEnabled) {
@@ -2167,6 +2182,14 @@
     }
   });
 
+  $('serviceSetupBody').addEventListener('click', e => {
+    const wt = e.target.closest('[data-web-type]');
+    if (!wt || wt.dataset.webType === criteria.websiteType) return;
+    logAction('Changed', 'Chose ' + (wt.dataset.webType === 'social' ? 'a social media link' : 'a website') + ' as the merchant online presence');
+    criteria.websiteType = wt.dataset.webType;
+    criteria.website = '';   // the other kind of link does not carry over
+    onSetupChanged();
+  });
   $('serviceSetupBody').addEventListener('focusin', e => {
     if (e.target.matches('.rate-input, .fee-input, #mWebsite')) e.target.dataset.before = e.target.value;
   });
@@ -2180,7 +2203,7 @@
       rf.dataset.before = rf.value;
     }
     if (e.target.id === 'mWebsite' && e.target.dataset.before !== undefined && e.target.dataset.before !== e.target.value) {
-      logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant website or social media link', [{ label: 'Website / social link', from: e.target.dataset.before, to: e.target.value }]);
+      logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant ' + (criteria.websiteType === 'social' ? 'social media link' : 'website'), [{ label: criteria.websiteType === 'social' ? 'Social media link' : 'Website', from: e.target.dataset.before, to: e.target.value }]);
       e.target.dataset.before = e.target.value;
     }
     const svcToggle = e.target.closest('[data-service-toggle]');
@@ -2738,6 +2761,7 @@
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';
     criteria.website = app.website || '';
+    criteria.websiteType = app.websiteType === 'social' ? 'social' : 'website';
     payouts = K.payoutList(app).filter(x => PAYOUT_RULES[x.method]).map(x => Object.assign(newPayout(x.method), x, { id: nextPayoutId++ }));
     if (payouts.length && !payouts.some(p => p.primary)) payouts[0].primary = true;
     syncServiceConfigs();
@@ -3274,7 +3298,7 @@
       actor: K.ROLES[K.getRole()].name, ts: new Date().toISOString(),
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
-    if (hasOnlineService()) qs.set('website', criteria.website.trim());
+    if (hasOnlineService()) { qs.set('website', criteria.website.trim()); qs.set('websiteType', criteria.websiteType); }
     if (submitComment) qs.set('comment', submitComment);
     if (filledAltIndustries().length) qs.set('altIndustries', JSON.stringify(filledAltIndustries()));
     const poList = payoutsPayload(), poPrimary = poList.find(p => p.primary);

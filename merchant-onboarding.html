@@ -1825,7 +1825,7 @@
     if (n === 2) {
       // Choosing an Online service asks for the website here; activating POS asks for the store image.
       const issues = [];
-      if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website');
+      if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website or a social media link');
       if (criteria.posEnabled && !isDocDone(STORE_IMAGE_DOC)) issues.push('Upload the store image');
       // Each listed document is optional, but at least one of them has to be uploaded.
       const listed = [...computeAggregatedDocs().keys()];
@@ -2018,9 +2018,9 @@
     if (hasOnlineService()) {
       const invalid = criteria.website && !websiteValid(criteria.website);
       channel += `<div class="channel-extra">
-        <label class="crit-label" for="mWebsite">Merchant Website<span class="req">*</span><span class="opt">(required for Online services)</span></label>
-        <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com" value="${esc(criteria.website)}">
-        <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>Enter a valid website, e.g. www.merchant.com</div>
+        <label class="crit-label" for="mWebsite">Merchant Website or Social Media Link<span class="req">*</span><span class="opt">(required for Online services — a website, or any social media page)</span></label>
+        <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com or https://instagram.com/merchant" value="${esc(criteria.website)}">
+        <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>Enter a website or a social media link, e.g. www.merchant.com or instagram.com/merchant</div>
       </div>`;
     }
     if (criteria.posEnabled) {
@@ -2180,7 +2180,7 @@
       rf.dataset.before = rf.value;
     }
     if (e.target.id === 'mWebsite' && e.target.dataset.before !== undefined && e.target.dataset.before !== e.target.value) {
-      logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant website', [{ label: 'Website', from: e.target.dataset.before, to: e.target.value }]);
+      logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant website or social media link', [{ label: 'Website / social link', from: e.target.dataset.before, to: e.target.value }]);
       e.target.dataset.before = e.target.value;
     }
     const svcToggle = e.target.closest('[data-service-toggle]');

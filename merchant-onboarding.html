@@ -607,6 +607,9 @@
   .svc-table td:last-child { border-right: none; }
   .svc-table tr.group-start td { border-top: 1px solid var(--border); }
   .svc-table tbody tr:first-child td { border-top: none; }
+  /* The rate-approval column stays in view, so an approver never has to scroll sideways to find Approve and Reject. */
+  .svc-table.has-approval th:last-child, .svc-table.has-approval td.cell-approval-actions { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -10px 0 10px -10px rgba(0,20,60,.25); }
+  .svc-table.has-approval th:last-child { background: #FAFBFB; }
   .svc-table .cell-service { vertical-align: top; padding-top: 9px; min-width: 104px; }
   .svc-table .cell-pricing { vertical-align: top; padding-top: 7px; min-width: 120px; }
   .cell-pricing-btn { white-space: nowrap; }
@@ -730,6 +733,7 @@
     .svc-table tr.group-start:has(+ tr.group-start), .svc-table tr.group-start:last-child, .svc-table tr.svc-row-inactive { border-radius: 8px; }
     .svc-table tr.svc-tier-row { border: 0; background: none; padding: 0; margin: 14px 0 0; }
     .svc-table tr.svc-terminals-row { border-radius: 8px; margin-top: 12px; border-top: 1px solid var(--border); }
+    .svc-table.has-approval th:last-child, .svc-table.has-approval td.cell-approval-actions { position: static; box-shadow: none; }
     .svc-table td { display: block; width: 100%; border: 0 !important; padding: 4px 0 !important; min-width: 0 !important; background: none !important; }
     .svc-table td[data-label]::before { content: attr(data-label); display: block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--cadet-05); margin-bottom: 4px; }
     .svc-table tr.row-rejected td:not([rowspan]) { background: none !important; } .svc-table tr.row-rejected { background: var(--destructive-bg); }
@@ -1945,7 +1949,7 @@
       return header + terminals + tier.services.map(serviceRowsHTML).join('');
     }).join('');
     return `<div class="svc-table-wrap">
-        <table class="svc-table">
+        <table class="svc-table${approverView || statusView ? ' has-approval' : ''}">
           <thead><tr>${heads.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
           <tbody>${body}</tbody>
         </table>
@@ -2831,14 +2835,17 @@
     const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>';
     let banner = '';
     if (appMode === 'locked') {
-      const reviewing = isSales && status === 'rate-approval' && app;
+      const decides = !!app && K.ROLES[K.getRole()].approves.length > 0 && app.requests.some(r => K.canRoleAct(K.getRole(), r.tier) && !K.decisionsFor(app.id)[r.id]);
+      const reviewing = isSales && status === 'rate-approval' && app && !decides;
       const decidedN = reviewing ? app.requests.filter(r => K.decisionsFor(app.id)[r.id]).length : 0;
-      const title = reviewing ? 'Waiting for rate approval — view only.'
+      const title = decides ? 'Rates waiting for your approval.'
+        : reviewing ? 'Waiting for rate approval — view only.'
         : status === 'lost' ? 'This application was canceled — view only.'
         : !isSales ? 'View only — only the salesperson can edit this application.'
         : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
       const lostNote = K.readStore('kashierLeadLostReason')[sourceLeadId];
-      const sub = status === 'lost' ? (lostNote ? `${lostNote.by}: ${lostNote.text}` : 'No application will be submitted for this merchant.')
+      const sub = decides ? 'Approve or reject each rate assigned to you in the Rate approval column. The application moves on once every rate is reviewed.'
+        : status === 'lost' ? (lostNote ? `${lostNote.by}: ${lostNote.text}` : 'No application will be submitted for this merchant.')
         : !isSales ? 'The salesperson fills in and submits the application.'
         : reviewing ? `${decidedN} of ${app.requests.length} requested rate${app.requests.length === 1 ? '' : 's'} reviewed. It moves to Underwriting Review once every rate is approved, and comes back to you to edit if any is rejected.`
         : 'It can be edited again only if a rate is rejected and it is returned to you.';

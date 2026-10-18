@@ -253,6 +253,7 @@
   .doc-row-why { font-size: 12px; font-weight: 600; color: var(--destructive); margin-top: 3px; }
   .setup-step.flagged { border-color: var(--destructive); }
   .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
+  .step-opt { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--cadet-05); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
   .pf-contract { margin-bottom: 16px; padding: 14px 16px; border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; background: #fff; }
   .pf-contract.done { border-left-color: var(--success); }
   .pf-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -1558,8 +1559,8 @@
   const SETUP_STEPS = [
     { label: 'Services & Pricing', hint: 'Institution, model and fees' },
     { label: 'Documents', hint: 'Everything the setup requires' },
-    { label: 'Payout Method', hint: 'Optional — bank account or e-wallet' },
-    { label: 'Contracts', hint: 'Optional — any signed agreements' },
+    { label: 'Payout Method', hint: 'Bank account or e-wallet', optional: true },
+    { label: 'Contracts', hint: 'Any signed agreements', optional: true },
   ];
   let setupStep = 1;
 
@@ -1848,6 +1849,8 @@
     if (n === 4) return flaggedSection('Contracts');
     return null;
   }
+  /* Payout Method is always optional; Contracts is optional until a PF service makes one required. */
+  const stepIsOptional = n => !!SETUP_STEPS[n - 1].optional && !(n === 4 && requiredContracts().length);
   function renderSetupStepper() {
     const el = $('setupStepper');
     el.innerHTML = SETUP_STEPS.map((s, i) => {
@@ -1857,7 +1860,7 @@
       const cls = (n === setupStep ? 'current' : done ? 'done' : canOpenStep(n) ? '' : 'locked') + (flagged ? ' flagged' : '');
       return `<button type="button" class="setup-step ${cls}" data-step="${n}"${canOpenStep(n) ? '' : ' disabled'}>
         <span class="setup-step-dot">${done && n !== setupStep ? CHECK_SVG : n}</span>
-        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : n === 4 && requiredContracts().length ? 'Required — ' + (requiredContracts().length === 1 ? requiredContracts()[0].label : requiredContracts().length + ' contracts') : esc(s.hint)}</span></span>
+        <span class="setup-step-text"><span class="setup-step-label">${esc(s.label)}${stepIsOptional(n) ? '<span class="step-opt">Optional</span>' : ''}</span><span class="setup-step-hint">${flagged ? 'Rejected by Underwriting' : n === 4 && requiredContracts().length ? 'Required — ' + (requiredContracts().length === 1 ? requiredContracts()[0].label : requiredContracts().length + ' contracts') : esc(s.hint)}</span></span>
       </button>`;
     }).join('<span class="setup-step-line"></span>');
   }
@@ -2082,7 +2085,7 @@
     // The submit button sits on the last step: when it is dimmed, say what is still missing right beside it.
     if (last && appMode !== 'locked' && !issues.length) { const left = readinessChecks().filter(c => !c.done); if (left.length) issues.push('Still to do: ' + left[0].label); }
     wrap.innerHTML = `
-      <div class="setup-title">Step ${setupStep} of ${SETUP_STEPS.length} — ${esc(SETUP_STEPS[setupStep - 1].label)}</div>
+      <div class="setup-title">Step ${setupStep} of ${SETUP_STEPS.length} — ${esc(SETUP_STEPS[setupStep - 1].label)}${stepIsOptional(setupStep) ? '<span class="step-opt">Optional</span>' : ''}</div>
       ${body}
       <div class="whn-actions setup-nav">
         ${setupStep > 1 ? '<button type="button" class="btn btn-outline" id="setupBack">Back</button>' : ''}

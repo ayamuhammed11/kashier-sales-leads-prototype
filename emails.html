@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kashier | Email notifications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#001F5F; --primary-hover:#103788; --ocean-10:#F1F6FF; --ocean-07:#C0D5FF; --foreground:#202020; --cadet-base:#556767; --cadet-05:#919C9C;
+    --border:#E6E8E8; --border-subtle:#F5F6F6; --warning-bg:#FFF1D6; --link:#2955B1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Noto Sans', sans-serif; font-size: 14px; color: var(--foreground); background: #FAFBFB; -webkit-font-smoothing: antialiased; }
+  h1, h2 { font-family: 'Outfit', sans-serif; margin: 0; }
+  .top { background: #fff; border-bottom: 1px solid var(--border-subtle); padding: 14px 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .brand { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 24px; color: #00BCB4; letter-spacing: -.5px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 26px; color: var(--primary); }
+  .lead { margin: 6px 0 18px; color: var(--cadet-base); line-height: 1.5; font-size: 13.5px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tab { border: 1px solid var(--border); background: #fff; border-radius: 4px; padding: 9px 14px; font: inherit; font-weight: 600; cursor: pointer; color: var(--cadet-base); min-height: 40px; }
+  .tab.on { border-color: var(--primary); background: var(--ocean-10); color: var(--primary); }
+  .tab small { font-weight: 400; color: var(--cadet-05); margin-left: 4px; }
+  .mail { background: #fff; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
+  .mail-head { padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); background: #F8F9FB; font-size: 12.5px; line-height: 1.6; color: var(--cadet-base); }
+  .mail-head b { color: var(--foreground); }
+  .mail-subject { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; color: var(--foreground); margin-bottom: 4px; }
+  .tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--warning-bg); color: #92620A; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
+  .mail-body { padding: 16px; line-height: 1.6; font-size: 14px; }
+  .mail-body p { margin: 0 0 8px; color: var(--cadet-base); word-break: break-word; }
+  .btn { display: inline-block; margin-top: 8px; padding: 11px 20px; border-radius: 4px; background: var(--primary); color: #fff; font-weight: 600; text-decoration: none; min-height: 44px; }
+  .btn:hover { background: var(--primary-hover); }
+  .foot { padding: 10px 16px; border-top: 1px solid var(--border-subtle); font-size: 11.5px; color: var(--cadet-05); }
+  .empty { padding: 40px 10px; text-align: center; color: var(--cadet-05); }
+  .back { margin-left: auto; color: var(--link); text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="top"><span class="brand">kashier</span><span style="color:var(--cadet-05)">Email notifications</span><a class="back" href="index.html">Back to the portal</a></div>
+<div class="wrap">
+  <h1>Emails the portal sends</h1>
+  <p class="lead">Notifications are sent by email only; the portal itself has no notifications. This page shows each email as its recipient would receive it. They are generated as people work on applications: submissions, rate approvals, changes by others, and the move to Bank Submission.</p>
+  <div class="tabs" id="tabs"></div>
+  <div id="list"></div>
+</div>
+<script src="rate-decisions.js"></script>
+<script>
+  const K = window.KashierRates;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let who = 'all';
+  const stamp = iso => { const d = new Date(iso), p = n => String(n).padStart(2, '0'), h = d.getHours() % 12 || 12;
+    return p(d.getMonth() + 1) + '/' + p(d.getDate()) + '/' + d.getFullYear() + ', ' + p(h) + ':' + p(d.getMinutes()) + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM'); };
+  function render() {
+    const all = K.mailbox();
+    const people = ['sales', 'manager', 'head', 'onboarding'].filter(r => all.some(n => n.to === r));
+    $('tabs').innerHTML = [['all', 'Everyone', all.length]].concat(people.map(r => [r, K.ROLES[r].name + ' (' + K.ROLES[r].label + ')', all.filter(n => n.to === r).length]))
+      .map(([k, label, n]) => `<button class="tab${k === who ? ' on' : ''}" data-who="${k}">${esc(label)}<small>${n}</small></button>`).join('');
+    const list = all.filter(n => who === 'all' || n.to === who);
+    $('list').innerHTML = list.length ? list.map(n => `<div class="mail">
+        <div class="mail-head"><div class="mail-subject">${esc(n.subject)}${n.kind === 'action' ? '<span class="tag">Action required</span>' : ''}</div>
+          <div><b>From:</b> Kashier &lt;no-reply@kashier.io&gt;</div><div><b>To:</b> ${esc(n.toName)} &lt;${esc(n.toEmail)}&gt;</div><div><b>Date:</b> ${esc(stamp(n.ts))}</div></div>
+        <div class="mail-body"><p>Hello ${esc(n.toName.split(' ')[0])},</p>${n.lines.map(l => `<p>${esc(l)}</p>`).join('')}
+          ${n.leadId ? `<a class="btn" href="${esc(K.applicationURL(n.leadId))}">Open the application</a>` : ''}</div>
+        <div class="foot">You receive this email because you work on this application.</div></div>`).join('') : '<div class="empty">No emails yet.</div>';
+  }
+  const $ = id => document.getElementById(id);
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-who]'); if (b) { who = b.dataset.who; render(); } });
+  render();
+</script>
+</body>
+</html>

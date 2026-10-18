@@ -1303,7 +1303,8 @@ window.KashierRates = (function () {
 
 
   /* ── Email notifications (simulated) ─────────────────────────────────────────────
-     Each email lands in the recipient's inbox, the bell in the top bar. Who gets what:
+     Notifications are emails only — the portal has no notifications feature of its own. The emails the portal would send are
+     kept here and can be read on emails.html. Who gets what:
        · a rate that needs approval → an "action required" email to that approver (Sales Manager or Head of Sales);
        · anyone who has worked on an application (salesperson, Sales Manager, Head of Sales) → an email with the changes
          others make to it, and with each decision on it;
@@ -1328,8 +1329,9 @@ window.KashierRates = (function () {
     });
     store.list = list.slice(0, 200);
     writeStore('kashierNotifications', store);
-    refreshInbox();
   }
+  /* Every email sent, newest first. */
+  function mailbox() { seedMail(); return (readStore('kashierNotifications').list || []).slice().sort((x, y) => new Date(y.ts) - new Date(x.ts)); }
   function addContributor(leadId, role) {
     if (!leadId || WORKERS.indexOf(role) === -1) return;
     const store = readStore('kashierContributors'), arr = store[leadId] || [];
@@ -1351,7 +1353,6 @@ window.KashierRates = (function () {
     });
     writeStore('kashierNotifications', store);
     if (fresh.length) sendMail({ to: fresh, subject: subject, lines: lines.slice(0, 25), leadId: leadId, biz: opts.biz, kind: opts.merge ? 'changes' : 'update', by: opts.by, byRole: actorRole });
-    else refreshInbox();
   }
   const detailLines = details => (details || []).map(d => d.from != null ? d.label + ': ' + (d.from || '\u2014') + ' \u2192 ' + (d.to || '\u2014') : d.label + ': ' + d.value);
 
@@ -1379,44 +1380,7 @@ window.KashierRates = (function () {
   /* A Sales Manager's own rates are approved by the Head of Sales. */
   function escalatedTier(actorName, tier) { return tier === 'manager' && roleOfName(actorName) === 'manager' ? 'head' : tier; }
 
-  /* ── The inbox: a bell in the top bar and a drawer with the emails sent to whoever is being viewed ── */
-  let inboxEls = null, inboxOpen = false;
-  const BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>';
-  const MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>';
-  const escH = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const mine = () => (readStore('kashierNotifications').list || []).filter(n => n.to === getRole());
-  function stampOfMail(iso) {
-    const d = new Date(iso), p2 = n => String(n).padStart(2, '0'), h = d.getHours() % 12 || 12;
-    return p2(d.getMonth() + 1) + '/' + p2(d.getDate()) + '/' + d.getFullYear() + '. ' + p2(h) + ':' + p2(d.getMinutes()) + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
-  }
-  function renderInbox() {
-    if (!inboxEls) return;
-    const list = mine(), unread = list.filter(n => !n.read).length, me = ROLES[getRole()];
-    inboxEls.badge.textContent = unread > 9 ? '9+' : String(unread);
-    inboxEls.badge.hidden = !unread;
-    inboxEls.btn.setAttribute('aria-label', 'Notifications' + (unread ? ' (' + unread + ' unread)' : ''));
-    if (!inboxOpen) return;
-    inboxEls.sub.textContent = me.name + ' \u00b7 ' + emailOf(getRole());
-    inboxEls.body.innerHTML = list.length ? list.map(n => `<div class="ib-card${n.read ? '' : ' unread'}">
-        <div class="ib-ic ${n.kind === 'action' ? 'action' : ''}">${MAIL}</div>
-        <div class="ib-main">
-          <div class="ib-when">${escH(stampOfMail(n.ts))}${n.kind === 'action' ? ' <span class="ib-tag">Action required</span>' : ''}</div>
-          <div class="ib-meta">From Kashier &lt;no-reply@kashier.io&gt; \u00b7 To ${escH(n.toName)}</div>
-          <div class="ib-subject">${escH(n.subject)}</div>
-          ${n.lines.map(l => `<div class="ib-line">${escH(l)}</div>`).join('')}
-          ${n.leadId ? `<a class="ib-open" href="${applicationURL(n.leadId)}">Open application</a>` : ''}
-        </div></div>`).join('') : '<div class="ib-empty">No emails yet. Notifications about applications you work on will appear here.</div>';
-  }
-  function refreshInbox() { try { renderInbox(); } catch (e) { /* page not ready */ } }
-  function openInbox() {
-    inboxOpen = true; inboxEls.overlay.classList.add('open'); renderInbox();
-    const store = readStore('kashierNotifications'), role = getRole();
-    (store.list || []).forEach(n => { if (n.to === role) n.read = true; });
-    writeStore('kashierNotifications', store);
-    inboxEls.badge.hidden = true;
-  }
-  function closeInbox() { inboxOpen = false; inboxEls.overlay.classList.remove('open'); renderInbox(); }
-  function seedInbox() {
+  function seedMail() {
     // The applications already waiting for an approver have had their action-required email.
     if (readStore('kashierNotifSeeded').done) return;
     approvalRequests().filter(r => r.state === 'pending' && r.pendingLines.length && !r.app.superseded).forEach(r => {
@@ -1426,40 +1390,6 @@ window.KashierRates = (function () {
     });
     writeStore('kashierNotifSeeded', { done: true });
   }
-  function mountInbox() {
-    const bar = document.querySelector('.topbar-right');
-    if (!bar || inboxEls) return;
-    const css = document.createElement('style');
-    css.textContent = '.ib-btn{position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:inherit}.ib-btn:hover{background:rgba(0,31,95,.06)}.ib-btn svg{width:24px;height:24px}' +
-      '.ib-badge{position:absolute;top:3px;right:2px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#A50017;color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center}.ib-badge[hidden]{display:none}' +
-      '.ib-overlay{position:fixed;inset:0;background:rgba(2,10,34,.35);display:none;z-index:95}.ib-overlay.open{display:block}' +
-      '.ib-drawer{position:absolute;top:0;right:0;bottom:0;width:480px;max-width:100%;background:#fff;display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(0,20,60,.2);animation:ib-in .18s ease-out}@keyframes ib-in{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}' +
-      '.ib-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid #F5F6F6}.ib-head h3{margin:0 0 3px;font-size:17px;color:#202020}.ib-sub{margin:0;font-size:12.5px;color:#919C9C}' +
-      '.ib-x{border:0;background:transparent;font-size:16px;cursor:pointer;min-width:36px;min-height:36px;color:inherit}.ib-body{padding:16px 20px;overflow-y:auto;flex:1}' +
-      '.ib-card{display:flex;gap:12px;border:1px solid #E6E8E8;border-radius:6px;padding:12px;margin-bottom:10px}.ib-card.unread{border-color:#C0D5FF;background:#F1F6FF}' +
-      '.ib-ic{width:36px;height:36px;border-radius:50%;background:#E1E3E6;color:#4B5563;display:flex;align-items:center;justify-content:center;flex-shrink:0}.ib-ic.action{background:#FFF1D6;color:#92620A}.ib-ic svg{width:18px;height:18px}' +
-      '.ib-main{min-width:0;flex:1;font-size:13px;line-height:1.5}.ib-when{font-size:12px;color:#637373}.ib-meta{font-size:11.5px;color:#919C9C;margin-bottom:4px}.ib-subject{font-weight:700;color:#202020;margin-bottom:4px}' +
-      '.ib-line{color:#556767;word-break:break-word;margin-bottom:2px}.ib-tag{margin-left:6px;padding:1px 7px;border-radius:999px;background:#FFF1D6;color:#92620A;font-size:10.5px;font-weight:700;text-transform:uppercase}' +
-      '.ib-open{display:inline-block;margin-top:6px;font-weight:600;color:#2955B1;text-decoration:none}.ib-empty{padding:30px 10px;text-align:center;color:#919C9C;font-size:13px}';
-    document.head.appendChild(css);
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'ib-btn'; btn.innerHTML = BELL + '<span class="ib-badge" hidden>0</span>';
-    bar.insertBefore(btn, bar.firstChild);
-    const overlay = document.createElement('div');
-    overlay.className = 'ib-overlay';
-    overlay.innerHTML = '<aside class="ib-drawer" role="dialog" aria-label="Email notifications"><div class="ib-head"><div><h3>Email notifications</h3><p class="ib-sub"></p></div><button type="button" class="ib-x" aria-label="Close">&#10005;</button></div><div class="ib-body"></div></aside>';
-    document.body.appendChild(overlay);
-    inboxEls = { btn: btn, badge: btn.querySelector('.ib-badge'), overlay: overlay, sub: overlay.querySelector('.ib-sub'), body: overlay.querySelector('.ib-body') };
-    btn.addEventListener('click', openInbox);
-    overlay.querySelector('.ib-x').addEventListener('click', closeInbox);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeInbox(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && inboxOpen) closeInbox(); });
-    document.addEventListener('change', e => { if (e.target && e.target.id === 'roleSelect') setTimeout(refreshInbox, 0); });
-    window.addEventListener('storage', refreshInbox);
-    seedInbox();
-    renderInbox();
-  }
-
   /* Rate requests are reviewed on the application's own view too. */
   function requestURL(appId, tier) {
     const a = loadApplications().filter(x => x.id === appId)[0];
@@ -1475,7 +1405,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, refreshInbox: refreshInbox, mountInbox: mountInbox, payoutLabel: payoutLabel, payoutList: payoutList,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, mailbox: mailbox, emailOf: emailOf, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,
@@ -1483,4 +1413,3 @@ window.KashierRates = (function () {
   };
 })();
 
-(function () { var go = function () { try { window.KashierRates.mountInbox(); } catch (e) {} }; if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go(); })();

@@ -673,6 +673,9 @@
   .svc-table .cell-input:focus, .svc-table .cell-select:focus { outline: none; border-color: var(--primary); }
   .svc-table .cell-input:disabled { background: var(--muted); cursor: not-allowed; }
   .svc-table .cell-input.invalid { border-color: var(--destructive); }
+  .page-head-actions .phl-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .watch-btn { display: inline-flex; align-items: center; gap: 6px; } .watch-btn svg { width: 16px; height: 16px; }
+  .watch-btn.on { background: var(--ocean-10); border-color: var(--primary); color: var(--primary); }
   .rates-mode { margin-top: 6px; font-size: 11.5px; color: var(--cadet-05); line-height: 1.4; } .rates-mode .cell-link { display: inline; margin-top: 2px; }
   .cell-links { display: flex; gap: 10px; margin-top: 4px; }
   .cell-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 11.5px; font-weight: 600; color: var(--link); cursor: pointer; }
@@ -3075,13 +3078,37 @@
 
     // Status next to the title, and Mark as Lost while the application is still live in the pipeline.
     const canLose = isSales && ['new', 'application', 'rate-approval', 'onboarding-review', 'bank-submission'].includes(status);
+    const canWatch = ['manager', 'head'].indexOf(K.getRole()) !== -1;
     head.insertAdjacentHTML('beforeend', `<div class="page-head-actions">
       <div class="phl-left">
         <span class="status-badge ${esc(shown)}"><span class="dot"></span>${esc(LABELS[shown] || shown)}</span>
         <button type="button" class="btn btn-outline btn-sm" id="viewLogsBtn">View Logs</button>
       </div>
-      ${canLose ? '<button type="button" class="btn btn-outline btn-sm btn-cancel-app" id="markLostBtn">Cancel Application</button>' : ''}
+      <div class="phl-right">
+        ${canWatch ? `<button type="button" class="btn btn-outline btn-sm watch-btn" id="watchBtn" aria-pressed="false"></button>` : ''}
+        ${canLose ? '<button type="button" class="btn btn-outline btn-sm btn-cancel-app" id="markLostBtn">Cancel Application</button>' : ''}
+      </div>
     </div>`);
+    // Sales Manager and Head of Sales: Watch / Unwatch — emailed about every change and action on this application.
+    if (canWatch) {
+      const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>';
+      const EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>';
+      const paintWatch = () => {
+        const on = K.isWatching(sourceLeadId, K.getRole());
+        const b = $('watchBtn');
+        b.innerHTML = (on ? EYE_OFF : EYE) + '<span>' + (on ? 'Unwatch' : 'Watch') + '</span>';
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', String(on));
+        b.title = on ? 'You get an email about every change and action on this application. Click to stop.' : 'Get an email about every change and action on this application.';
+      };
+      paintWatch();
+      $('watchBtn').addEventListener('click', () => {
+        const on = !K.isWatching(sourceLeadId, K.getRole());
+        K.setWatching(sourceLeadId, K.getRole(), on);
+        paintWatch();
+        toast(on ? 'Watching \u2014 you will be emailed about every change and action on this application.' : 'Unwatched \u2014 you will no longer get emails about this application\u2019s changes.');
+      });
+    }
     const openLogs = () => { logPage = 1; renderLog(); $('logDrawerOverlay').classList.add('open'); };
     const closeLogs = () => $('logDrawerOverlay').classList.remove('open');
     $('viewLogsBtn').addEventListener('click', openLogs);

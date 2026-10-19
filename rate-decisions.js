@@ -886,7 +886,7 @@ window.KashierRates = (function () {
       'pending-bank-submission', 'bank-submission');
     // The salesperson and their manager are told it went to the bank.
     const owner = roleOfName(app.actor) || 'sales';
-    sendMail({ to: chainFor(owner).concat(readStore('kashierContributors')[app.leadId] || []), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
+    sendMail({ to: audience(app.leadId, chainFor(owner).concat(readStore('kashierContributors')[app.leadId] || [])), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
       subject: app.biz + ' is now in Bank Submission',
       lines: [ROLES.onboarding.name + ' approved ' + app.biz + ' internally and sent it to the bank.', 'Application: ' + app.id, 'Next: the bank or vendor approval, then the account goes live.'] });
     return 'pending-configurations';
@@ -905,7 +905,7 @@ window.KashierRates = (function () {
         text: 'Application rejected by the Onboarding team (' + ROLES.onboarding.name + '): ' + opts.reason.trim() };
       writeStore('kashierLeadReturnNote', notes);
     }
-    sendMail({ to: chainFor(roleOfName(app.actor) || 'sales').concat(readStore('kashierContributors')[app.leadId] || []), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
+    sendMail({ to: audience(app.leadId, chainFor(roleOfName(app.actor) || 'sales').concat(readStore('kashierContributors')[app.leadId] || [])), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
       subject: app.biz + ' was rejected by Underwriting',
       lines: [ROLES.onboarding.name + ' rejected the application.', 'Reason: ' + opts.reason.trim()].concat((items || []).map(i => i.type + ' \u2014 ' + i.name + ': ' + i.reason)).concat(['It is back with ' + app.actor + ' to update and resubmit.']) });
     return 'rejected';
@@ -916,7 +916,7 @@ window.KashierRates = (function () {
     if (opts.role !== 'onboarding' || prev.status !== 'pending-configurations') return null;
     setAccount(app, { status: 'live', by: ROLES.onboarding.name, ts: new Date().toISOString(), approvedTs: prev.approvedTs || prev.ts },
       'live', 'activated');
-    sendMail({ to: chainFor(roleOfName(app.actor) || 'sales').concat(readStore('kashierContributors')[app.leadId] || []), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
+    sendMail({ to: audience(app.leadId, chainFor(roleOfName(app.actor) || 'sales').concat(readStore('kashierContributors')[app.leadId] || [])), kind: 'update', leadId: app.leadId, biz: app.biz, by: ROLES.onboarding.name,
       subject: app.biz + ' is live', lines: ['The bank or vendor approved ' + app.biz + ' and the account is live. It is worked from the Merchant module from here.'] });
     return 'live';
   }
@@ -1334,6 +1334,23 @@ window.KashierRates = (function () {
   }
   /* Every email sent, newest first. */
   function mailbox() { seedMail(); return (readStore('kashierNotifications').list || []).slice().sort((x, y) => new Date(y.ts) - new Date(x.ts)); }
+  /* Watching an application: a Sales Manager or Head of Sales can turn it on to be emailed about every change and action, or
+     off to stop. With no choice made, whoever has worked on the application is watching it. */
+  function watchChoice(leadId, role) { const w = readStore('kashierWatchers')[leadId]; return w && w[role] != null ? !!w[role] : null; }
+  function isWatching(leadId, role) {
+    const c = watchChoice(leadId, role);
+    return c != null ? c : (readStore('kashierContributors')[leadId] || []).indexOf(role) !== -1;
+  }
+  function setWatching(leadId, role, on) {
+    const all = readStore('kashierWatchers'), w = all[leadId] = all[leadId] || {};
+    w[role] = !!on;
+    writeStore('kashierWatchers', all);
+  }
+  /* Who an update goes to: the people it is addressed to, anyone watching, minus whoever turned watching off. */
+  function audience(leadId, base) {
+    const watchers = Object.keys(readStore('kashierWatchers')[leadId] || {}).filter(r => watchChoice(leadId, r));
+    return uniq((base || []).concat(watchers)).filter(r => watchChoice(leadId, r) !== false);
+  }
   function addContributor(leadId, role) {
     if (!leadId || WORKERS.indexOf(role) === -1) return;
     const store = readStore('kashierContributors'), arr = store[leadId] || [];
@@ -1343,7 +1360,7 @@ window.KashierRates = (function () {
      quarter of an hour are gathered into one email, so a long editing session is not a flood. */
   function notifyContributors(leadId, actorRole, subject, lines, opts) {
     opts = opts || {};
-    const others = (readStore('kashierContributors')[leadId] || []).filter(r => r !== actorRole);
+    const others = audience(leadId, readStore('kashierContributors')[leadId] || []).filter(r => r !== actorRole);
     if (!others.length) return;
     const store = readStore('kashierNotifications'), list = store.list = store.list || [];
     const fresh = [];
@@ -1407,7 +1424,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, mailbox: mailbox, emailOf: emailOf, payoutLabel: payoutLabel, payoutList: payoutList,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, isWatching: isWatching, setWatching: setWatching, mailbox: mailbox, emailOf: emailOf, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

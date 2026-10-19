@@ -586,6 +586,7 @@
   .drawer-tools .btn-icon svg { width: 18px; height: 18px; }
   .drawer-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--border-subtle); background: #fff; }
   .pr-note { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 14px; padding: 11px 14px; border: 1px solid var(--ocean-07); background: var(--ocean-10); border-radius: 6px; font-size: 12.5px; line-height: 1.5; color: var(--cadet-base); }
+  .pr-mode { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: -4px 0 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 12.5px; color: var(--cadet-base); flex-wrap: wrap; } .pr-mode b { color: var(--foreground); }
   .pr-note-text b { color: var(--foreground); } .pr-note .btn { flex-shrink: 0; white-space: nowrap; }
   .pr-scroll { overflow-x: auto; }
   .rule-table { min-width: 900px; }
@@ -672,6 +673,7 @@
   .svc-table .cell-input:focus, .svc-table .cell-select:focus { outline: none; border-color: var(--primary); }
   .svc-table .cell-input:disabled { background: var(--muted); cursor: not-allowed; }
   .svc-table .cell-input.invalid { border-color: var(--destructive); }
+  .rates-mode { margin-top: 6px; font-size: 11.5px; color: var(--cadet-05); line-height: 1.4; } .rates-mode .cell-link { display: inline; margin-top: 2px; }
   .cell-links { display: flex; gap: 10px; margin-top: 4px; }
   .cell-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 11.5px; font-weight: 600; color: var(--link); cursor: pointer; }
   .cell-link.danger { color: var(--destructive); }
@@ -1198,6 +1200,10 @@
     { key: 'meeza-onus',     label: 'Meeza — On-us rate',     desc: 'Meeza cards issued by the acquiring bank.',   fixedFee: 1.5, standard: 1.2, manager: 0.9, head: 0.6 },
     { key: 'meeza-offus',    label: 'Meeza — Off-us rate',    desc: 'Meeza cards issued by any other local bank.', fixedFee: 1.8, standard: 1.4, manager: 1.1, head: 0.8 },
   ];
+  /* A Card service on the PF model is priced by default as two rates: Local rates (every domestic rate: National and Meeza,
+     on-us and off-us) and International rates. "Customize" opens the full breakdown, each domestic rate starting at the local rate. */
+  const LOCAL_RATE_TIER = { key: 'local', label: 'Local rates', desc: 'All domestic rates \u2014 National and Meeza, on-us and off-us.', fixedFee: 2, standard: 1.75, manager: 1.25, head: 0.75 };
+  const isCardPf = (service, bc) => service.includes('Card') && !!bc && bc.module === 'PF';
   const DEFAULT_RATE_TIERS = [
     { key: 'selling', label: 'Selling rate', desc: 'The percentage Kashier charges per transaction.', fixedFee: 1.5, standard: 1, manager: 0.75, head: 0.5 },
   ];
@@ -1213,7 +1219,9 @@
     let tiers = DEFAULT_RATE_TIERS;
     if (service.includes('Card')) {
       const accepted = bc && bc.currencies && bc.currencies.length ? bc.currencies : ['EGP'];
-      tiers = CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
+      if (isCardPf(service, bc) && !bc.customRates) tiers = [LOCAL_RATE_TIER].concat(accepted.map(intlRateTier));
+      else if (isCardPf(service, bc)) tiers = CARD_RATE_TIERS.map(t => Object.assign({}, t, { standard: LOCAL_RATE_TIER.standard, manager: LOCAL_RATE_TIER.manager, head: LOCAL_RATE_TIER.head, fixedFee: LOCAL_RATE_TIER.fixedFee })).concat(accepted.map(intlRateTier));
+      else tiers = CARD_RATE_TIERS.concat(accepted.map(intlRateTier));
     }
     const bf = service.includes('Card') && bank && BANK_COMPARE.indexOf(bank) !== -1 ? bankFactor(bank) : 1;
     const rf = bf * (MODEL_RATE_FACTOR[bc && bc.module] || 1);
@@ -1297,8 +1305,19 @@
      needs PSP, and switching to PF drops back to EGP-only. */
   const CURRENCIES = ['EGP', 'USD', 'EUR', 'GBP'];
   function currenciesFor(service) { return service.endsWith('Card') ? CURRENCIES : null; }
+  function setCustomRates(service, bank, on) {
+    const bc = ensureBankConfig(serviceConfig[service], bank);
+    if (on) {
+      // Each domestic rate starts at the local rate already entered (kept if it was customized before).
+      const loc = bc.pricing.get('local');
+      CARD_RATE_TIERS.forEach(t => { if (loc && !bc.pricing.get(t.key)) bc.pricing.set(t.key, Object.assign({}, loc)); });
+    }
+    bc.customRates = !!on;
+    logAction('Changed', (on ? 'Customized the card rates' : 'Back to local rates for the card') + ' \u2014 ' + whereOf(service, bank));
+    onSetupChanged();
+  }
   function ensureBankConfig(cfg, key) {
-    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: 'PF', pricing: new Map(), operations: [], notes: '', currencies: ['EGP'] };
+    if (!cfg.bankConfigs[key]) cfg.bankConfigs[key] = { module: 'PF', pricing: new Map(), operations: [], notes: '', currencies: ['EGP'], customRates: false };
     if (!cfg.bankConfigs[key].operations) cfg.bankConfigs[key].operations = [];
     if (cfg.bankConfigs[key].notes == null) cfg.bankConfigs[key].notes = '';
     if (!cfg.bankConfigs[key].currencies || !cfg.bankConfigs[key].currencies.length) cfg.bankConfigs[key].currencies = ['EGP'];
@@ -1736,6 +1755,8 @@
           : `<b>Why these ${rules.length} pricing rules?</b> Each one is defined for ${crit} and is for one of the application's activities (${mine.map(esc).join(', ')}), in both banks. Rules for other activities are not shown.`}</div>
         <button type="button" class="btn btn-outline btn-sm" data-open-pricing-rules>Open Pricing Rules &#8599;</button>
       </div>
+      ${isCardPf(s, bc) ? `<div class="pr-mode"><span>${bc.customRates ? '<b>Full rates.</b> Each domestic rate is shown on its own, starting at the local rate.' : '<b>Local rates and International rates.</b> The local rate covers every domestic rate.'}</span>
+        ${appMode === 'locked' ? '' : `<button type="button" class="btn btn-outline btn-sm" data-pr-custom>${bc.customRates ? 'Back to local rates' : 'Customize rates'}</button>`}</div>` : ''}
       <div class="pr-scroll"><table class="compare-table rule-table">
         <thead><tr><th class="c-rule">Pricing rule</th><th>Bank</th>${tiers.map(t => `<th>${esc(t.label)}</th>`).join('')}</tr></thead>
         <tbody>${rules.map((r, i) => {
@@ -1797,6 +1818,12 @@
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
     if (!pricingRulesTarget) return;
+    if (e.target.closest('[data-pr-custom]')) {
+      const { s: sv, key: bk } = pricingRulesTarget, bcz = serviceConfig[sv].bankConfigs[bk];
+      setCustomRates(sv, bk, !bcz.customRates);
+      renderPricingRules();
+      return;
+    }
     if (e.target.closest('[data-open-pricing-rules]')) { toast('Opens the Pricing Rules module on the portal.'); return; }
     const rule = e.target.closest('[data-pick-rule]');
     if (rule) { pricingRulesTarget.selected = rule.dataset.pickRule; const top = $('pricingRulesBody').scrollTop; renderPricingRules(); $('pricingRulesBody').scrollTop = top; return; }
@@ -1982,8 +2009,11 @@
         : '';
       const ops = operationsFor(s);
       const currencies = currenciesFor(s);
+      const ratesMode = editable && appMode !== 'locked' && isCardPf(s, bc)
+        ? `<div class="rates-mode"><span>${bc.customRates ? 'Each domestic rate is set on its own.' : 'Local rates cover every domestic rate.'}</span>
+             <button type="button" class="cell-link" data-customize="${esc(s)}::${esc(k || '')}">${bc.customRates ? 'Back to local rates' : 'Customize rates'}</button></div>` : '';
       const modelCell = cellSelectHTML(`data-model-select data-service="${esc(s)}" data-bank="${esc(k || '')}"`,
-        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !editable)
+        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !editable) + ratesMode
         + (currencies ? `<div class="op-list"><div class="op-title">Accepted Currencies</div>${(editable && bc.module === 'PF' ? ['EGP'] : currencies).map(c => `<label class="op-item">
               <input type="checkbox" data-currency-check="${esc(s)}::${esc(k || '')}::${esc(c)}"${editable && bc.currencies.includes(c) ? ' checked' : ''}${editable && bc.module !== 'PF' ? '' : ' disabled'}>
               <span>${esc(c)}</span></label>`).join('')}${editable && bc.module === 'PF' ? '<div class="op-hint">PF settles in EGP only — pick PSP for other currencies.</div>' : ''}</div>` : '')
@@ -2207,6 +2237,8 @@
 
   /* Add another link / remove one. */
   $('serviceSetupBody').addEventListener('click', e => {
+    const cz = e.target.closest('[data-customize]');
+    if (cz) { const [sv, bk] = cz.dataset.customize.split('::'); const bcz = serviceConfig[sv] && serviceConfig[sv].bankConfigs[bk]; if (bcz) setCustomRates(sv, bk, !bcz.customRates); return; }
     const add = e.target.closest('[data-link-add]'), rm = e.target.closest('[data-link-remove]');
     if (add) {
       criteria.websites.push('');
@@ -2820,6 +2852,8 @@
         bc.operations = c.operations || [];
         bc.notes = c.notes || '';
         bc.currencies = (c.currencies && c.currencies.length) ? c.currencies : ['EGP'];
+        // An application that priced each domestic rate on its own reopens customized.
+        bc.customRates = c.customRates != null ? !!c.customRates : (app.requests || []).some(r => r.service === sc.service && (r.bank || '') === (c.bank || '') && /::(national|meeza)-/.test(r.id));
         // Rates that needed no approval went in at the published pricing.
         ratesForService(sc.service, bc, key).forEach(t => bc.pricing.set(t.key, { rate: String(t.standard), fee: String(t.fixedFee), note: '', tier: 'auto' }));
       });
@@ -3323,7 +3357,7 @@
       const cfg = serviceConfig[s];
       const configs = bankKeysFor(cfg, s).map(k => ({ bank: k, module: (cfg.bankConfigs[k] && cfg.bankConfigs[k].module) || '',
         operations: (cfg.bankConfigs[k] && cfg.bankConfigs[k].operations) || [], notes: (cfg.bankConfigs[k] && cfg.bankConfigs[k].notes) || '',
-        currencies: (cfg.bankConfigs[k] && cfg.bankConfigs[k].currencies) || ['EGP'] }));
+        currencies: (cfg.bankConfigs[k] && cfg.bankConfigs[k].currencies) || ['EGP'], customRates: !!(cfg.bankConfigs[k] && cfg.bankConfigs[k].customRates) }));
       return { service: s, configs };
     });
     const qs = new URLSearchParams({

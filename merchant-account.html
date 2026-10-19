@@ -788,6 +788,7 @@
           `<div>${i + 1}. ${esc(a.activity || a.industry)}${a.activity && a.industry && a.activity !== a.industry ? ` <span style="color:var(--cadet-05)">\u00b7 ${esc(a.industry)}</span>` : ''}</div>`).join(''), true) : ''}
         ${kv('Contact Email', s.email)}
         ${kv('Contact Phone', s.phone)}
+        ${kv('Tax Invoice', app.taxInvoice ? 'Needed \u2014 Tax Identification Card uploaded' : 'Not needed')}
         ${(app.websites && app.websites.length ? app.websites : (app.website ? [app.website] : [])).length ? kv((app.websites && app.websites.length > 1) ? 'Website / Social Links' : 'Website / Social Link', (app.websites && app.websites.length ? app.websites : [app.website]).map(u => `<a href="${esc(/^https?:/i.test(u) ? u : 'https://' + u)}" target="_blank" rel="noopener">${esc(u)}</a>`).join('<br>'), true) : ''}
       </div>
       <h3 class="subsection">Sales Application</h3>

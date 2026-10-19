@@ -254,6 +254,10 @@
   .setup-step.flagged { border-color: var(--destructive); }
   .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
   .step-opt { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--cadet-05); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
+  .tax-extra { margin-bottom: 14px; }
+  .tax-check { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer; font-size: 13.5px; }
+  .tax-check input { margin-top: 2px; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--primary); }
+  .tax-check small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--cadet-05); line-height: 1.4; }
   .link-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
   .link-row { display: flex; align-items: flex-start; gap: 8px; } .link-field { flex: 1; min-width: 0; }
   .link-add { margin-bottom: 4px; }
@@ -1115,7 +1119,7 @@
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', altIndustries: [], services: [], posEnabled: false, posTerminals: '', websites: [''] };
+  const criteria = { entity: '', owner: '', industry: '', altIndustries: [], services: [], posEnabled: false, posTerminals: '', websites: [''], taxInvoice: false };
   const hasAnyService = () => criteria.services.length > 0;
   // 'edit' (not submitted), 'locked' (submitted — read-only) or 'returned' (feedback received).
   let appMode = 'edit';
@@ -1148,6 +1152,7 @@
   }
   const hasOnlineService = () => criteria.services.some(s => s.startsWith('Online '));
   const STORE_IMAGE_DOC = 'Store Image';
+  const TAX_DOC = 'Tax Identification Card';   // the tax ID, required when the merchant needs a tax invoice
   const urlShaped = v => /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(String(v || '').trim());
   /* Online services need the merchant's online presence, by choice: a website, or a social media page. */
   const SOCIAL_HOSTS = ['facebook.com', 'fb.com', 'fb.me', 'instagram.com', 'tiktok.com', 'twitter.com', 'x.com', 'linkedin.com', 'youtube.com', 'youtu.be',
@@ -1561,6 +1566,7 @@
       via.forEach(v => merged.get(name).add(v));
     };
     criteria.services.forEach(s => docsForService(s).forEach(add));
+    if (criteria.taxInvoice) add(['Tax invoice'], TAX_DOC);
     const out = new Map();
     merged.forEach((set, name) => out.set(name, [...set]));
     return out;
@@ -1843,6 +1849,7 @@
       const issues = [];
       if (hasOnlineService() && linksIssue()) issues.push(linksIssue());
       if (criteria.posEnabled && !isDocDone(STORE_IMAGE_DOC)) issues.push('Upload the store image');
+      if (criteria.taxInvoice && !isDocDone(TAX_DOC)) issues.push('Upload the Tax Identification Card (needed for the tax invoice)');
       // Each listed document is optional, but at least one of them has to be uploaded.
       const listed = [...computeAggregatedDocs().keys()];
       if (listed.length && !listed.some(isDocDone)) issues.push('Upload at least one document');
@@ -2030,7 +2037,10 @@
 
   function stepDocumentsHTML() {
     // Channel requirements come first: the website for Online services, the store image for POS.
-    let channel = '';
+    let channel = `<div class="channel-extra tax-extra">
+        <label class="tax-check"><input type="checkbox" id="taxInvoice"${criteria.taxInvoice ? ' checked' : ''}><span><b>The merchant needs a tax invoice</b>
+          <small>${criteria.taxInvoice ? 'The Tax Identification Card has to be uploaded below.' : 'Tick this if the merchant has to issue tax invoices \u2014 their Tax ID is then required.'}</small></span></label>
+      </div>`;
     if (hasOnlineService()) {
       const many = criteria.websites.length > 1;
       channel += `<div class="channel-extra">
@@ -2054,8 +2064,8 @@
     const docs = computeAggregatedDocs();
     const done = [...docs.keys()].filter(isDocDone).length;
     const list = docs.size
-      ? `<div class="setup-progress">${done} of ${docs.size} uploaded — every document is optional, but upload at least one to continue. Each is uploaded once, even when several services use it.</div>
-        ${[...docs.entries()].map(([name, via]) => reqItemHTML(name, via)).join('')}`
+      ? `<div class="setup-progress">${done} of ${docs.size} uploaded — ${criteria.taxInvoice ? 'the Tax Identification Card is required for the tax invoice; every other document is optional, but upload at least one to continue' : 'every document is optional, but upload at least one to continue'}. Each is uploaded once, even when several services use it.</div>
+        ${[...docs.entries()].map(([name, via]) => reqItemHTML(name, via, criteria.taxInvoice && name === TAX_DOC)).join('')}`
       : '<div class="whn-empty">No documents are required for this setup.</div>';
     return channel + (channel ? '<div class="setup-docs-gap"></div>' : '') + list;
   }
@@ -2220,6 +2230,12 @@
     if (e.target.matches('.website-inp') && e.target.dataset.before !== undefined && e.target.dataset.before !== e.target.value) {
       logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant website or social media link', [{ label: 'Website / social link', from: e.target.dataset.before, to: e.target.value }]);
       e.target.dataset.before = e.target.value;
+    }
+    if (e.target.id === 'taxInvoice') {
+      criteria.taxInvoice = e.target.checked;
+      logAction('Changed', e.target.checked ? 'Marked that the merchant needs a tax invoice' : 'Marked that the merchant does not need a tax invoice');
+      onSetupChanged();
+      return;
     }
     const svcToggle = e.target.closest('[data-service-toggle]');
     if (svcToggle) { setServiceActive(svcToggle.dataset.serviceToggle, svcToggle.checked); return; }
@@ -2778,6 +2794,7 @@
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';
     criteria.websites = (app.websites && app.websites.length ? app.websites : [app.website || '']).slice();
+    criteria.taxInvoice = !!app.taxInvoice;
     payouts = K.payoutList(app).filter(x => PAYOUT_RULES[x.method]).map(x => Object.assign(newPayout(x.method), x, { id: nextPayoutId++ }));
     if (payouts.length && !payouts.some(p => p.primary)) payouts[0].primary = true;
     syncServiceConfigs();
@@ -3333,6 +3350,7 @@
     // The Kashier PF contract goes along first when a PF service is on the application.
     requiredContracts().slice().reverse().forEach(c => { if (reqContracts[c.label]) submittedContracts.unshift({ label: c.label, file: reqContracts[c.label].name, required: true }); });
     if (submittedContracts.length) qs.set('contracts', JSON.stringify(submittedContracts));
+    if (criteria.taxInvoice) qs.set('taxInvoice', '1');
     const trackURL = 'merchant-onboarding.html?' + qs.toString();
 
     // Advance the originating lead straight to whichever stage follows submission —

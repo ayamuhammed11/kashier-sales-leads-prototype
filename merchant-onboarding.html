@@ -254,6 +254,9 @@
   .setup-step.flagged { border-color: var(--destructive); }
   .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
   .step-opt { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--cadet-05); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
+  .link-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+  .link-row { display: flex; align-items: flex-start; gap: 8px; } .link-field { flex: 1; min-width: 0; }
+  .link-add { margin-bottom: 4px; }
   .pf-contract { margin-bottom: 16px; padding: 14px 16px; border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; background: #fff; }
   .pf-contract.done { border-left-color: var(--success); }
   .pf-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
@@ -1112,7 +1115,7 @@
     { name: 'POS services',            docs: ['Store Lease / Location Proof'],                                entities: [], owners: [], industries: [], banks: [], modules: [], services: BASIC_SERVICES.filter(s => s.startsWith('POS ')) },
   ];
 
-  const criteria = { entity: '', owner: '', industry: '', altIndustries: [], services: [], posEnabled: false, posTerminals: '', website: '' };
+  const criteria = { entity: '', owner: '', industry: '', altIndustries: [], services: [], posEnabled: false, posTerminals: '', websites: [''] };
   const hasAnyService = () => criteria.services.length > 0;
   // 'edit' (not submitted), 'locked' (submitted — read-only) or 'returned' (feedback received).
   let appMode = 'edit';
@@ -1154,6 +1157,10 @@
     return !!m && SOCIAL_HOSTS.some(h => m[1].toLowerCase() === h || m[1].toLowerCase().endsWith('.' + h));
   };
   const websiteValid = v => urlShaped(v);   // a website, or a social media page: both are links
+  /* Any number of links, each a website or a social media page; at least one is required for Online services. */
+  const filledLinks = () => criteria.websites.map(x => String(x || '').trim()).filter(Boolean);
+  const linksIssue = () => !filledLinks().length ? 'Enter the merchant website or a social media link'
+    : filledLinks().some(x => !websiteValid(x)) ? 'Fix the link that is not a valid website or social media link' : '';
   const WEB_HINT = 'Enter a website or a social media link, e.g. www.merchant.com or instagram.com/merchant';
 
   function ruleMatches(r, cfg) {
@@ -1834,7 +1841,7 @@
     if (n === 2) {
       // Choosing an Online service asks for the website here; activating POS asks for the store image.
       const issues = [];
-      if (hasOnlineService() && !websiteValid(criteria.website)) issues.push('Enter the merchant website or a social media link');
+      if (hasOnlineService() && linksIssue()) issues.push(linksIssue());
       if (criteria.posEnabled && !isDocDone(STORE_IMAGE_DOC)) issues.push('Upload the store image');
       // Each listed document is optional, but at least one of them has to be uploaded.
       const listed = [...computeAggregatedDocs().keys()];
@@ -2025,11 +2032,17 @@
     // Channel requirements come first: the website for Online services, the store image for POS.
     let channel = '';
     if (hasOnlineService()) {
-      const invalid = criteria.website && !websiteValid(criteria.website);
+      const many = criteria.websites.length > 1;
       channel += `<div class="channel-extra">
-        <label class="crit-label" for="mWebsite">Merchant Website or Social Media Link<span class="req">*</span><span class="opt">(required for Online services \u2014 enter one of them)</span></label>
-        <input class="inp website-inp${invalid ? ' invalid' : ''}" id="mWebsite" type="url" placeholder="https://www.merchant.com or https://instagram.com/merchant" value="${esc(criteria.website)}">
-        <div class="field-hint" id="websiteHint"${invalid ? '' : ' hidden'}>${esc(WEB_HINT)}</div>
+        <div class="crit-label">Merchant Website or Social Media Links<span class="req">*</span><span class="opt">(required for Online services \u2014 at least one; add as many as the merchant has)</span></div>
+        <div class="link-list">${criteria.websites.map((v, i) => {
+          const bad = String(v || '').trim() && !websiteValid(v);
+          return `<div class="link-row" data-link-row="${i}">
+            <div class="link-field"><input class="inp website-inp${bad ? ' invalid' : ''}" data-link-idx="${i}" type="url" aria-label="Link ${i + 1}" placeholder="${i ? 'Another website or social media link' : 'https://www.merchant.com or https://instagram.com/merchant'}" value="${esc(v)}">
+              <div class="field-hint" data-link-hint="${i}"${bad ? '' : ' hidden'}>${esc(WEB_HINT)}</div></div>
+            ${many ? `<button type="button" class="btn-icon" data-link-remove="${i}" aria-label="Remove link ${i + 1}" title="Remove">${RM_ICON}</button>` : ''}
+          </div>`; }).join('')}</div>
+        <button type="button" class="btn btn-outline btn-sm link-add" data-link-add>+ Add another link</button>
       </div>`;
     }
     if (criteria.posEnabled) {
@@ -2176,8 +2189,24 @@
     }
   });
 
+  /* Add another link / remove one. */
+  $('serviceSetupBody').addEventListener('click', e => {
+    const add = e.target.closest('[data-link-add]'), rm = e.target.closest('[data-link-remove]');
+    if (add) {
+      criteria.websites.push('');
+      onSetupChanged();
+      const inputs = $('serviceSetupBody').querySelectorAll('.website-inp');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    } else if (rm) {
+      const i = Number(rm.dataset.linkRemove), gone = String(criteria.websites[i] || '').trim();
+      criteria.websites.splice(i, 1);
+      if (!criteria.websites.length) criteria.websites = [''];
+      if (gone) logAction('Removed', 'Removed merchant website or social media link', [{ label: 'Website / social link', value: gone }]);
+      onSetupChanged();
+    }
+  });
   $('serviceSetupBody').addEventListener('focusin', e => {
-    if (e.target.matches('.rate-input, .fee-input, #mWebsite')) e.target.dataset.before = e.target.value;
+    if (e.target.matches('.rate-input, .fee-input, .website-inp')) e.target.dataset.before = e.target.value;
   });
   $('serviceSetupBody').addEventListener('change', e => {
     const rf = e.target.closest('.rate-input, .fee-input');
@@ -2188,7 +2217,7 @@
         [{ label: rf.classList.contains('rate-input') ? 'Fees (%)' : 'Flat fee', from: rf.dataset.before, to: rf.value }]);
       rf.dataset.before = rf.value;
     }
-    if (e.target.id === 'mWebsite' && e.target.dataset.before !== undefined && e.target.dataset.before !== e.target.value) {
+    if (e.target.matches('.website-inp') && e.target.dataset.before !== undefined && e.target.dataset.before !== e.target.value) {
       logAction(e.target.dataset.before ? 'Changed' : 'Added', 'Changed merchant website or social media link', [{ label: 'Website / social link', from: e.target.dataset.before, to: e.target.value }]);
       e.target.dataset.before = e.target.value;
     }
@@ -2290,11 +2319,13 @@
       const v = e.target.value.replace(/\D/g, '');
       if (v !== e.target.value) e.target.value = v;
     }
-    if (e.target.id === 'mWebsite') {
-      criteria.website = e.target.value;
+    if (e.target.matches('.website-inp')) {
+      const i = Number(e.target.dataset.linkIdx);
+      criteria.websites[i] = e.target.value;
       const bad = e.target.value.trim() && !websiteValid(e.target.value);
       e.target.classList.toggle('invalid', !!bad);
-      $('websiteHint').hidden = !bad;
+      const hint = $('serviceSetupBody').querySelector(`[data-link-hint="${i}"]`);
+      if (hint) hint.hidden = !bad;
       refreshStepChrome();
       return;
     }
@@ -2746,7 +2777,7 @@
     criteria.services = (s.services || []).filter(x => SERVICES.includes(x));
     criteria.posEnabled = criteria.services.some(x => x.startsWith('POS ')) || !!s.posTerminals;
     criteria.posTerminals = s.posTerminals || '';
-    criteria.website = app.website || '';
+    criteria.websites = (app.websites && app.websites.length ? app.websites : [app.website || '']).slice();
     payouts = K.payoutList(app).filter(x => PAYOUT_RULES[x.method]).map(x => Object.assign(newPayout(x.method), x, { id: nextPayoutId++ }));
     if (payouts.length && !payouts.some(p => p.primary)) payouts[0].primary = true;
     syncServiceConfigs();
@@ -2843,7 +2874,7 @@
         'Business name': $('mBiz').value.trim(), 'Contact email': $('mEmail').value.trim(), 'Contact phone': $('mPhone').value.trim(),
         'Merchant type': criteria.entity, 'Industry': criteria.industry, 'Owner nationality': criteria.owner,
         'Activities': filledAltIndustries().map(a => a.activity === a.industry ? a.activity : a.activity + ' (' + a.industry + ')').join('; '),
-        'Website': criteria.website.trim(), 'POS terminals': String(criteria.posTerminals || ''),
+        'Website': filledLinks().join(', '), 'POS terminals': String(criteria.posTerminals || ''),
         'Payout methods': payoutsSummary(),
       },
       services,
@@ -3283,7 +3314,7 @@
       actor: K.ROLES[K.getRole()].name, ts: new Date().toISOString(),
     });
     if (criteria.posEnabled) qs.set('posTerminals', criteria.posTerminals);
-    if (hasOnlineService()) { qs.set('website', criteria.website.trim()); qs.set('websiteType', socialValid(criteria.website) ? 'social' : 'website'); }
+    if (hasOnlineService()) { qs.set('website', filledLinks()[0] || ''); qs.set('websites', JSON.stringify(filledLinks())); }
     if (submitComment) qs.set('comment', submitComment);
     if (filledAltIndustries().length) qs.set('altIndustries', JSON.stringify(filledAltIndustries()));
     const poList = payoutsPayload(), poPrimary = poList.find(p => p.primary);

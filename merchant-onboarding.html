@@ -257,6 +257,8 @@
   /* Lined up with the document rows above it: the checkbox in the icon column, the label where the document names start. */
   .channel-extra.tax-extra { margin: 0; padding: 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: none; }
   .tax-check { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--foreground); }
+  .tax-check.dim { opacity: .5; cursor: not-allowed; }
+  .tax-check small.hold { background: var(--muted); color: var(--cadet-05); }
   .tax-check input { flex: 0 0 28px; width: 28px; height: 15px; margin: 0; accent-color: var(--primary); }
   .tax-check small { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: var(--ocean-10); color: var(--primary); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
   .link-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
@@ -2038,7 +2040,9 @@
 
   /* The tax invoice check sits right under the Tax Identification Card, where the merchant's Tax ID is uploaded. */
   function taxCheckHTML() {
-    return `<div class="channel-extra tax-extra"><label class="tax-check"><input type="checkbox" id="taxInvoice"${criteria.taxInvoice ? ' checked' : ''}> The merchant needs a tax invoice${criteria.taxInvoice ? '<small>Tax ID required</small>' : ''}</label></div>`;
+    // Dimmed until the Tax Identification Card is uploaded; once ticked it stays available, so it can be unticked.
+    const ready = isDocDone(TAX_DOC) || criteria.taxInvoice;
+    return `<div class="channel-extra tax-extra"><label class="tax-check${ready ? '' : ' dim'}"><input type="checkbox" id="taxInvoice"${criteria.taxInvoice ? ' checked' : ''}${ready ? '' : ' disabled'}> The merchant needs a tax invoice${criteria.taxInvoice ? '<small>Tax ID required</small>' : ready ? '' : '<small class="hold">Upload the Tax ID first</small>'}</label></div>`;
   }
   function stepDocumentsHTML() {
     // Channel requirements come first: the website for Online services, the store image for POS.

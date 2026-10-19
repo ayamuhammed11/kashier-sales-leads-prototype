@@ -1341,6 +1341,8 @@ window.KashierRates = (function () {
     const c = watchChoice(leadId, role);
     return c != null ? c : (readStore('kashierContributors')[leadId] || []).indexOf(role) !== -1;
   }
+  /* What the switch shows: Unwatch only once Watch has been chosen. */
+  function watchChosen(leadId, role) { return watchChoice(leadId, role) === true; }
   function setWatching(leadId, role, on) {
     const all = readStore('kashierWatchers'), w = all[leadId] = all[leadId] || {};
     w[role] = !!on;
@@ -1424,7 +1426,7 @@ window.KashierRates = (function () {
     loadApplications: loadApplications,
     approvalRequests: approvalRequests, findApprovalRequest: findApprovalRequest, requestURL: requestURL,
     tierForPricing: tierForPricing, rejectedApplicationFor: rejectedApplicationFor,
-    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, isWatching: isWatching, setWatching: setWatching, mailbox: mailbox, emailOf: emailOf, payoutLabel: payoutLabel, payoutList: payoutList,
+    revisionPlan: revisionPlan, resubmitApplication: resubmitApplication, applicationURL: applicationURL, logEvent: logEvent, applicationLog: applicationLog, rejectionInfo: rejectionInfo, docKey: docKey, notifySubmission: notifySubmission, sendMail: sendMail, isWatching: isWatching, watchChosen: watchChosen, setWatching: setWatching, mailbox: mailbox, emailOf: emailOf, payoutLabel: payoutLabel, payoutList: payoutList,
     ACCOUNT_STATUS: ACCOUNT_STATUS, midFor: midFor, accountStatusFor: accountStatusFor,
     merchantAccounts: merchantAccounts, findAccount: findAccount, accountLog: accountLog, accountURL: accountURL,
     approveAccount: approveAccount, rejectAccount: rejectAccount, goLiveAccount: goLiveAccount,

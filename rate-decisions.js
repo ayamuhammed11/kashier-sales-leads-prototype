@@ -545,6 +545,7 @@ window.KashierRates = (function () {
     'L-022': 'MID-11954-552', 'L-023': 'MID-11967-663', 'L-024': 'MID-11980-774', 'L-025': 'MID-11993-885',
     'L-026': 'MID-12006-996', 'L-027': 'MID-12019-007',
     'L-028': 'MID-12031-118', 'L-029': 'MID-12044-229', 'L-030': 'MID-12057-330', 'L-031': 'MID-12070-441',
+    'L-032': 'MID-12083-552', 'L-033': 'MID-12096-663', 'L-034': 'MID-12109-774', 'L-035': 'MID-12122-885', 'L-036': 'MID-12135-996', 'L-037': 'MID-12148-007',
   };
 
   /* The seeded applications have no stored tracking link, so rebuild the one the lead page

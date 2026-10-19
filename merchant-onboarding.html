@@ -254,10 +254,11 @@
   .setup-step.flagged { border-color: var(--destructive); }
   .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
   .step-opt { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--cadet-05); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
-  .channel-extra.tax-extra { margin: 4px 0 8px; padding: 0 4px; border: 0; background: none; }
-  .tax-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--cadet-base); cursor: pointer; }
-  .tax-check input { width: 15px; height: 15px; flex-shrink: 0; accent-color: var(--primary); margin: 0; }
-  .tax-check small { padding: 1px 7px; border-radius: 999px; background: var(--ocean-10); color: var(--primary); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  /* Lined up with the document rows above it: the checkbox in the icon column, the label where the document names start. */
+  .channel-extra.tax-extra { margin: 0; padding: 0; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: none; }
+  .tax-check { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; cursor: pointer; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--foreground); }
+  .tax-check input { flex: 0 0 28px; width: 28px; height: 15px; margin: 0; accent-color: var(--primary); }
+  .tax-check small { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: var(--ocean-10); color: var(--primary); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
   .link-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
   .link-row { display: flex; align-items: flex-start; gap: 8px; } .link-field { flex: 1; min-width: 0; }
   .link-add { margin-bottom: 4px; }

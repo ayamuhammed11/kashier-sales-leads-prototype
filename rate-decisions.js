@@ -210,7 +210,7 @@ window.KashierRates = (function () {
       ],
       requests: [
         { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1, standardFee: 2,
+          rate: 'National — On-us rate (Mastercard/Visa)', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1, standardFee: 2,
           note: 'Processes 450K EGP/month across 3 branches — matching the rate their current provider quoted.' },
         { id: 'Online Card::Bank Misr::meeza-onus', service: 'Online Card', bank: 'Bank Misr',
           rate: 'Meeza — On-us rate', tier: 'manager', from: 0.9, to: 1.2, requested: 1, standard: 1.2, requestedFee: 1.5, standardFee: 1.5,
@@ -244,7 +244,7 @@ window.KashierRates = (function () {
       ],
       requests: [
         { id: 'Online Card::National Bank of Egypt::national-offus', service: 'Online Card', bank: 'National Bank of Egypt',
-          rate: 'National — Off-us rate', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2, requestedFee: 2, standardFee: 2,
+          rate: 'National — Off-us rate (Mastercard/Visa)', tier: 'head', from: 1, to: 1.5, requested: 0.9, standard: 2, requestedFee: 2, standardFee: 2,
           note: 'Subscription product on thin margins — Karim negotiated this rate before signing.' },
         { id: 'Online Wallet::::wallet', service: 'Online Wallet', bank: '',
           rate: 'Wallet rate', tier: 'head', from: 1, to: 1.5, requested: 0.8, standard: 2, requestedFee: 1, standardFee: 1.5,
@@ -277,10 +277,10 @@ window.KashierRates = (function () {
       ],
       requests: [
         { id: 'Online Card::Bank Misr::national-onus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.25, standard: 1.5, requestedFee: 1.5, standardFee: 2,
+          rate: 'National — On-us rate (Mastercard/Visa)', tier: 'manager', from: 1, to: 1.5, requested: 1.25, standard: 1.5, requestedFee: 1.5, standardFee: 2,
           note: 'Tuition payments peak at the start of each term — a partner referral with steady volume.' },
         { id: 'Online Card::Bank Misr::national-offus', service: 'Online Card', bank: 'Bank Misr',
-          rate: 'National — Off-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.1, standard: 1.5, requestedFee: 1, standardFee: 2,
+          rate: 'National — Off-us rate (Mastercard/Visa)', tier: 'manager', from: 1, to: 1.5, requested: 1.1, standard: 1.5, requestedFee: 1, standardFee: 2,
           note: 'Most parents pay with cards from other banks.' },
         { id: 'Online Bank Installments::Bank Misr::12-month', service: 'Online Bank Installments', bank: 'Bank Misr',
           rate: '12-month plan', tier: 'head', from: 3, to: 4, requested: 2.5, standard: 4.5, requestedFee: 2, standardFee: 2,
@@ -311,10 +311,10 @@ window.KashierRates = (function () {
       ],
       requests: [
         { id: 'Online Card::National Bank of Egypt::national-onus', service: 'Online Card', bank: 'National Bank of Egypt',
-          rate: 'National — On-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1.5, standardFee: 2,
+          rate: 'National — On-us rate (Mastercard/Visa)', tier: 'manager', from: 1, to: 1.5, requested: 1.2, standard: 1.5, requestedFee: 1.5, standardFee: 2,
           note: 'Long-standing supplier to shipping agents, steady monthly volume.' },
         { id: 'Online Card::National Bank of Egypt::national-offus', service: 'Online Card', bank: 'National Bank of Egypt',
-          rate: 'National — Off-us rate', tier: 'manager', from: 1, to: 1.5, requested: 1, standard: 1.5, requestedFee: 1, standardFee: 2,
+          rate: 'National — Off-us rate (Mastercard/Visa)', tier: 'manager', from: 1, to: 1.5, requested: 1, standard: 1.5, requestedFee: 1, standardFee: 2,
           note: 'Matching the rate their current provider offers.' },
       ],
       seedDecisions: {

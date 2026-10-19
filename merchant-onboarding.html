@@ -1185,8 +1185,8 @@
      Prototype simplification: these two rate sets apply universally across industry/bank/merchant type — the
      real module requires an exact match per combination — so every selected service always has a rate here. ══════════ */
   const CARD_RATE_TIERS = [
-    { key: 'national-onus',  label: 'National — On-us rate',  desc: 'Cards issued by the acquiring bank.',         fixedFee: 2,   standard: 1.5, manager: 1,   head: 0.5 },
-    { key: 'national-offus', label: 'National — Off-us rate', desc: 'Cards issued by any other local bank.',       fixedFee: 2,   standard: 2,   manager: 1.5, head: 1 },
+    { key: 'national-onus',  label: 'National — On-us rate (Mastercard/Visa)',  desc: 'Cards issued by the acquiring bank.',         fixedFee: 2,   standard: 1.5, manager: 1,   head: 0.5 },
+    { key: 'national-offus', label: 'National — Off-us rate (Mastercard/Visa)', desc: 'Cards issued by any other local bank.',       fixedFee: 2,   standard: 2,   manager: 1.5, head: 1 },
     { key: 'meeza-onus',     label: 'Meeza — On-us rate',     desc: 'Meeza cards issued by the acquiring bank.',   fixedFee: 1.5, standard: 1.2, manager: 0.9, head: 0.6 },
     { key: 'meeza-offus',    label: 'Meeza — Off-us rate',    desc: 'Meeza cards issued by any other local bank.', fixedFee: 1.8, standard: 1.4, manager: 1.1, head: 0.8 },
   ];

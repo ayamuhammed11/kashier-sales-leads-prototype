@@ -1161,7 +1161,7 @@
   const filledLinks = () => criteria.websites.map(x => String(x || '').trim()).filter(Boolean);
   const linksIssue = () => !filledLinks().length ? 'Enter the merchant website or a social media link'
     : filledLinks().some(x => !websiteValid(x)) ? 'Fix the link that is not a valid website or social media link' : '';
-  const WEB_HINT = 'Enter a website or a social media link, e.g. www.merchant.com or instagram.com/merchant';
+  const WEB_HINT = 'Enter a valid website or social media link';
 
   function ruleMatches(r, cfg) {
     if (r.entities.length && !r.entities.includes(cfg.entity)) return false;
@@ -2038,7 +2038,7 @@
         <div class="link-list">${criteria.websites.map((v, i) => {
           const bad = String(v || '').trim() && !websiteValid(v);
           return `<div class="link-row" data-link-row="${i}">
-            <div class="link-field"><input class="inp website-inp${bad ? ' invalid' : ''}" data-link-idx="${i}" type="url" aria-label="Link ${i + 1}" placeholder="${i ? 'Another website or social media link' : 'https://www.merchant.com or https://instagram.com/merchant'}" value="${esc(v)}">
+            <div class="link-field"><input class="inp website-inp${bad ? ' invalid' : ''}" data-link-idx="${i}" type="url" aria-label="Link ${i + 1}" placeholder="${i ? 'Another link' : 'www.merchant.com'}" value="${esc(v)}">
               <div class="field-hint" data-link-hint="${i}"${bad ? '' : ' hidden'}>${esc(WEB_HINT)}</div></div>
             ${many ? `<button type="button" class="btn-icon" data-link-remove="${i}" aria-label="Remove link ${i + 1}" title="Remove">${RM_ICON}</button>` : ''}
           </div>`; }).join('')}</div>

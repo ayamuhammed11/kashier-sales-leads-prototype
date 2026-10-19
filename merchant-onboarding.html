@@ -254,10 +254,10 @@
   .setup-step.flagged { border-color: var(--destructive); }
   .setup-step.flagged .setup-step-hint { color: var(--destructive); font-weight: 700; }
   .step-opt { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--cadet-05); font-family: 'Noto Sans', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
-  .tax-extra { margin: 10px 0 14px; }
-  .tax-check { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 6px; background: #fff; cursor: pointer; font-size: 13.5px; }
-  .tax-check input { margin-top: 2px; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--primary); }
-  .tax-check small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--cadet-05); line-height: 1.4; }
+  .channel-extra.tax-extra { margin: 4px 0 8px; padding: 0 4px; border: 0; background: none; }
+  .tax-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--cadet-base); cursor: pointer; }
+  .tax-check input { width: 15px; height: 15px; flex-shrink: 0; accent-color: var(--primary); margin: 0; }
+  .tax-check small { padding: 1px 7px; border-radius: 999px; background: var(--ocean-10); color: var(--primary); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
   .link-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
   .link-row { display: flex; align-items: flex-start; gap: 8px; } .link-field { flex: 1; min-width: 0; }
   .link-add { margin-bottom: 4px; }
@@ -2037,10 +2037,7 @@
 
   /* The tax invoice check sits right under the Tax Identification Card, where the merchant's Tax ID is uploaded. */
   function taxCheckHTML() {
-    return `<div class="channel-extra tax-extra">
-        <label class="tax-check"><input type="checkbox" id="taxInvoice"${criteria.taxInvoice ? ' checked' : ''}><span><b>The merchant needs a tax invoice</b>
-          <small>${criteria.taxInvoice ? 'The Tax Identification Card above has to be uploaded.' : 'Tick this if the merchant has to issue tax invoices — their Tax ID is then required.'}</small></span></label>
-      </div>`;
+    return `<div class="channel-extra tax-extra"><label class="tax-check"><input type="checkbox" id="taxInvoice"${criteria.taxInvoice ? ' checked' : ''}> The merchant needs a tax invoice${criteria.taxInvoice ? '<small>Tax ID required</small>' : ''}</label></div>`;
   }
   function stepDocumentsHTML() {
     // Channel requirements come first: the website for Online services, the store image for POS.

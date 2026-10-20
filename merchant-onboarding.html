@@ -676,7 +676,11 @@
   .page-head-actions .phl-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .watch-btn { display: inline-flex; align-items: center; gap: 6px; } .watch-btn svg { width: 16px; height: 16px; }
   .watch-btn.on { background: var(--ocean-10); border-color: var(--primary); color: var(--primary); }
-  .rates-mode { margin-top: 6px; font-size: 11.5px; color: var(--cadet-05); line-height: 1.4; } .rates-mode .cell-link { display: inline; margin-top: 2px; }
+  .rates-switch { display: flex; width: 100%; margin-top: 8px; padding: 2px; border: 1px solid var(--border); border-radius: 6px; background: var(--muted); }
+  .rates-switch button { flex: 1; border: 0; border-radius: 4px; padding: 6px 8px; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: var(--cadet-05); cursor: pointer; white-space: nowrap; }
+  .rates-switch button.on { background: var(--primary); color: #fff; }
+  .rates-switch button:not(.on):hover { color: var(--foreground); }
+  .pr-mode .rates-switch { width: auto; margin-top: 0; } .pr-mode .rates-switch button { padding: 6px 16px; }
   .cell-links { display: flex; gap: 10px; margin-top: 4px; }
   .cell-link { background: none; border: none; padding: 0; font-family: inherit; font-size: 11.5px; font-weight: 600; color: var(--link); cursor: pointer; }
   .cell-link.danger { color: var(--destructive); }
@@ -1206,6 +1210,10 @@
   /* A Card service on the PF model is priced by default as two rates: Local rates (every domestic rate: National and Meeza,
      on-us and off-us) and International rates. "Customize" opens the full breakdown, each domestic rate starting at the local rate. */
   const LOCAL_RATE_TIER = { key: 'local', label: 'Local rates', desc: 'All domestic rates \u2014 National and Meeza, on-us and off-us.', fixedFee: 2, standard: 1.75, manager: 1.25, head: 0.75 };
+  /* Local rates <-> Full rates: a two-option switch rather than a link. */
+  const ratesSwitchHTML = (attr, custom) => `<div class="rates-switch" role="group" aria-label="Rates view">
+    <button type="button" class="${custom ? '' : 'on'}" aria-pressed="${!custom}" ${attr}="local">Local rates</button>
+    <button type="button" class="${custom ? 'on' : ''}" aria-pressed="${!!custom}" ${attr}="full">Full rates</button></div>`;
   const isCardPf = (service, bc) => service.includes('Card') && !!bc && bc.module === 'PF';
   const DEFAULT_RATE_TIERS = [
     { key: 'selling', label: 'Selling rate', desc: 'The percentage Kashier charges per transaction.', fixedFee: 1.5, standard: 1, manager: 0.75, head: 0.5 },
@@ -1759,7 +1767,7 @@
         <button type="button" class="btn btn-outline btn-sm" data-open-pricing-rules>Open Pricing Rules &#8599;</button>
       </div>
       ${isCardPf(s, bc) ? `<div class="pr-mode"><span>${bc.customRates ? '<b>Full rates.</b> Each domestic rate is shown on its own, starting at the local rate.' : '<b>Local rates and International rates.</b> The local rate covers every domestic rate.'}</span>
-        ${appMode === 'locked' ? '' : `<button type="button" class="btn btn-outline btn-sm" data-pr-custom>${bc.customRates ? 'Back to local rates' : 'Customize rates'}</button>`}</div>` : ''}
+        ${appMode === 'locked' ? '' : ratesSwitchHTML('data-pr-mode', bc.customRates)}</div>` : ''}
       <div class="pr-scroll"><table class="compare-table rule-table">
         <thead><tr><th class="c-rule">Pricing rule</th><th>Bank</th>${tiers.map(t => `<th>${esc(t.label)}</th>`).join('')}</tr></thead>
         <tbody>${rules.map((r, i) => {
@@ -1821,10 +1829,10 @@
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
     if (!pricingRulesTarget) return;
-    if (e.target.closest('[data-pr-custom]')) {
-      const { s: sv, key: bk } = pricingRulesTarget, bcz = serviceConfig[sv].bankConfigs[bk];
-      setCustomRates(sv, bk, !bcz.customRates);
-      renderPricingRules();
+    const prm = e.target.closest('[data-pr-mode]');
+    if (prm) {
+      const { s: sv, key: bk } = pricingRulesTarget, bcz = serviceConfig[sv].bankConfigs[bk], full = prm.dataset.prMode === 'full';
+      if (bcz.customRates !== full) { setCustomRates(sv, bk, full); renderPricingRules(); }
       return;
     }
     if (e.target.closest('[data-open-pricing-rules]')) { toast('Opens the Pricing Rules module on the portal.'); return; }
@@ -2012,11 +2020,8 @@
         : '';
       const ops = operationsFor(s);
       const currencies = currenciesFor(s);
-      const ratesMode = editable && appMode !== 'locked' && isCardPf(s, bc)
-        ? `<div class="rates-mode"><span>${bc.customRates ? 'Each domestic rate is set on its own.' : 'Local rates cover every domestic rate.'}</span>
-             <button type="button" class="cell-link" data-customize="${esc(s)}::${esc(k || '')}">${bc.customRates ? 'Back to local rates' : 'Customize rates'}</button></div>` : '';
       const modelCell = cellSelectHTML(`data-model-select data-service="${esc(s)}" data-bank="${esc(k || '')}"`,
-        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !editable) + ratesMode
+        bc ? bc.module : '', MODULES.map(m => [m, `${m} - ${channelOf(s)}`]), 'Select model', !editable)
         + (currencies ? `<div class="op-list"><div class="op-title">Accepted Currencies</div>${(editable && bc.module === 'PF' ? ['EGP'] : currencies).map(c => `<label class="op-item">
               <input type="checkbox" data-currency-check="${esc(s)}::${esc(k || '')}::${esc(c)}"${editable && bc.currencies.includes(c) ? ' checked' : ''}${editable && bc.module !== 'PF' ? '' : ' disabled'}>
               <span>${esc(c)}</span></label>`).join('')}${editable && bc.module === 'PF' ? '<div class="op-hint">PF settles in EGP only — pick PSP for other currencies.</div>' : ''}</div>` : '')
@@ -2027,7 +2032,8 @@
               <textarea class="op-notes-input" data-note-service="${esc(s)}" data-note-bank="${esc(k || '')}"
                 placeholder="Any comment about this setup…"${editable && bc.module ? '' : ' disabled'}>${editable ? esc(bc.notes || '') : ''}</textarea></div>` : '');
       const pricingCell = appMode === 'locked' ? '' :
-        `<button type="button" class="btn btn-outline btn-sm cell-pricing-btn" data-view-pricing="${esc(s)}::${esc(k || '')}"${editable ? '' : ' disabled'}>View service pricing</button>`;
+        `<button type="button" class="btn btn-outline btn-sm cell-pricing-btn" data-view-pricing="${esc(s)}::${esc(k || '')}"${editable ? '' : ' disabled'}>View service pricing</button>`
+        + (editable && isCardPf(s, bc) ? ratesSwitchHTML('data-rates-mode', bc.customRates).replace('class="rates-switch"', `class="rates-switch" data-rates-for="${esc(s)}::${esc(k || '')}"`) : '');
       return rates.map((t, i) => {
         const sel = (bc && bc.pricing.get(t.key)) || { rate: '', fee: '', note: '' };
         const off = editable ? '' : ' disabled';
@@ -2240,8 +2246,12 @@
 
   /* Add another link / remove one. */
   $('serviceSetupBody').addEventListener('click', e => {
-    const cz = e.target.closest('[data-customize]');
-    if (cz) { const [sv, bk] = cz.dataset.customize.split('::'); const bcz = serviceConfig[sv] && serviceConfig[sv].bankConfigs[bk]; if (bcz) setCustomRates(sv, bk, !bcz.customRates); return; }
+    const rm0 = e.target.closest('[data-rates-mode]');
+    if (rm0) {
+      const [sv, bk] = rm0.closest('[data-rates-for]').dataset.ratesFor.split('::'), bcz = serviceConfig[sv] && serviceConfig[sv].bankConfigs[bk];
+      if (bcz && bcz.customRates !== (rm0.dataset.ratesMode === 'full')) setCustomRates(sv, bk, rm0.dataset.ratesMode === 'full');
+      return;
+    }
     const add = e.target.closest('[data-link-add]'), rm = e.target.closest('[data-link-remove]');
     if (add) {
       criteria.websites.push('');

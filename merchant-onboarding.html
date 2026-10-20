@@ -592,11 +592,17 @@
   .rule-table { min-width: 900px; }
   .rule-table .c-rule { min-width: 250px; } .rule-table .c-bank { white-space: nowrap; font-weight: 600; }
   .rule-row[data-pick-rule] { cursor: pointer; } .rule-row[data-pick-rule]:hover td:not(.better) { background: var(--ocean-10); }
-  .rule-row.picked td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
-  .rule-row.picked td { background-image: linear-gradient(var(--ocean-10), var(--ocean-10)); }
-  .rule-row.picked td.better { background-image: none; }
+  .rule-row.picked td { background: var(--ocean-10); }
+  .rule-row.picked td.better { background: #DDF2DE; }
+  .rule-row.picked td:first-child { box-shadow: inset 4px 0 0 var(--primary), inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+  .rule-row.picked td:last-child { box-shadow: inset -2px 0 0 var(--primary), inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+  .rule-row.picked td:not(:first-child):not(:last-child) { box-shadow: inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+  .rule-radio { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; border: 2px solid var(--cadet-06); border-radius: 50%; background: #fff; position: relative; }
+  .rule-radio.on { border-color: var(--primary); } .rule-radio.on::after { content: ''; position: absolute; inset: 2px; border-radius: 50%; background: var(--primary); }
+  .sel-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
+  .rule-row[data-pick-rule]:focus-visible { outline: 2px solid var(--ocean-07); outline-offset: -2px; }
   .rule-row.off { opacity: .7; }
-  .rule-name { font-weight: 700; color: var(--foreground); line-height: 1.35; }
+  .rule-name { display: flex; align-items: flex-start; gap: 10px; font-weight: 700; color: var(--foreground); line-height: 1.35; }
   .rule-cov { font-size: 11.5px; color: var(--cadet-05); margin-top: 3px; line-height: 1.4; } .rule-cov b { color: var(--foreground); }
   /* Table headers in the pricing pop-up: Kashier navy, white text. */
   .compare-table thead th { background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .04em; padding: 12px 10px; border-bottom: 0; }
@@ -795,7 +801,7 @@
     .rule-table td::before { content: attr(data-label); flex: 0 0 42%; text-align: left; font-size: 11.5px; font-weight: 700; color: var(--cadet-05); }
     .rule-table td.c-rule { display: block; text-align: left; padding-top: 0; } .rule-table td.c-rule::before { content: none; }
     .rule-table td.better { background: var(--success-bg) !important; border-radius: 4px; padding-left: 6px; padding-right: 6px; }
-    .rule-row.picked { border-color: var(--primary) !important; box-shadow: inset 3px 0 0 var(--primary); } .rule-row.picked td:first-child { box-shadow: none; }
+    .rule-table tr.rule-row.picked { border: 2px solid var(--primary) !important; background: var(--ocean-10); } .rule-row.picked td, .rule-row.picked td:first-child, .rule-row.picked td:last-child { box-shadow: none !important; }
     .rule-table td.c-rule { padding-left: 8px; }
     .rule-table .rv { text-align: right; } .rule-table .cell-hint { text-align: right; }
   }
@@ -1771,8 +1777,8 @@
         <thead><tr><th class="c-rule">Pricing rule</th><th>Bank</th>${tiers.map(t => `<th>${esc(t.label)}</th>`).join('')}</tr></thead>
         <tbody>${rules.map((r, i) => {
           const match = noActivities || pricingRuleMatches(r), on = r.id === selected;
-          return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}"` : ''}>
-            <td class="c-rule"><div class="rule-name">${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</div>
+          return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}" role="radio" aria-checked="${on}" tabindex="0"` : ''}>
+            <td class="c-rule"><div class="rule-name"><span class="rule-radio${on ? ' on' : ''}" aria-hidden="true"></span><span>${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}${on ? ' <span class="sel-tag">Selected</span>' : ''}</span></div>
             </td>
             <td class="c-bank" data-label="Bank">${esc(r.bank)}</td>
             ${tiers.map((t, ti) => { const v = ruleRates(r, t);

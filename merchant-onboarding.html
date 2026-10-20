@@ -586,6 +586,16 @@
   .drawer-tools .btn-icon svg { width: 18px; height: 18px; }
   .drawer-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--border-subtle); background: #fff; }
   .pr-note { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 14px; padding: 11px 14px; border: 1px solid var(--ocean-07); background: var(--ocean-10); border-radius: 6px; font-size: 12.5px; line-height: 1.5; color: var(--cadet-base); }
+  .pr-yours { margin: 0 0 16px; border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 6px; background: #fff; }
+  .pr-yours-head { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); font-size: 12.5px; color: var(--cadet-05); } .pr-yours-head b { font-size: 14px; color: var(--foreground); font-family: 'Outfit', sans-serif; }
+  .pr-yours-row { display: grid; grid-template-columns: minmax(180px, 1.6fr) 130px 150px minmax(160px, 1.2fr); gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border-subtle); } .pr-yours-row:last-child { border-bottom: 0; }
+  .pr-yours-name { font-weight: 700; font-size: 13px; color: var(--foreground); } .pr-yours-name small { display: block; margin-top: 2px; font-weight: 400; font-size: 11.5px; color: var(--cadet-05); }
+  .pr-yours-field { display: flex; flex-direction: column; gap: 3px; font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--cadet-05); } .pr-yours-field .cell-input { width: 100%; }
+  .pr-yours .cell-input { height: 36px; border: 1px solid var(--border); border-radius: 4px; padding: 0 10px; font: inherit; font-size: 13px; font-weight: 400; color: var(--foreground); background: #fff; }
+  .pr-yours .cell-input:focus { outline: 2px solid var(--ocean-07); border-color: var(--primary); }
+  .pr-verdict { justify-self: start; }
+  .rule-row.yours-row td { background: var(--ocean-10); font-weight: 600; } .rule-row.yours-row .rule-name { color: var(--primary); }
+  @media (max-width: 720px) { .pr-yours-row { grid-template-columns: 1fr 1fr; } .pr-yours-name, .pr-verdict { grid-column: 1 / -1; } }
   .pr-mode { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: -4px 0 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 12.5px; color: var(--cadet-base); flex-wrap: wrap; } .pr-mode b { color: var(--foreground); }
   .pr-note-text b { color: var(--foreground); } .pr-note .btn { flex-shrink: 0; white-space: nowrap; }
   .pr-scroll { overflow-x: auto; }
@@ -1737,6 +1747,23 @@
   const ruleName = (rule, s, bc) => [criteria.entity || 'Any merchant type', rule.group.label, channelOf(s), (bc && bc.module) || 'PF', stripChannel(s)].join(' \u00b7 ');
   const ruleAvg = (rule, tiers) => tiers.reduce((sum, t) => sum + t.standard * rule.factor, 0) / tiers.length;
 
+  /* The salesperson's own rates, entered right here beside the pricing rules: for a Card on PF, Local rates and International
+     rates by default, or every rate once customized. They are the same rates as in the services table. */
+  const VERDICT_TEXT = { auto: 'No approval needed', manager: 'Needs Sales Manager approval', head: 'Needs Head of Sales approval', '': 'Enter the rate and flat fee' };
+  const yoursCellHTML = (bc, t) => { const sel = bc.pricing.get(t.key); return sel && sel.rate !== '' && sel.rate != null ? `<span class="rv"><b>${esc(sel.rate)}%</b> + ${esc(sel.fee === '' || sel.fee == null ? '\u2014' : sel.fee)} ${esc(t.feeCurrency || 'EGP')}</span>` : '<span class="rv" style="color:var(--cadet-05)">Not entered</span>'; };
+  function yoursPanelHTML(s, key, bc, tiers) {
+    return `<div class="pr-yours">
+      <div class="pr-yours-head"><b>Your rates</b><span>${isCardPf(s, bc) && !bc.customRates ? 'Enter the local and international rates. Rates below the published pricing need approval.' : 'Enter each rate. Rates below the published pricing need approval.'}</span></div>
+      <div class="pr-yours-rows">${tiers.map(t => {
+        const sel = bc.pricing.get(t.key) || { rate: '', fee: '' }, v = (sel.rate !== '' && sel.rate != null && sel.fee !== '' && sel.fee != null) ? lineVerdict(t, sel).tier : '';
+        return `<div class="pr-yours-row" data-yours-row="${esc(t.key)}">
+          <div class="pr-yours-name">${esc(t.label)}<small>${esc(t.desc || '')}</small></div>
+          <label class="pr-yours-field"><span>Fees (%)</span><span class="unit-wrap" data-unit="%"><input class="cell-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" data-pr-key="${esc(t.key)}" data-pr-field="rate" value="${esc(sel.rate)}"></span></label>
+          <label class="pr-yours-field"><span>Flat fee</span><span class="unit-wrap" data-unit="${esc(t.feeCurrency || 'EGP')}"><input class="cell-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" data-pr-key="${esc(t.key)}" data-pr-field="fee" value="${esc(sel.fee)}"></span></label>
+          <span class="status-pill pr-verdict ${v === 'auto' ? 'success' : ''}" data-verdict="${esc(t.key)}"><span class="dot"></span>${esc(VERDICT_TEXT[v])}</span>
+        </div>`; }).join('')}</div>
+    </div>`;
+  }
   function renderRuleComparison() {
     const { s, key } = pricingRulesTarget;
     const cfg = serviceConfig[s], bc = ensureBankConfig(cfg, key);
@@ -1760,9 +1787,12 @@
       </div>
       ${isCardPf(s, bc) ? `<div class="pr-mode"><span>${bc.customRates ? '<b>Full rates.</b> Each domestic rate is shown on its own, starting at the local rate.' : '<b>Local rates and International rates.</b> The local rate covers every domestic rate.'}</span>
         ${appMode === 'locked' ? '' : `<button type="button" class="btn btn-outline btn-sm" data-pr-custom>${bc.customRates ? 'Back to local rates' : 'Customize rates'}</button>`}</div>` : ''}
+      ${appMode === 'locked' ? '' : yoursPanelHTML(s, key, bc, tiers)}
       <div class="pr-scroll"><table class="compare-table rule-table">
         <thead><tr><th class="c-rule">Pricing rule</th><th>Bank</th>${tiers.map(t => `<th>${esc(t.label)}</th>`).join('')}</tr></thead>
-        <tbody>${rules.map((r, i) => {
+        <tbody><tr class="rule-row yours-row"><td class="c-rule"><div class="rule-name">Your rates</div></td><td class="c-bank" data-label="Bank">${esc(key || '\u2014')}</td>
+          ${tiers.map(t => `<td data-label="${esc(t.label)}" data-yours-cell="${esc(t.key)}">${yoursCellHTML(bc, t)}</td>`).join('')}</tr>
+        ${rules.map((r, i) => {
           const match = noActivities || pricingRuleMatches(r), on = r.id === selected;
           return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}"` : ''}>
             <td class="c-rule"><div class="rule-name">${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</div>
@@ -1818,6 +1848,34 @@
   function closePricingRulesModal() { $('pricingRulesModal').classList.remove('open'); pricingRulesTarget = null; }
   $('pricingRulesClose').addEventListener('click', closePricingRulesModal);
   $('pricingRulesCancel').addEventListener('click', closePricingRulesModal);
+  $('pricingRulesBody').addEventListener('input', e => {
+    const inp = e.target.closest('[data-pr-key]');
+    if (!inp || !pricingRulesTarget) return;
+    let v = inp.value.replace(/[^\d.]/g, '');
+    const dot = v.indexOf('.');
+    if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+    if (v !== inp.value) inp.value = v;
+    const { s: sv, key: bk } = pricingRulesTarget, bcz = ensureBankConfig(serviceConfig[sv], bk);
+    const t = ratesForService(sv, bcz, bk).find(x => x.key === inp.dataset.prKey);
+    const cur = bcz.pricing.get(t.key) || { rate: '', fee: '', tier: '', note: '' };
+    const next = { rate: inp.dataset.prField === 'rate' ? v : cur.rate, fee: inp.dataset.prField === 'fee' ? v : cur.fee, note: cur.note || '' };
+    next.tier = lineVerdict(t, next).tier;
+    bcz.pricing.set(t.key, next);
+    const full = next.rate !== '' && next.fee !== '' && next.rate != null && next.fee != null;
+    const chip = $('pricingRulesBody').querySelector(`[data-verdict="${t.key}"]`);
+    if (chip) { chip.lastChild.textContent = VERDICT_TEXT[full ? next.tier : '']; chip.classList.toggle('success', full && next.tier === 'auto'); }
+    const cell = $('pricingRulesBody').querySelector(`[data-yours-cell="${t.key}"]`);
+    if (cell) cell.innerHTML = yoursCellHTML(bcz, t);
+    onSetupChanged();   // the services table behind the drawer follows
+  });
+  $('pricingRulesBody').addEventListener('focusin', e => { const i = e.target.closest('[data-pr-key]'); if (i) i.dataset.before = i.value; });
+  $('pricingRulesBody').addEventListener('change', e => {
+    const i = e.target.closest('[data-pr-key]');
+    if (!i || !pricingRulesTarget || i.dataset.before === undefined || i.dataset.before === i.value) return;
+    const { s: sv, key: bk } = pricingRulesTarget, t = ratesForService(sv, ensureBankConfig(serviceConfig[sv], bk), bk).find(x => x.key === i.dataset.prKey);
+    logAction('Changed', 'Changed ' + (i.dataset.prField === 'rate' ? 'fee' : 'flat fee') + ' \u2014 ' + whereOf(sv, bk) + ' \u00b7 ' + (t ? t.label : i.dataset.prKey), [{ label: i.dataset.prField === 'rate' ? 'Fees (%)' : 'Flat fee', from: i.dataset.before, to: i.value }]);
+    i.dataset.before = i.value;
+  });
   $('pricingRulesModal').addEventListener('click', e => {
     if (e.target === $('pricingRulesModal')) { closePricingRulesModal(); return; }
     if (!pricingRulesTarget) return;

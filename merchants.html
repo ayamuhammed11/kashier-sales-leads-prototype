@@ -523,7 +523,7 @@
     ['submitted', 'Application submitted', a => a.status === 'submitted'],
     ['pending-configurations', 'Pending Configurations', a => a.status === 'pending-configurations'],
     ['live', 'Live', a => a.status === 'live'],
-    ['rate-approval', 'Waiting rate approval', a => a.status === 'rate-approval'],
+    ['rate-approval', 'Pending rate approval', a => a.status === 'rate-approval'],
     ['returned', 'Returned / Rejected', a => a.status === 'returned' || a.status === 'rejected'],
   ];
   const params = new URLSearchParams(location.search);

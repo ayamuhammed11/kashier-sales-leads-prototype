@@ -726,7 +726,7 @@
     const gate = isOnboarding() ? '' : ' disabled title="Only the Onboarding team can take this action"';
     if (status === 'submitted' || status === 'rate-approval') {
       // Stage 1: shown from submission, usable once rates are through.
-      const locked = status === 'rate-approval' ? ' disabled title="Waiting for rate approval"' : gate;
+      const locked = status === 'rate-approval' ? ' disabled title="Pending rate approval"' : gate;
       $('stageActions').innerHTML = `
         <button class="round-btn reject" id="rejectBtn" aria-label="Reject application"${locked}>${ICON.x}</button>
         <button class="round-btn approve" id="approveBtn" aria-label="Approve application"${locked}>${ICON.check}</button>`;
@@ -741,7 +741,7 @@
     // One line saying where the account stands and what happens next.
     const pendingRates = pendingRateSummary(app);
     const notes = {
-      'rate-approval': ['warn', `Waiting for rate approval — ${pendingRates}. The underwriting review opens once every rate is decided.`],
+      'rate-approval': ['warn', `Pending rate approval — ${pendingRates}. The underwriting review opens once every rate is decided.`],
       'returned': ['danger', `Rates were rejected, so the application is back with ${esc(app.actor)} for revision.`],
       'submitted': isOnboarding()
         ? ['info', 'Review Business Info, Documents and Payment Configurations, then approve to send the application to the bank — or reject it with a reason.']

@@ -397,7 +397,7 @@
   const STATUS_META = {
     new:                 { label: 'New',                     cls: 'badge-new' },
     returned:            { label: 'Rejected',                cls: 'badge-returned' },
-    'rate-approval':     { label: 'Waiting Rate Approval',   cls: 'badge-rate-approval' },
+    'rate-approval':     { label: 'Pending Rate Approval',   cls: 'badge-rate-approval' },
     'onboarding-review': { label: 'Underwriting Review',       cls: 'badge-onboarding-review' },
     'bank-submission':   { label: 'Bank Submission',         cls: 'badge-bank-submission' },
     lost:                { label: 'Canceled',                cls: 'badge-lost' },
@@ -662,7 +662,7 @@
   }
 
   /* ══════════ Roles & rate approvals ══════════
-     A Sales Manager or Head of Sales reviews rate requests from the Waiting Rate Approval
+     A Sales Manager or Head of Sales reviews rate requests from the Pending Rate Approval
      tab of My Applications: it lists only the applications waiting on their level. The rules and what a decision does live in rate-decisions.js,
      shared with the application tracking page so both surfaces agree. */
   const { ROLES, TIER_LABEL, TIER_OWNER, readStore } = window.KashierRates;
@@ -699,7 +699,7 @@
     renderRole(); renderOwnerFilter(); renderTabs(); renderTable();
   });
 
-  /* ?role=manager&view=rates opens the Waiting Rate Approval tab directly — the link an
+  /* ?role=manager&view=rates opens the Pending Rate Approval tab directly — the link an
      approver is sent. */
   (function openFromURL() {
     const p = new URLSearchParams(location.search);

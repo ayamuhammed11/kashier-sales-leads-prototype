@@ -744,7 +744,7 @@ window.KashierRates = (function () {
   }
 
   /* Create the resubmitted application: a new id carrying the revised rates that still need
-     approval, linked back to the one it replaces. The lead moves to Waiting Rate Approval, or
+     approval, linked back to the one it replaces. The lead moves to Pending Rate Approval, or
      straight to Underwriting Review when every revised rate is at published pricing. */
   function resubmitApplication(opts) {
     const app = opts.app;
@@ -829,7 +829,7 @@ window.KashierRates = (function () {
        Pending Configurations →  Go Live, once the bank/vendor approval and credentials arrive
      Each step moves the lead and the salesperson's tracking page along with it. */
   const ACCOUNT_STATUS = {
-    'rate-approval':          { label: 'Waiting rate approval',   tone: 'warn' },
+    'rate-approval':          { label: 'Pending rate approval',   tone: 'warn' },
     'returned':               { label: 'Returned to sales',       tone: 'danger' },
     'submitted':              { label: 'Application submitted',   tone: 'warn' },
     'pending-configurations': { label: 'Pending Configurations',  tone: 'warn' },
@@ -1238,7 +1238,7 @@ window.KashierRates = (function () {
         value: (p.name ? p.name + ' — ' : '') + payoutLabel(p) + (p.primary && payoutList(app).length > 1 ? ' (primary)' : '') }));
       events.push({ ts: app.ts, who: app.actor, role: 'Salesperson', action: replaces[app.id] ? 'Resubmitted' : 'Submitted', category: 'Application',
         text: replaces[app.id] ? 'Resubmitted with revised rates' : 'Application submitted', details: details,
-        status: { from: replaces[app.id] ? 'Rejected' : 'New', to: need.length ? 'Waiting Rate Approval' : 'Underwriting Review' } });
+        status: { from: replaces[app.id] ? 'Rejected' : 'New', to: need.length ? 'Pending Rate Approval' : 'Underwriting Review' } });
 
       const d = decisionsFor(app.id);
       // Approvals carried over from the version this one replaces are already in the log once.
@@ -1265,7 +1265,7 @@ window.KashierRates = (function () {
           text: rejected ? 'Returned to the salesperson' : 'Every rate approved \u2014 sent to Underwriting Review',
           details: rejected ? [{ label: 'Rejected rates', value: rejected + ' of ' + need.length }, { label: 'Next step', value: app.actor + ' modifies the rejected rates and resubmits' }]
             : [{ label: 'Approved rates', value: String(need.length) }, { label: 'Next step', value: 'Underwriting Review by the Onboarding team' }],
-          status: { from: 'Waiting Rate Approval', to: rejected ? 'Rejected' : 'Underwriting Review' } });
+          status: { from: 'Pending Rate Approval', to: rejected ? 'Rejected' : 'Underwriting Review' } });
       }
       const rec = accountRecord(app);
       if (rec.approvedTs) events.push({ ts: rec.approvedTs, who: rec.by, role: 'Onboarding Team', action: 'Approved', category: 'Underwriting',

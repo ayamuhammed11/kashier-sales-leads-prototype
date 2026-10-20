@@ -3042,7 +3042,7 @@
       const reviewing = isSales && status === 'rate-approval' && app && !decides;
       const decidedN = reviewing ? app.requests.filter(r => K.decisionsFor(app.id)[r.id]).length : 0;
       const title = decides ? 'Rates waiting for your approval.'
-        : reviewing ? 'Waiting for rate approval — view only.'
+        : reviewing ? 'Pending rate approval — view only.'
         : status === 'lost' ? 'This application was canceled — view only.'
         : !isSales ? 'View only — only the salesperson can edit this application.'
         : `Submitted${app ? ' on ' + new Date(app.ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''} — view only.`;
@@ -3077,7 +3077,7 @@
 
     const head = document.querySelector('.page-head');
     const shown = status === 'application' && note && isSales ? 'returned' : status;
-    const LABELS = { new: 'New', application: 'New', returned: 'Rejected', 'rate-approval': 'Waiting Rate Approval',
+    const LABELS = { new: 'New', application: 'New', returned: 'Rejected', 'rate-approval': 'Pending Rate Approval',
       'onboarding-review': 'Underwriting Review', 'bank-submission': 'Bank Submission', activated: 'Live', lost: 'Canceled' };
 
     // CRM record — one click back to the lead in Zoho.
@@ -3437,7 +3437,7 @@
     const trackURL = 'merchant-onboarding.html?' + qs.toString();
 
     // Advance the originating lead straight to whichever stage follows submission —
-    // Waiting Rate Approval if any rate needs sign-off, else straight to Onboarding
+    // Pending Rate Approval if any rate needs sign-off, else straight to Onboarding
     // Review — and hand it the tracking link. My Applications / Lead Details read the same
     // localStorage keys to stay in sync.
     if (sourceLeadId) {

@@ -508,6 +508,8 @@
   .submit-row .val { font-size: 13px; font-weight: 700; color: var(--foreground); }
 
   /* Step 2 extras per channel */
+  .inp-locked, .inp-locked:focus { background: var(--muted); color: var(--cadet-base); cursor: not-allowed; border-color: var(--border); outline: none; box-shadow: none; }
+  .field-hint.locked-hint { margin-top: 4px; font-size: 11.5px; color: var(--cadet-05); }
   .channel-extra { margin-top: 14px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 8px; background: #FCFCFD; }
   .channel-extra .crit-label { display: block; margin-bottom: 8px; }
   .website-inp { max-width: 420px; }
@@ -891,7 +893,8 @@
             </div>
             <div class="field">
               <label class="lbl" for="mEmail">Contact Email<span class="req">*</span></label>
-              <input class="inp" id="mEmail" type="email" placeholder="owner@business.com">
+              <input class="inp inp-locked" id="mEmail" type="email" placeholder="owner@business.com" readonly aria-readonly="true" title="The contact email comes from the CRM and cannot be edited">
+              <div class="field-hint locked-hint">From the CRM — it cannot be edited.</div>
             </div>
             <div class="field">
               <label class="lbl" for="mPhone">Contact Phone<span class="req">*</span></label>

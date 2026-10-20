@@ -1778,7 +1778,7 @@
         <tbody>${rules.map((r, i) => {
           const match = noActivities || pricingRuleMatches(r), on = r.id === selected;
           return `<tr class="rule-row${on ? ' picked' : ''}${match ? '' : ' off'}"${match ? ` data-pick-rule="${esc(r.id)}" role="radio" aria-checked="${on}" tabindex="0"` : ''}>
-            <td class="c-rule"><div class="rule-name"><span class="rule-radio${on ? ' on' : ''}" aria-hidden="true"></span><span>${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}${on ? ' <span class="sel-tag">Selected</span>' : ''}</span></div>
+            <td class="c-rule"><div class="rule-name"><span class="rule-radio${on ? ' on' : ''}" aria-hidden="true"></span><span>${esc(ruleName(r, s, bc))}${i === 0 && match ? ' <span class="compare-badge">Best</span>' : ''}</span></div>
             </td>
             <td class="c-bank" data-label="Bank">${esc(r.bank)}</td>
             ${tiers.map((t, ti) => { const v = ruleRates(r, t);
